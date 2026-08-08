@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0.0",
+  "release": "v6 Evidence-Guarded",
+  "generatedAt": "2026-08-08",
+  "canonicalWorkbook": {
+    "path": "data/evidence-guarded-workbook-v6.json",
+    "sha256": "2966B253977D8D103DACA53494D9E6BA27187D8C9CD7DBDEA31F388D9BFE3A91",
+    "sheets": 27,
+    "formulas": 2945,
+    "sourceSha256": "5EB667D80EEBD9C9872CB72FD53963E002D02CF79B0AC550A8A41B56FF4F5155"
+  },
+  "audit": {
+    "path": "src/data/legacy-audit.json",
+    "sha256": "1EEE9B910EEBECB627A19CD685599961175B40BE457EF929C5E63F198645F96C",
+    "findings": 55,
+    "status": "FIXED_WITH_REMAINING_UNCERTAINTY"
+  },
+  "sourceArtifacts": [
+    {
+      "path": "sources/evidence-v6/UKD_Grow_Masterplan_Elite_2026_v6_EVIDENCE_GUARDED.xlsx",
+      "role": "operational-source",
+      "sha256": "5EB667D80EEBD9C9872CB72FD53963E002D02CF79B0AC550A8A41B56FF4F5155"
+    },
+    {
+      "path": "sources/evidence-v6/UKD_Grow_Masterplan_2026_v6_EVIDENCE_GUARDED_Mobile.pdf",
+      "role": "reading-companion",
+      "sha256": "1B2E6378A1DD3CF3710EFBF518ED5F7ECC4941EB02ED9AAFC58C1F91C2732E52"
+    },
+    {
+      "path": "sources/evidence-v6/deep-research-input.md",
+      "role": "untrusted-research-input",
+      "sha256": "5BA3AEDB096A38721DF69ABBDA96C8815147F7BB138ED1036E51F276915FA576"
+    }
+  ],
+  "importPolicy": "Raw research input is never canonical. Claims enter the knowledge base only after primary-source, scope, conflict, uncertainty, and freshness review."
+}

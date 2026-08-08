@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "2.0.0",
+  "project": "UKD Grow Masterplan 2026",
+  "release": "v6 Evidence-Guarded",
+  "locale": "de-DE",
+  "canonicalData": {
+    "operational": "evidence-guarded-workbook-v6.json / 02_Daily_Master",
+    "claims": "knowledge-base.json",
+    "audit": "legacy-audit.json",
+    "rules": "skills.json"
+  },
+  "invariants": [
+    "Pflanzenreaktion, Messwerte und Sicherheitsgrenzen überschreiben Kalenderwerte.",
+    "Guided, Advanced und Expert verändern nur Darstellung, niemals Ergebnis oder Quelldaten.",
+    "Herstellerlabel, Primärliteratur, UKD-Inferenz und Community-Beobachtung dürfen nicht gleich gerendert werden.",
+    "Unbekannte Wasserchemie bleibt unbekannt; keine CalMag- oder Athena-Dosis erfinden.",
+    "Tropf-Blumat ist kein Indoor-Referenzsystem dieses Projekts.",
+    "Big Bud/Overdrive werden nicht additiv mit HESI PK13/14 als Reference gestapelt.",
+    "Rhino Skin/Hesilicio sind standardmäßig aus, wenn Athena Balance als Siliziumquelle verwendet wird.",
+    "Ein Seed-Run ist kein kontrollierter kausaler A/B-Test.",
+    "KCanG §§3,9,10 sind die Rechtsbasis dieses privaten deutschen Setups; GACP/GMP darf nicht als pauschale Homegrow-Lizenzpflicht gerendert werden.",
+    "Eine Studie mit 78–98 % versus 37–58 % RH beweist Schäden extremer Feuchte, aber kein universelles RH-Optimum.",
+    "212–283 mg N/L aus einem organischen Coir-Versuch ist kein mineralisches HESI-Coco-Soll.",
+    "12/12-Logik photoperiodischer Pflanzen wird nicht auf Autoflower übertragen; auch 18 h bleibt eine UKD-Arbeitshypothese.",
+    "Bewässerungs-Liter sind Start-/Beobachtungsbänder und dürfen niemals erzwungen werden.",
+    "Konflikte zwischen Herstellerlabel und unabhängiger Literatur werden nebeneinander angezeigt, nicht gemittelt."
+  ],
+  "responsePolicy": {
+    "beginner": "Begriffe erklären, sichere nächste Aktion nennen, Unsicherheit sichtbar halten.",
+    "advanced": "Parameter, Annahmen, Beziehungen und Zwischenwerte zeigen.",
+    "expert": "Formeln, Rohwerte, Provenienz, Scope und bekannte Grenzen vollständig zeigen.",
+    "safety": "Keine Diagnose oder Dosiserhöhung ohne aktuelle Messwerte und Kontext empfehlen.",
+    "sources": "Gesetz/Regelwerk und Primärforschung werden nach Claim-Typ priorisiert; Hersteller ist kanonisch für das eigene Label, aber nicht für unabhängige Wirksamkeit. Händler und Community dürfen keine operative Dosis oder Rechtsregel autorisieren.",
+    "researchImport": "Sekundärsynthesen beginnen als untrusted input. Erst Claim-Extraktion, Scope-Prüfung, Primärquellenabgleich, Konfliktstatus und Reviewdatum erlauben eine Übernahme."
+  },
+  "highRiskInputs": [
+    "Ausgangs-EC",
+    "Ca mg/L",
+    "Mg mg/L",
+    "HCO3/Alkalinität",
+    "Endmix-pH",
+    "Drain-EC Trend",
+    "Blatttemperatur",
+    "Leckage-/Bewässerungsstatus",
+    "Rechts-/Quellen-Freshness",
+    "Genetik-/Photoperiodstatus"
+  ],
+  "updatedAt": "2026-08-08"
+}

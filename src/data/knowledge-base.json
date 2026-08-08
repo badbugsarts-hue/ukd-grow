@@ -1,0 +1,378 @@
+{
+  "schemaVersion": "2.0.0",
+  "reviewedAt": "2026-08-08",
+  "scope": "Evidence-Guarded v6 high-impact claims for a private German autoflower planning context. Product claims are instructions, not independent efficacy evidence; GACP/GMP is scoped to medicinal production rather than imposed as a blanket homegrow duty.",
+  "evidenceScale": {
+    "A": "law, primary research, standard, or first-party technical documentation",
+    "B": "systematic or narrative review, official extension, or corroborated technical source",
+    "C": "manufacturer product claim or bounded UKD engineering inference",
+    "D": "community observation or weak indirect evidence",
+    "E": "unverified, disputed, or explicitly unknown"
+  },
+  "claims": [
+    {
+      "id": "legal-private-plants-de",
+      "title": "Privater Eigenanbau in Deutschland",
+      "statement": "Volljährige Personen dürfen am Wohnsitz oder gewöhnlichen Aufenthalt gleichzeitig höchstens drei Cannabispflanzen privat anbauen; Weitergabe aus privatem Eigenanbau ist nicht erlaubt.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "Deutschland; aktueller Gesetzestext am Prüftag",
+      "uncertainty": "Rechtslage kann sich ändern; vor Entscheidungen erneut prüfen.",
+      "sourceIds": ["kcang-9"]
+    },
+    {
+      "id": "blumat-indoor",
+      "title": "Tropf-Blumat im Innenbereich",
+      "statement": "Der Hersteller beschreibt Tropf-Blumat als Außensystem und untersagt die Verwendung im Innenbereich. Es ist deshalb kein UKD-Referenzsystem für diesen Indoor-Plan.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "Tropf-Blumat; nicht pauschal alle Produkte der Marke Blumat",
+      "uncertainty": "Andere Systeme können andere Freigaben haben; Produkthandbuch prüfen.",
+      "sourceIds": ["blumat-worth-knowing", "blumat-manual"]
+    },
+    {
+      "id": "hesi-coco-label",
+      "title": "HESI Coco Herstellerangaben",
+      "statement": "HESI nennt 50 ml je 10 L bei jeder Bewässerung und einen pH-Bereich von 5,8 bis 6,2 für die Blüte. Der UKD-Plan verwendet bewusst reduzierte, nicht unabhängig validierte Dosen.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Herstellerlabel versus UKD Custom Plan",
+      "uncertainty": "Herstellerangaben belegen Anwendungsvorgaben, nicht ein universelles Optimum.",
+      "sourceIds": ["hesi-coco"]
+    },
+    {
+      "id": "athena-balance-order",
+      "title": "Athena Balance Mischreihenfolge",
+      "statement": "Athena beschreibt Balance als Wasseraufbereiter/pH-Puffer, besonders für RO-Wasser, und empfiehlt die Zugabe vor den Nährstoffen. Die aktuelle Produktseite enthält keine universelle ml/L-Anweisung; unbekannte Wasserchemie erzeugt deshalb im UKD-System keine positive Dosis.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Mischreihenfolge und Herstellerzweck",
+      "uncertainty": "Bedarf und Menge hängen von Wasserchemie und Endmix ab.",
+      "sourceIds": ["athena-balance-product", "athena-water-conditioners"]
+    },
+    {
+      "id": "dli-equation",
+      "title": "DLI-Berechnung",
+      "statement": "DLI wird als PPFD × Beleuchtungsstunden × 3600 / 1.000.000 berechnet.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "Konstanter oder zeitlich gemittelter PPFD",
+      "uncertainty": "Spotmessungen bilden räumliche und zeitliche Schwankungen nur begrenzt ab.",
+      "sourceIds": ["daily-light-integral-extension"]
+    },
+    {
+      "id": "leaf-vpd-model",
+      "title": "Leaf-VPD ist eine Schätzung",
+      "statement": "Leaf-VPD muss Blatt- und Lufttemperatur unterscheiden. Der Plan nutzt eine konfigurierbare Blatt-Temperaturdifferenz; eine IR-Messung ist belastbarer als ein fixer Offset.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Psychrometrische Berechnung, keine Cannabis-spezifische Zielwertstudie",
+      "uncertainty": "Blatttemperatur, Luftbewegung und Messort beeinflussen das Ergebnis.",
+      "sourceIds": ["ashrae-psychrometrics"]
+    },
+    {
+      "id": "light-response",
+      "title": "Lichtintensität und Ertrag",
+      "statement": "Eine kontrollierte Indoor-Studie fand im untersuchten Bereich steigenden Ertrag mit höherer Lichtintensität, aber daraus folgt kein universelles Optimum und keine direkte Autoflower-Empfehlung.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Untersuchte Genotypen und Umweltbedingungen; überwiegend photoperiodischer Kontext",
+      "uncertainty": "Genotyp, CO₂, Temperatur, Canopy und DLI begrenzen die Übertragbarkeit.",
+      "sourceIds": ["rodriguez-morrison-2021"]
+    },
+    {
+      "id": "npk-interactions",
+      "title": "NPK-Wechselwirkungen",
+      "statement": "N×K, K×P und N×P×K beeinflussten in einer vegetativen Cannabis-Studie mehrere Wachstumsmerkmale; mehr P und K senkte dort die Mg-Konzentration in Blättern.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Vegetative Phase, DWC, ein untersuchter Genotyp",
+      "uncertainty": "Nicht als universelle Dosierregel auf Coco oder andere Genotypen übertragen.",
+      "sourceIds": ["kpai-2024"]
+    },
+    {
+      "id": "phosphorus-overfeeding",
+      "title": "Mehr Phosphor ist nicht automatisch besser",
+      "statement": "In kontrollierten Studien erhöhte zusätzliches Phosphor den Austrag deutlich, ohne Ertrag oder Cannabinoidkonzentration zuverlässig zu verbessern.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Untersuchte Lösungen, Genotypen und Produktionsbedingungen",
+      "uncertainty": "Bedarf bleibt cultivar- und systemabhängig.",
+      "sourceIds": ["westmoreland-bugbee-2022", "hershkowitz-2025"]
+    },
+    {
+      "id": "drying-aw",
+      "title": "Trocknung und Wasseraktivität",
+      "statement": "Reviews beschreiben 18–21 °C und 50–55 % rF als verbreitete Praxis, nicht als universelles Optimum. Eine Wasseraktivität von etwa 0,55–0,65 wird als relevanter Endpunkt diskutiert.",
+      "status": "verified-with-boundary",
+      "evidence": "B",
+      "scope": "Postharvest-Praxis und Review-Evidenz",
+      "uncertainty": "Endpunkte, Sensorik und Qualitätsziele sind nicht vollständig standardisiert.",
+      "sourceIds": ["cannabis-postharvest-review", "cannabis-processing-review"]
+    },
+    {
+      "id": "legal-possession-access-de",
+      "title": "Besitz und Zugriffsschutz in Deutschland",
+      "statement": "Für Volljährige sind am Wohnsitz oder gewöhnlichen Aufenthalt bis zu 50 g Cannabis bezogen auf das Trockengewicht und bis zu drei lebende Pflanzen erlaubt. Cannabis und Vermehrungsmaterial müssen vor dem Zugriff Dritter, insbesondere von Kindern und Jugendlichen, geschützt werden.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "Deutschland; KCanG §§3 und 10 am Prüftag",
+      "uncertainty": "Rechtslage kann sich ändern; vor Ernte, Lagerung und jedem Release erneut prüfen.",
+      "sourceIds": ["kcang-3", "kcang-10"]
+    },
+    {
+      "id": "gacp-gmp-scope",
+      "title": "GACP/GMP ist kein pauschaler Homegrow-Pflichtenblock",
+      "statement": "EMA-GACP Revision 1 betrifft den Anbau, die Sammlung und Primärverarbeitung pflanzlicher Ausgangsstoffe für medizinische Zwecke; EU-GMP betrifft die Herstellung von Arzneimitteln. Diese Regelwerke sind wertvolle Qualitätsreferenzen, ersetzen aber nicht die operative Rechtsbasis des privaten Eigenanbaus nach KCanG.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Abgrenzung privater Eigenanbau gegenüber medizinisch/pharmazeutischer Produktion",
+      "uncertainty": "Andere Tätigkeiten, Produkte oder Vertriebswege können zusätzliche Erlaubnisse und Standards auslösen.",
+      "sourceIds": ["ema-gacp-rev1-2025", "eu-eudralex-gmp", "kcang-9"]
+    },
+    {
+      "id": "extreme-rh-study-boundary",
+      "title": "Extreme Luftfeuchte ist schädlich, Kontrollbereich ist kein Optimum",
+      "statement": "Eine kontrollierte Studie mit einem CBD-dominanten Klon fand bei 78–98 % RH gegenüber 37–58 % RH deutlich weniger Biomasse, verzögerte Blüte und geringere Cannabinoidkonzentrationen. Sie beweist weder 37–58 % als universelles Optimum noch feste 40–60/40–50-%-Zielbereiche.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "20 feminisierte Klone, ein Type-III-Genotyp, zwei breite RH-Behandlungen",
+      "uncertainty": "Genotyp, Temperatur, VPD, Luftbewegung und Messort begrenzen die Übertragbarkeit.",
+      "sourceIds": ["corredor-perilla-2025"]
+    },
+    {
+      "id": "organic-n-rate-boundary",
+      "title": "212–283 mg N/L ist kein allgemeines Cannabis-Optimum",
+      "statement": "Die häufig zitierte N-Spanne stammt aus einem Versuch mit einer konkreten organischen Flüssigdüngerformulierung, zwei coir-basierten organischen Substraten und einem Cultivar. Sie darf nicht direkt als Sollwert für mineralisches HESI-Coco oder Autoflower übernommen werden.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Caplan et al. 2017; untersuchte organische Formulierung und Versuchssysteme",
+      "uncertainty": "Ein belastbares UKD-N-Ziel erfordert Elementanalyse, Wasserchemie und systemnahe Versuche.",
+      "sourceIds": ["caplan-2017"]
+    },
+    {
+      "id": "autoflower-photoperiod-boundary",
+      "title": "12/12 ist keine automatische Autoflower-Regel",
+      "statement": "Aktuelle Genomik- und Phänotypdaten stützen Photoperioden-Insensitivität bei Autoflower-Accessions. Daraus folgt, dass 12/12-Blütelogik photoperiodischer Sorten nicht ungeprüft übertragen werden darf; 18 h im UKD-Plan bleibt dennoch eine Arbeitshypothese und kein bewiesenes Optimum.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Autoflower-Eigenschaft allgemein; kein 18/20/24-h-Vergleich für Double Grape im UKD-Setup",
+      "uncertainty": "Saatgutidentität, Genotyp und produktionsspezifisches DLI bleiben entscheidend.",
+      "sourceIds": ["babaei-2026", "autoflower-prr-2024"]
+    },
+    {
+      "id": "preharvest-flushing",
+      "title": "Preharvest-Flushing ist kein universeller Qualitätshebel",
+      "statement": "Eine kontrollierte Studie fand überwiegend geringe Effekte des Flushens auf Entwicklung, Ertrag, Cannabinoide und Terpene. Ein Hersteller-Finish kann als Labelvariante dokumentiert werden, darf aber nicht als wissenschaftlich garantierte Qualitätssteigerung erscheinen.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Untersuchte Cultivare und Bedingungen; Konflikt zwischen Herstellerlabel und unabhängiger Studie",
+      "uncertainty": "Cultivarabhängige Effekte und Ressourceneinsparung sind getrennt zu bewerten.",
+      "sourceIds": ["saloner-2024", "hesi-pk-1314"]
+    },
+    {
+      "id": "irrigation-observation-band",
+      "title": "Liter pro Tag sind Beobachtungsbänder",
+      "statement": "Die Literangaben der v6 sind Start- und Beobachtungsbänder, keine zu erzwingenden Dosen. Topfmasse, Substratfeuchte, Pflanzenreaktion, Verbrauchstrend und Diagnose-Drain überschreiben das Kalenderband.",
+      "status": "ukd-heuristic",
+      "evidence": "C",
+      "scope": "UKD 60×60-cm-/11-L-Coco-Plan",
+      "uncertainty": "Ohne reale Sensorik und Run-Daten sind die Bandgrenzen nicht validiert.",
+      "sourceIds": []
+    }
+  ],
+  "sources": [
+    {
+      "id": "kcang-9",
+      "title": "KCanG § 9 - Anforderungen an den privaten Eigenanbau",
+      "publisher": "Bundesministerium der Justiz / gesetze-im-internet.de",
+      "type": "law",
+      "url": "https://www.gesetze-im-internet.de/kcang/__9.html",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "kcang-3",
+      "title": "KCanG § 3 - Erlaubter Besitz von Cannabis",
+      "publisher": "Bundesministerium der Justiz / gesetze-im-internet.de",
+      "type": "law",
+      "url": "https://www.gesetze-im-internet.de/kcang/__3.html",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "kcang-10",
+      "title": "KCanG § 10 - Schutzmaßnahmen im privaten Raum",
+      "publisher": "Bundesministerium der Justiz / gesetze-im-internet.de",
+      "type": "law",
+      "url": "https://www.gesetze-im-internet.de/kcang/__10.html",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "ema-gacp-rev1-2025",
+      "title": "Guideline on GACP for starting materials of herbal origin - Revision 1",
+      "publisher": "European Medicines Agency",
+      "type": "regulatory-guideline",
+      "url": "https://www.ema.europa.eu/en/good-agricultural-collection-practice-starting-materials-herbal-origin-scientific-guideline",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "eu-eudralex-gmp",
+      "title": "EudraLex Volume 4 - EU GMP Guidelines",
+      "publisher": "European Commission",
+      "type": "regulatory-guideline",
+      "url": "https://health.ec.europa.eu/medicinal-products/eudralex/eudralex-volume-4_en",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "blumat-worth-knowing",
+      "title": "Tropf-Blumat - Wissenswertes",
+      "publisher": "Blumat",
+      "type": "manufacturer-technical",
+      "url": "https://www.blumat.com/de/tropf-blumat/worth-knowing",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "blumat-manual",
+      "title": "Tropf-Blumat Benutzerhandbuch",
+      "publisher": "Blumat",
+      "type": "manufacturer-manual",
+      "url": "https://www.blumat.com/storage/app/media/tropf/manual/Tropf-Blumat_user_manual_DE.pdf",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "hesi-coco",
+      "title": "HESI Coco",
+      "publisher": "HESI Plantenvoeding B.V.",
+      "type": "manufacturer-label",
+      "url": "https://hesi.nl/de/COCO",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "athena-water-conditioners",
+      "title": "Wasseraufbereiter für Züchter",
+      "publisher": "Athena Ag",
+      "type": "manufacturer-technical",
+      "url": "https://de.athenaag.com/water-conditioners",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "athena-balance-product",
+      "title": "Athena Balance product details and instructions",
+      "publisher": "Athena Ag",
+      "type": "manufacturer-technical",
+      "url": "https://store.athenaag.com/balance/",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "daily-light-integral-extension",
+      "title": "Daily Light Integral: A Research Review and High-resolution Maps of the United States",
+      "publisher": "HortScience / ASHS",
+      "type": "peer-reviewed-review",
+      "url": "https://doi.org/10.21273/HORTSCI.37.6.853",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "ashrae-psychrometrics",
+      "title": "ASHRAE Handbook - Psychrometrics",
+      "publisher": "ASHRAE",
+      "type": "technical-standard-reference",
+      "url": "https://handbook.ashrae.org/Handbooks/F21/SI/F21_Ch01/F21_Ch01_si.aspx",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "rodriguez-morrison-2021",
+      "title": "Cannabis Yield, Potency, and Leaf Photosynthesis Respond Differently to Increasing Light Levels",
+      "publisher": "Frontiers in Plant Science",
+      "type": "primary-research",
+      "url": "https://doi.org/10.3389/fpls.2021.646020",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "kpai-2024",
+      "title": "Mineral nutrition for Cannabis sativa in the vegetative stage using response surface analysis",
+      "publisher": "Frontiers in Plant Science",
+      "type": "primary-research",
+      "url": "https://doi.org/10.3389/fpls.2024.1501484",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "westmoreland-bugbee-2022",
+      "title": "Elevated root-zone phosphorus significantly increases leachate P and does not improve yield or quality",
+      "publisher": "Frontiers in Plant Science",
+      "type": "primary-research",
+      "url": "https://doi.org/10.3389/fpls.2022.1015652",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "hershkowitz-2025",
+      "title": "Elevated root-zone P and nutrient concentration do not increase yield or cannabinoids in medical cannabis",
+      "publisher": "Frontiers in Plant Science",
+      "type": "primary-research",
+      "url": "https://doi.org/10.3389/fpls.2025.1433985",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "cannabis-postharvest-review",
+      "title": "Postharvest Operations of Cannabis and Their Effect on Cannabinoid Content: A Review",
+      "publisher": "Processes / PMC",
+      "type": "peer-reviewed-review",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9404914/",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "cannabis-processing-review",
+      "title": "Processing and extraction methods of medicinal cannabis: a narrative review",
+      "publisher": "Journal of Cannabis Research / PMC",
+      "type": "peer-reviewed-review",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8290527/",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "corredor-perilla-2025",
+      "title": "Elevated relative humidity significantly decreases cannabinoid concentrations while delaying flowering development",
+      "publisher": "Frontiers in Plant Science",
+      "type": "primary-research",
+      "url": "https://doi.org/10.3389/fpls.2025.1678142",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "caplan-2017",
+      "title": "Optimal Rate of Organic Fertilizer during the Flowering Stage for Cannabis Grown in Two Coir-based Substrates",
+      "publisher": "HortScience",
+      "type": "primary-research",
+      "url": "https://doi.org/10.21273/HORTSCI12401-17",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "babaei-2026",
+      "title": "Integrating temporal morphophysiological and genomic markers for precise classification of flowering time in cannabis",
+      "publisher": "Scientific Reports",
+      "type": "primary-research",
+      "url": "https://doi.org/10.1038/s41598-026-53686-y",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "autoflower-prr-2024",
+      "title": "Loss of daylength sensitivity by splice site mutation in Cannabis pseudo-response regulator",
+      "publisher": "The Plant Journal",
+      "type": "primary-research",
+      "url": "https://doi.org/10.1111/tpj.16726",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "saloner-2024",
+      "title": "To flush or not to flush: Does flushing the growing media affect cannabinoid and terpenoid production in cannabis?",
+      "publisher": "Industrial Crops and Products",
+      "type": "primary-research",
+      "url": "https://doi.org/10.1016/j.indcrop.2024.119157",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "hesi-pk-1314",
+      "title": "HESI PK 13/14",
+      "publisher": "HESI Plantenvoeding B.V.",
+      "type": "manufacturer-label",
+      "url": "https://hesi.nl/de/PK-13-14",
+      "checkedAt": "2026-08-08"
+    }
+  ]
+}

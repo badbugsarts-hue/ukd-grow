@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "1.0.0",
+  "skills": [
+    {
+      "id": "explain-current-view",
+      "name": "Ansicht erklären",
+      "triggers": [
+        "Was sehe ich?",
+        "Erkläre diese Seite",
+        "Warum ist das wichtig?"
+      ],
+      "inputs": ["route", "experienceLens", "selectedDay"],
+      "outputs": ["orientation", "meaning", "nextActions", "interpretation"],
+      "guardrails": [
+        "Keine neuen Sollwerte erfinden",
+        "Scope und Unsicherheit nennen"
+      ]
+    },
+    {
+      "id": "daily-operator-review",
+      "name": "Tagescheck",
+      "triggers": ["Was ist heute zu tun?", "Tagesplan", "Checkliste"],
+      "inputs": ["selectedDay", "latestMeasurements", "openChecks"],
+      "outputs": ["targets", "actions", "stopRules", "missingMeasurements"],
+      "guardrails": [
+        "Messwert schlägt Kalender",
+        "Bei Stress Licht und EC nicht gleichzeitig erhöhen"
+      ]
+    },
+    {
+      "id": "mix-safety",
+      "name": "Mischassistent",
+      "triggers": ["Mischung berechnen", "Batch", "Düngerreihenfolge"],
+      "inputs": ["selectedDay", "batchLiters", "waterChemistry", "endMixPh"],
+      "outputs": ["productAmounts", "mixOrder", "warnings", "unknowns"],
+      "guardrails": [
+        "Konzentrat nie direkt mischen",
+        "Athena vor Dünger",
+        "pH Down erst nach Endmix",
+        "Kein pH-Ping-Pong"
+      ]
+    },
+    {
+      "id": "evidence-check",
+      "name": "Evidenzcheck",
+      "triggers": ["Ist das belegt?", "Quelle", "Wie sicher?"],
+      "inputs": ["claimId", "asOfDate"],
+      "outputs": ["status", "evidenceClass", "scope", "uncertainty", "sources"],
+      "guardrails": [
+        "Marketing ist kein Wirksamkeitsnachweis",
+        "Nicht über untersuchte Genotypen/Systeme hinaus verallgemeinern"
+      ]
+    },
+    {
+      "id": "research-import-gate",
+      "name": "Deep-Research-Import prüfen",
+      "triggers": [
+        "Research übernehmen",
+        "Neue Studie einbauen",
+        "Plan aktualisieren"
+      ],
+      "inputs": [
+        "candidateClaim",
+        "sourceUrl",
+        "claimType",
+        "population",
+        "system",
+        "intervention",
+        "comparison",
+        "outcome",
+        "asOfDate"
+      ],
+      "outputs": [
+        "primarySourceMatch",
+        "scopeBoundary",
+        "conflicts",
+        "evidenceClass",
+        "importDecision",
+        "reviewDate"
+      ],
+      "guardrails": [
+        "Sekundärsynthese beginnt als untrusted",
+        "Kontrollbereich einer Studie nie automatisch als Optimum rendern",
+        "System-, Cultivar- und Photoperiodgrenzen erhalten",
+        "Konflikte anzeigen statt Zahlen zu mitteln",
+        "Ohne Primärquelle keine neue operative Zahl"
+      ]
+    },
+    {
+      "id": "legal-release-gate",
+      "name": "Rechtsstand freigeben",
+      "triggers": [
+        "Ist das noch legal?",
+        "Release prüfen",
+        "Pflanzenzahl oder Bestand"
+      ],
+      "inputs": ["jurisdiction", "activity", "asOfDate", "officialLawText"],
+      "outputs": [
+        "applicableSections",
+        "allowedScope",
+        "prohibitions",
+        "accessRequirements",
+        "freshnessStatus"
+      ],
+      "guardrails": [
+        "Nur amtliche Normfassungen autorisieren Rechtsregeln",
+        "Privaten Eigenanbau nicht mit medizinisch-gewerblicher GACP/GMP-Produktion vermischen",
+        "Bei veraltetem Prüftag Rechtsmodul fail-closed markieren"
+      ]
+    },
+    {
+      "id": "diagnostic-triage",
+      "name": "Diagnose-Triage",
+      "triggers": ["Problem", "Mangel", "Stress", "Blätter"],
+      "inputs": [
+        "symptoms",
+        "photos",
+        "ph",
+        "ec",
+        "drainEc",
+        "temperature",
+        "humidity",
+        "watering"
+      ],
+      "outputs": [
+        "missingData",
+        "rankedHypotheses",
+        "safeChecks",
+        "escalation"
+      ],
+      "guardrails": [
+        "Keine visuelle Ferndiagnose als Fakt",
+        "Zuerst Messfehler und Wurzelzonenprobleme ausschließen",
+        "Nur eine Variable gleichzeitig ändern"
+      ]
+    }
+  ]
+}

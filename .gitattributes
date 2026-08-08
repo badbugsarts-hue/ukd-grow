@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+*.pdf binary
+*.xlsx binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+
+# Immutable provenance inputs: preserve their exact bytes and keep review diffs quiet.
+sources/evidence-v6/deep-research-input.md -text -diff
+@Akademisch* -text -diff
