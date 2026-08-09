@@ -21,8 +21,10 @@ test("run setup autosaves in IndexedDB and drives the cockpit", async ({
   await page.getByLabel("Genetik").fill("Test Genetic 2026");
   await page.getByLabel("Ausgangs-pH").fill("7.2");
   await page.getByLabel("Ausgangs-EC · mS/cm").fill("0.3");
-  await page.getByRole("button", { name: "Konfiguration speichern" }).click();
+  await page.getByRole("button", { name: "Setup-Profil speichern" }).click();
   await expect(page.getByRole("status")).toContainText("gespeichert");
+  await page.getByRole("button", { name: "Run aktivieren" }).click();
+  await expect(page.locator(".run-state-badge")).toContainText("active");
   await page.waitForTimeout(500);
   await page.reload();
   await expect(page.getByLabel("Genetik")).toHaveValue("Test Genetic 2026");
@@ -46,10 +48,59 @@ test("measurement log derives alerts and survives reload", async ({ page }) => {
   await expect(page.locator(".event-list")).toContainText(
     "Messdatensatz gespeichert",
   );
+  await page.getByLabel("Kategorie").selectOption("foliage");
+  await page.getByLabel("Schwere").selectOption("mild");
+  await page
+    .getByLabel("Beobachtung", { exact: true })
+    .fill("Blattspitzen leicht heller");
+  await page.getByRole("button", { name: "Beobachtung speichern" }).click();
+  await expect(page.locator(".event-list")).toContainText(
+    "Blattspitzen leicht heller",
+  );
+  await page.getByLabel("Originalmessung").selectOption({ index: 1 });
+  await page.getByLabel("Korrigierter Wert").fill("5.9");
+  await page.getByLabel("Korrekturgrund").fill("decimal-entry-error");
+  await page
+    .getByRole("button", { name: "Korrektur als neues Event speichern" })
+    .click();
+  await expect(page.locator(".event-list")).toContainText(
+    "Messwert korrigiert",
+  );
+  await page.getByLabel("Feld / Regel").fill("ec.target");
+  await page.getByLabel("Kanonischer Wert").fill("0.8");
+  await page.getByLabel("Override-Wert").fill("0.9");
+  await page.getByLabel("Begründung").fill("Dokumentierter Versuch");
+  await page
+    .getByRole("button", { name: "Override mit Begründung speichern" })
+    .click();
+  await expect(page.locator(".event-list")).toContainText(
+    "Override: ec.target",
+  );
   await page.getByRole("button", { name: "Geprüft" }).first().click();
   await page.waitForTimeout(500);
   await page.reload();
   await expect(page.locator(".event-list")).toContainText("Kontrollmessung");
+});
+
+test("run repository creates and switches immutable local runs", async ({
+  page,
+}) => {
+  await open(page, "history");
+  await expect(
+    page.getByRole("heading", { name: "Versionierte Runs" }),
+  ).toBeVisible();
+  await page.waitForTimeout(500);
+  const cards = page.locator(".run-history-grid article");
+  await expect(cards).toHaveCount(1);
+  await page.getByRole("button", { name: "Neuen Run-Entwurf anlegen" }).click();
+  await expect(cards).toHaveCount(2);
+  await expect(page.locator(".run-history-grid article.active")).toContainText(
+    "DRAFT",
+  );
+  await page.getByRole("button", { name: "Run öffnen" }).first().click();
+  await expect(page.locator(".run-history-grid article.active")).toContainText(
+    /DRAFT|ACTIVE/,
+  );
 });
 
 test("today checklist persists across navigation and reload", async ({

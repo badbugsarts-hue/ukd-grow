@@ -15,6 +15,12 @@ type Workbook = Record<
 
 `02_Daily_Master` ist die operative Tagesquelle. Spalten werden ausschließlich über `DAILY_COLUMNS` in `src/domain.ts` adressiert.
 
+## RunPackage v2
+
+Persönliche Run-Daten liegen außerhalb des EvidenceStore. Ein Run enthält einen unveränderlichen `RunConfigurationSnapshot`, Zonen, Pflanzen, typisierte `ScientificValue`-Messungen, strukturierte Beobachtungen, semantische Tasks, Overrides und append-only AuditEvents. Korrekturen superseden einen Messwert mit Referenz und Grund; das Original bleibt erhalten.
+
+`RunRepository` abstrahiert Speicherung, Auflistung und Auswahl mehrerer Runs. Die aktuelle Implementierung nutzt IndexedDB v2. JSON v1 wird beim Lesen kontrolliert nach v2 migriert.
+
 ## Knowledge claim
 
 Jeder Claim benötigt:
@@ -44,3 +50,5 @@ Das Profil speichert keine pauschal addierte „Gesamtfreigabe“. Der technisch
 `capability-roadmap.json` verhindert Architektur-Halluzinationen. Die Datei trennt implementierte, geplante und nur bei einem validierten Trigger aktivierbare Fähigkeiten. Sie ist kanonisch für Backend-, Datenbank-, Auth-, Sensor-, Export- und Next.js-Status sowie für Datenzustände und Performancebudgets.
 
 Eine externe Planung oder ein Mockup darf einen `conditional`-Eintrag nicht als vorhandene Funktion darstellen. Der Wechsel zu `implemented` benötigt Code, Tests, Betriebsdokumentation und ein aktualisiertes Reviewdatum.
+
+`integration-epics.json` ergänzt den Fremdcode-Intake und 20 Entwicklungs-Epics. Unverifizierte Kandidaten haben immer `codeImportAllowed=false`; Pattern-Studium ist keine Lizenz- oder Qualitätsfreigabe.

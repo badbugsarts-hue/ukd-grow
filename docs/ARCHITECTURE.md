@@ -2,7 +2,7 @@
 
 ## Entscheidung
 
-React 19.2, TypeScript 7 und Vite 8 bilden eine statisch deploybare Single-Page-Anwendung. Es gibt keinen Serverzwang, keine Authentifizierung, keine Telemetrie und keine Hostingspezialisierung. Der operative Einzelplatz-Run wird als versioniertes `RunPackage` lokal in IndexedDB gespeichert.
+React 19.2, TypeScript 7 und Vite 8 bilden eine statisch deploybare Single-Page-Anwendung. Es gibt keinen Serverzwang, keine Authentifizierung, keine Telemetrie und keine Hostingspezialisierung. Operative Einzelplatz-Runs werden als `RunPackage v2` über eine austauschbare `RunRepository`-Schnittstelle lokal in IndexedDB gespeichert.
 
 Next.js wurde nicht gewählt: Das Produkt ist ein lokaler/offline-naher Operator- und Referenzworkspace ohne serverseitige Datenmutation, SSR-Anforderung oder Server Actions. Die zusätzliche Server-/Routingkomplexität hätte keinen entsprechenden Produktwert.
 
@@ -23,10 +23,13 @@ knowledge-base.json ─┐
 ai-context.json      ├─ React UI → Guided / Advanced / Expert
 skills.json          ┘
 
-RunPackage v1 ↔ IndexedDB
-  ├─ Konfiguration, Messungen, Ereignisse und Checklisten
-  ├─ Warnungsbestätigungen und Bestandsereignisse
-  └─ validiertes JSON-Backup / CSV / XLSX / PDF / Druck
+RunRepository ↔ IndexedDB v2
+  └─ RunPackage v2
+      ├─ immutable RunConfigurationSnapshot / Zonen / Pflanzen
+      ├─ ScientificValue-Messungen / strukturierte Beobachtungen
+      ├─ semantische Tasks / Overrides / append-only AuditEvents
+      ├─ Timeline / Warnungsbestätigungen / Bestandsereignisse
+      └─ validiertes JSON-Backup / CSV / XLSX / PDF / Druck
 ```
 
 Ein persönliches Rechtsprofil ist ausdrücklich nicht Teil dieses eingecheckten Datenflusses. `legal-profile.schema.json` definiert nur die Struktur; konkrete Patienten-, Rezept- und Genehmigungsdaten bleiben in einer ignorierten lokalen Datei. Technischer Bruttoertrag und rechtlich zulässiger Bestand sind getrennte Domänen.
@@ -39,8 +42,14 @@ Der große Workbook-Snapshot wird zur Laufzeit separat geladen. Dadurch bleibt d
 - Persistent preference: Lens, Tag, Theme, Kontrast und Textskalierung in Local Storage.
 - Transient: Drawer, Navigation, Suchdialog, Tabellenfilter.
 - Session-only sensitive context: importiertes Rechtsprofil ohne Dokumentinhalt.
-- Local operational domain: RunPackage v1 in IndexedDB; vollständig als JSON sicher- und wiederherstellbar.
+- Local operational domain: mehrere RunPackage-v2-Objekte in IndexedDB; v1-Backups werden kontrolliert migriert und bleiben vollständig als JSON sicher- und wiederherstellbar.
 - Domain snapshot: `evidence-guarded-workbook-v6.json`, unveränderlich im Browser.
+
+## Domain-Grenzen
+
+EvidenceStore und RunRepository sind getrennte Wahrheitsbereiche. Run-Daten referenzieren Evidenz, speichern sie aber nicht als veränderbare Kopie. Messkorrekturen löschen das Original nicht: Ein neues Measurement superseded das alte und erzeugt ein AuditEvent. Nach Aktivierung bleibt der RunConfigurationSnapshot unveränderlich; spätere Profiländerungen wirken nicht rückwirkend.
+
+Ungeprüfte Fremdanwendungen sind weder Backend noch Domain-Core. `THIRD_PARTY_INTEGRATION_GOVERNANCE.md` und `src/data/integration-epics.json` definieren den verpflichtenden Intake-Gate.
 
 ## Abhängigkeiten
 

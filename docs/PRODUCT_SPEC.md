@@ -11,15 +11,16 @@ Eine einzige UI soll neue Nutzer sicher zu einer sinnvollen Tagesentscheidung f�
 3. Messprotokoll: Istwerte, Notizen, Aktionen und chronologisches Ereignislog.
 4. Heute: vollst채ndige Tageskarte mit persistenter Checkliste und Stop-Regel.
 5. Zeitachse: 81 Tage, Phasen und triggerbasierte Feed-Verl채ufe.
-6. Mischlabor: ml/L-zu-Batch-Rechnung und Mess-Gates.
-7. Klima & Licht: PPFD/DLI/VPD/Energie mit Interpretationsgrenzen.
-8. N채hrstoffsystem: operativer Motor, A/B-Abgrenzung, Do-not-stack.
-9. Bibliothek: Produkte, Kompatibilit채t und Diagnose-Triage.
-10. Evidenz: kuratierte Claims, Quellen und 55 Audit-Findings.
-11. Rohdaten: vollst채ndige Werte und im Expert-Modus Formeln.
-12. Recht & Bestand: sitzungsgebundenes Rechtsprofil und persistentes Bestandsereignislog ohne Dokumentablage.
-13. Berichte: validiertes JSON-Backup/Restore sowie CSV-, XLSX-, PDF- und Druckexport.
-14. System: Datenhash, Offline-/Integrationsstatus, Kontrast und Textskalierung.
+6. Run-Historie: isolierte lokale Runs, immutable Snapshots und sicherer Wechsel.
+7. Mischlabor: ml/L-zu-Batch-Rechnung und Mess-Gates.
+8. Klima & Licht: PPFD/DLI/VPD/Energie mit Interpretationsgrenzen.
+9. N채hrstoffsystem: operativer Motor, A/B-Abgrenzung, Do-not-stack.
+10. Bibliothek: Produkte, Kompatibilit채t und Diagnose-Triage.
+11. Evidenz: kuratierte Claims, Quellen und 55 Audit-Findings.
+12. Rohdaten: vollst채ndige Werte und im Expert-Modus Formeln.
+13. Recht & Bestand: sitzungsgebundenes Rechtsprofil und persistentes Bestandsereignislog ohne Dokumentablage.
+14. Berichte: validiertes JSON-Backup/Restore sowie CSV-, XLSX-, PDF- und Druckexport.
+15. System: Datenhash, Offline-/Integrationsstatus, Kontrast und Textskalierung.
 
 ## Experience Lens
 

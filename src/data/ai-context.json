@@ -9,7 +9,8 @@
     "audit": "legacy-audit.json",
     "rules": "skills.json",
     "legalProfileTemplate": "legal-profile.example.json",
-    "capabilityRoadmap": "capability-roadmap.json"
+    "capabilityRoadmap": "capability-roadmap.json",
+    "integrationEpics": "integration-epics.json"
   },
   "invariants": [
     "Pflanzenreaktion, Messwerte und Sicherheitsgrenzen überschreiben Kalenderwerte.",
@@ -33,7 +34,11 @@
     "212–283 mg N/L aus einem organischen Coir-Versuch ist kein mineralisches HESI-Coco-Soll.",
     "12/12-Logik photoperiodischer Pflanzen wird nicht auf Autoflower übertragen; auch 18 h bleibt eine UKD-Arbeitshypothese.",
     "Bewässerungs-Liter sind Start-/Beobachtungsbänder und dürfen niemals erzwungen werden.",
-    "Konflikte zwischen Herstellerlabel und unabhängiger Literatur werden nebeneinander angezeigt, nicht gemittelt."
+    "Konflikte zwischen Herstellerlabel und unabhängiger Literatur werden nebeneinander angezeigt, nicht gemittelt.",
+    "EvidenceStore und persönliche Run-Daten bleiben getrennte Objektmodelle; Runs referenzieren Evidenz nur über stabile IDs und Versionen.",
+    "Aktivierte Run-Konfigurationen sind immutable Snapshots; spätere Profiländerungen dürfen historische Runs nicht verändern.",
+    "Messkorrekturen löschen keine Historie, sondern superseden den Originalwert mit Grund und AuditEvent.",
+    "Ungeprüfter Fremdcode bleibt REJECT_UNTIL_VERIFIED; exaktes Repository, Commit, Lizenz, Security und Fachlogik sind Pflichtfelder."
   ],
   "responsePolicy": {
     "beginner": "Begriffe erklären, sichere nächste Aktion nennen, Unsicherheit sichtbar halten.",
@@ -57,5 +62,5 @@
     "Getrennte Bestände aus Eigenanbau und Apothekenabgabe",
     "Genetik-/Photoperiodstatus"
   ],
-  "updatedAt": "2026-08-08"
+  "updatedAt": "2026-08-09"
 }

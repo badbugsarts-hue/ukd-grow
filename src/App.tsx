@@ -21,6 +21,7 @@ import {
   acknowledgeAlert,
   createDefaultRunPackage,
   deriveRunAlerts,
+  effectiveRunConfig,
   latestObservation,
   setTaskCompleted,
 } from "./run-state";
@@ -33,6 +34,7 @@ import type {
   LegalProfile,
   RouteId,
   RunPackage,
+  RunTask,
   Workbook,
   WorkbookSheet,
 } from "./types";
@@ -65,6 +67,9 @@ const RunSetupWorkspace = lazy(async () => ({
 }));
 const RunLogWorkspace = lazy(async () => ({
   default: (await import("./RunWorkspace")).RunLogWorkspace,
+}));
+const RunHistoryWorkspace = lazy(async () => ({
+  default: (await import("./RunWorkspace")).RunHistoryWorkspace,
 }));
 const LegalWorkspace = lazy(async () => ({
   default: (await import("./RunWorkspace")).LegalWorkspace,
@@ -133,6 +138,14 @@ const NAV: NavItem[] = [
     icon: "↝",
     group: "Operator",
     description: "Alle 81 Tage und Phasen",
+  },
+  {
+    id: "history",
+    label: "Run-Historie",
+    short: "Runs",
+    icon: "↺",
+    group: "Operator",
+    description: "Versionierte Runs, Snapshots und lokaler Wechsel",
   },
   {
     id: "mix",
@@ -276,6 +289,13 @@ const HELP: Record<
     how: "Mit Slider oder Tabelle zu einem Tag springen.",
     interpret:
       "Blüte- und Nährstofftrigger sind konfigurierbar; Licht/Klima bleiben konservative Planung.",
+  },
+  history: {
+    what: "Das lokale Repository aller versionierten Runs und ihrer unveränderlichen Snapshots.",
+    why: "Historische Messungen, Entscheidungen und Konfigurationen dürfen beim Start eines neuen Runs nicht überschrieben werden.",
+    how: "Run auswählen oder einen neuen Entwurf anlegen; jeder Wechsel wird über die aktive Run-ID gespeichert.",
+    interpret:
+      "Vergleiche zeigen zunächst Zusammenhänge, keine Kausalität oder automatisch abgeleitete Optimierungsregel.",
   },
   mix: {
     what: "Ein Batchrechner auf Basis des ausgewählten Tages.",
@@ -940,6 +960,8 @@ function RouteContent({
       );
     case "timeline":
       return <Timeline day={day} setDay={setDay} lens={lens} />;
+    case "history":
+      return <RunHistoryWorkspace run={run} onChange={setRun} />;
     case "mix":
       return <MixLab plan={plan} lens={lens} />;
     case "climate":
@@ -990,6 +1012,7 @@ function Cockpit({
   setRun: (run: RunPackage) => void;
 }) {
   const day = plan.day;
+  const config = effectiveRunConfig(run);
   const observation = latestObservation(run, day);
   const alerts = deriveRunAlerts(run, plan);
   return (
@@ -1004,7 +1027,7 @@ function Cockpit({
         </div>
         <div>
           <small>Genetik</small>
-          <strong>{run.config.genetics}</strong>
+          <strong>{config.genetics}</strong>
         </div>
         <div>
           <small>Ziel</small>
@@ -1118,8 +1141,8 @@ function Cockpit({
             <div>
               <dt>Wasserchemie</dt>
               <dd>
-                {run.config.water.sourcePh !== null &&
-                run.config.water.sourceEc !== null
+                {config.water.sourcePh !== null &&
+                config.water.sourceEc !== null
                   ? "ERFASST"
                   : "UNBEKANNT"}
               </dd>
@@ -1202,6 +1225,12 @@ function Today({
   run: RunPackage;
   setRun: (run: RunPackage) => void;
 }) {
+  const config = effectiveRunConfig(run);
+  const actual = latestObservation(run, plan.day);
+  const blockers = deriveRunAlerts(run, plan).filter(
+    (alert) => alert.severity === "critical" || alert.severity === "warning",
+  );
+  const nextPlan = getDayPlan(workbook, Math.min(80, plan.day + 1));
   const sections = [
     {
       title: "Licht & Klima",
@@ -1259,6 +1288,40 @@ function Today({
   ];
   return (
     <div className="page-stack">
+      <section className="operations-header">
+        <div>
+          <small>
+            {config.name.toUpperCase()} · TAG {plan.day} ·{" "}
+            {textAt(plan, DAILY_COLUMNS.phase).toUpperCase()}
+          </small>
+          <h2>
+            Systemzustand: {blockers.length > 0 ? "PRÜFUNG NÖTIG" : "STABIL"}
+          </h2>
+          <p>
+            Plan/Evidence: {run.configurationSnapshot.evidenceVersion} ·
+            Konfiguration v{run.configurationSnapshot.version} ·{" "}
+            {run.status.toUpperCase()}
+          </p>
+        </div>
+        <span
+          className={blockers.length > 0 ? "state-warning" : "state-stable"}
+        >
+          {blockers.length} BLOCKER / WARNUNGEN
+        </span>
+      </section>
+      {blockers.length > 0 && (
+        <section className="today-blockers" aria-labelledby="blocker-title">
+          <h2 id="blocker-title">Vor Entscheidungen prüfen</h2>
+          <ul>
+            {blockers.map((alert) => (
+              <li key={alert.id}>
+                <strong>{alert.title}</strong>
+                <span>{alert.action}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <section className="today-lead">
         <div className="day-orbit">
           <span>TAG</span>
@@ -1292,11 +1355,79 @@ function Today({
           </Panel>
         ))}
       </section>
+      <section className="panel today-targets">
+        <header>
+          <div>
+            <small>SCIENTIFIC VALUE SEMANTICS</small>
+            <h2>Heutige Soll-/Ist-Matrix</h2>
+          </div>
+          <span>{actual ? "MESSUNG VORHANDEN" : "ISTWERTE FEHLEN"}</span>
+        </header>
+        <table className="target-matrix" aria-label="Soll- und Istwerte">
+          <thead>
+            <tr className="target-matrix-head">
+              <th scope="col">Metrik</th>
+              <th scope="col">Sollwert</th>
+              <th scope="col">Messwert</th>
+              <th scope="col">Semantik</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["pH", numberAt(plan, DAILY_COLUMNS.ph), actual?.values.phIn, ""],
+              [
+                "EC",
+                numberAt(plan, DAILY_COLUMNS.ec),
+                actual?.values.ecIn,
+                "mS/cm",
+              ],
+              [
+                "Temperatur",
+                numberAt(plan, DAILY_COLUMNS.tempLight),
+                actual?.values.tempMax,
+                "°C",
+              ],
+              [
+                "rF",
+                numberAt(plan, DAILY_COLUMNS.humidity),
+                actual?.values.humidityMax,
+                "%",
+              ],
+              [
+                "PPFD",
+                numberAt(plan, DAILY_COLUMNS.ppfd),
+                actual?.values.ppfd,
+                "µmol/m²/s",
+              ],
+            ].map(([label, target, measured, unit]) => (
+              <tr key={String(label)}>
+                <th scope="row">{label}</th>
+                <td>
+                  {Number(target).toFixed(2)} {unit}
+                </td>
+                <td>
+                  {measured === null || measured === undefined ? (
+                    "—"
+                  ) : (
+                    <>
+                      {Number(measured).toFixed(2)} {unit}
+                    </>
+                  )}
+                </td>
+                <td>
+                  <b>TARGET</b> / {actual ? "MEASURED" : "MISSING"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
       <div className="two-column wide-left">
         <Panel title="Aktionen & Qualität" kicker="CHECKLISTE">
           <p className="prose-callout">{textAt(plan, DAILY_COLUMNS.qa)}</p>
           <Checklist
             completed={run.completedTasks[String(plan.day)] ?? []}
+            taskStates={run.tasks.filter((task) => task.day === plan.day)}
             onChange={(task, completed) =>
               setRun(setTaskCompleted(run, plan.day, task, completed))
             }
@@ -1321,6 +1452,29 @@ function Today({
           </p>
         )}
       </Panel>
+      <section className="panel next-actions">
+        <header>
+          <div>
+            <small>NEXT / WHY</small>
+            <h2>Nächster Orientierungspunkt</h2>
+          </div>
+        </header>
+        <p>
+          Morgen: <strong>{textAt(nextPlan, DAILY_COLUMNS.phase)}</strong> ·{" "}
+          {textAt(nextPlan, DAILY_COLUMNS.goal)}
+        </p>
+        <div className="button-row">
+          <button type="button" onClick={() => navigate("log")}>
+            Journal öffnen
+          </button>
+          <button type="button" onClick={() => navigate("timeline")}>
+            Vollständige Timeline
+          </button>
+          <button type="button" onClick={() => navigate("knowledge")}>
+            Entscheidungen erklären
+          </button>
+        </div>
+      </section>
       {lens === "expert" && <ExpertTrace plan={plan} />}
     </div>
   );
@@ -2322,9 +2476,11 @@ function FlowStep({
 
 function Checklist({
   completed,
+  taskStates,
   onChange,
 }: {
   completed: string[];
+  taskStates: RunTask[];
   onChange: (task: string, completed: boolean) => void;
 }) {
   const items = [
@@ -2343,6 +2499,11 @@ function Checklist({
             onChange={(event) => onChange(item, event.target.checked)}
           />
           <span>{item}</span>
+          <small>
+            {taskStates.find((task) => task.title === item)?.requirement ??
+              "required"}{" "}
+            · {taskStates.find((task) => task.title === item)?.state ?? "due"}
+          </small>
         </label>
       ))}
     </div>

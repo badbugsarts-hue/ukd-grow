@@ -8,7 +8,7 @@
     "database": "none",
     "authentication": "none",
     "sensorGateway": "none",
-    "persistence": "versioned RunPackage in IndexedDB; non-sensitive UI preferences in localStorage; legal profile session-only",
+    "persistence": "multi-run RunRepository with RunPackage v2 in IndexedDB; non-sensitive UI preferences in localStorage; legal profile session-only",
     "telemetry": "none"
   },
   "experienceLens": {
@@ -18,12 +18,21 @@
   },
   "statePolicy": {
     "url": ["route", "selected day", "experience lens"],
-    "localStorage": ["theme", "experience lens", "selected day", "contrast mode", "text scale"],
+    "localStorage": [
+      "theme",
+      "experience lens",
+      "selected day",
+      "contrast mode",
+      "text scale"
+    ],
     "indexedDB": [
       "versioned run configuration",
       "measurements",
+      "structured observations",
       "run events",
-      "completed tasks",
+      "semantic tasks",
+      "immutable configuration snapshots",
+      "overrides and audit events",
       "alert acknowledgements",
       "non-document inventory events"
     ],
@@ -36,7 +45,16 @@
       "authentication secrets"
     ]
   },
-  "dataSemantics": ["target", "measured", "simulated", "missing", "stale"],
+  "dataSemantics": [
+    "target",
+    "measured",
+    "derived",
+    "simulated",
+    "user-assumption",
+    "manufacturer-reference",
+    "missing",
+    "stale"
+  ],
   "capabilities": [
     {
       "id": "static-operator-workspace",
@@ -46,7 +64,17 @@
     {
       "id": "persistent-run-log",
       "status": "implemented",
-      "evidence": "RunPackage schema v1, IndexedDB persistence, validated JSON restore, CSV/XLSX/PDF exports and migration-safe validation are implemented and tested."
+      "evidence": "RunPackage schema v2, multi-run IndexedDB repository, automatic v1 migration, validated JSON restore, CSV/XLSX/PDF exports and migration-safe validation are implemented and tested."
+    },
+    {
+      "id": "native-run-domain-v2",
+      "status": "implemented",
+      "evidence": "Immutable configuration snapshots, zones, plants, ScientificValue measurements, structured observations, semantic tasks, overrides and append-only audit events are implemented."
+    },
+    {
+      "id": "local-run-history",
+      "status": "implemented",
+      "evidence": "Users can create and switch isolated local runs through the RunRepository without overwriting historical snapshots."
     },
     {
       "id": "measurement-and-alert-workflow",

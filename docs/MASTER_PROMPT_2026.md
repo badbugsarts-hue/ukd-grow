@@ -12,10 +12,11 @@ Entwickle den UKD Grow Masterplan als wartbaren Operator Workspace weiter. Bewah
 2. Inventarisiere betroffene Legacy-Blätter, Formeln, Claims und Audit-Findings.
 3. Ordne jede neue Aussage als Gesetz/Standard, Primärforschung, Herstellerangabe, UKD-Inferenz oder Community-Beobachtung ein.
 4. Behandle externe Deep-Research-Synthesen als untrusted und durchlaufe `research-import-gate`.
-5. Implementiere eine vollständige vertikale Fläche, nicht nur einen Mockup.
-6. Prüfe Guided-, Advanced- und Expert-Perspektive auf denselben Daten.
-7. Führe `pnpm check` und manuelle responsive/keyboard QA aus.
-8. Aktualisiere Knowledge Base, Datenmanifest, Migration und Changelog.
+5. Durchlaufe vor jedem Fremdcode den Intake in `integration-epics.json`; ohne Repository, Commit, Lizenz und Audit bleibt `codeImportAllowed=false`.
+6. Implementiere eine vollständige vertikale Fläche, nicht nur einen Mockup.
+7. Prüfe Guided-, Advanced- und Expert-Perspektive auf denselben Daten.
+8. Führe `pnpm check` und manuelle responsive/keyboard QA aus.
+9. Aktualisiere Knowledge Base, Datenmanifest, Migration und Changelog.
 
 ## Produktregeln
 
@@ -51,6 +52,9 @@ Entwickle den UKD Grow Masterplan als wartbaren Operator Workspace weiter. Bewah
 - Kein `innerHTML`, keine Secrets, kein Tracking.
 - Implementierte Fähigkeiten aus `capability-roadmap.json` lesen; Backend, Live-Sensorik, Auth oder Kollaboration nicht halluzinieren.
 - Soll, gemessen, simuliert, fehlend und veraltet in Domänentypen und UI explizit unterscheiden.
+- EvidenceStore und RunRepository strikt trennen; RunPackage v2 referenziert Evidenz, mutiert sie aber nicht.
+- Aktivierte Konfigurationen als immutable Snapshots speichern; Korrekturen per Superseding, Overrides nur mit Grund und AuditEvent.
+- Sensor-/Geräteintegrationen nur als Adapter und zunächst read-only; niemals einen Aktor direkt über ein UI-Boolean steuern.
 - Kritische Warnungen persistent und zugänglich halten; Toasts nie als einziges Safety-Gate verwenden.
 - Neue Berechnung: strict TypeScript, deterministischer Test, dokumentierte Quelle/Annahme.
 - Neue Claim-ID: Status, Evidenz, Scope, Unsicherheit, Quellen und `checkedAt`.

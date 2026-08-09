@@ -2620,6 +2620,182 @@
 }
 
 @layer responsive {
+  .button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .button-row button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+  .setup-review > header,
+  .today-targets > header {
+    align-items: center;
+  }
+  .run-state-badge {
+    border: 1px solid var(--line-strong);
+    padding: 6px 10px;
+    color: var(--muted);
+    font: 8px var(--font-mono);
+    text-transform: uppercase;
+  }
+  .run-state-badge.active {
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .review-metrics {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .review-metrics > div {
+    display: grid;
+    gap: 4px;
+    border: 1px solid var(--line);
+    padding: 13px;
+    background: var(--surface-2);
+  }
+  .review-metrics small {
+    color: var(--muted);
+    font: 8px var(--font-mono);
+  }
+  .review-metrics strong {
+    font: 24px var(--font-mono);
+  }
+  .operations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--green);
+    padding: 17px 19px;
+    background: var(--surface-1);
+  }
+  .operations-header h2 {
+    margin: 5px 0;
+    font-size: 18px;
+  }
+  .operations-header p {
+    margin: 0;
+    color: var(--text-2);
+  }
+  .operations-header > span {
+    flex: 0 0 auto;
+    border: 1px solid currentColor;
+    padding: 8px 10px;
+    font: 8px var(--font-mono);
+  }
+  .state-stable {
+    color: var(--green);
+  }
+  .state-warning {
+    color: var(--amber);
+  }
+  .today-blockers {
+    border: 1px solid var(--amber);
+    padding: 15px 18px;
+    background: var(--amber-dim);
+  }
+  .today-blockers h2 {
+    margin: 0 0 8px;
+    font-size: 14px;
+  }
+  .today-blockers ul {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .today-blockers li {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.45fr) 1fr;
+    gap: 12px;
+  }
+  .today-blockers span {
+    color: var(--text-2);
+  }
+  .target-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .target-matrix th,
+  .target-matrix td {
+    border-bottom: 1px solid var(--line);
+    padding: 10px;
+    text-align: left;
+  }
+  .target-matrix thead th {
+    color: var(--muted);
+    font: 8px var(--font-mono);
+    text-transform: uppercase;
+  }
+  .target-matrix tbody th {
+    font-size: 10px;
+  }
+  .target-matrix td {
+    color: var(--text-2);
+    font: 9px var(--font-mono);
+  }
+  .target-matrix td:last-child b {
+    color: var(--blue);
+  }
+  .next-actions p {
+    color: var(--text-2);
+  }
+  .quick-log-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .run-history-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .run-history-grid > article {
+    display: grid;
+    gap: 18px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--line-strong);
+    padding: 18px;
+    background: var(--surface-1);
+  }
+  .run-history-grid > article.active {
+    border-left-color: var(--green);
+  }
+  .run-history-grid h2 {
+    margin: 5px 0;
+    font-size: 17px;
+  }
+  .run-history-grid p {
+    margin: 0;
+    color: var(--text-2);
+  }
+  .run-history-grid article > .button-row {
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--line);
+    padding-top: 11px;
+  }
+  .run-history-grid article > .button-row span,
+  .run-history-grid article > .button-row b {
+    color: var(--muted);
+    font: 8px var(--font-mono);
+  }
+  .inline-checklist label {
+    flex-wrap: wrap;
+  }
+  .inline-checklist label small {
+    margin-left: auto;
+    color: var(--muted);
+    font: 7px var(--font-mono);
+    text-transform: uppercase;
+  }
+
   @media (max-width: 1180px) {
     :root {
       --sidebar: 224px;
@@ -2953,7 +3129,8 @@
     }
     .workspace-banner,
     .report-hero,
-    .privacy-banner {
+    .privacy-banner,
+    .operations-header {
       align-items: flex-start;
       flex-direction: column;
     }
@@ -2963,8 +3140,20 @@
     .system-status-grid,
     .export-grid,
     .integration-grid,
-    .manifest-list {
+    .manifest-list,
+    .review-metrics,
+    .quick-log-grid,
+    .run-history-grid {
       grid-template-columns: 1fr;
+    }
+    .today-blockers li {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+    .target-matrix th,
+    .target-matrix td {
+      padding: 7px 4px;
+      overflow-wrap: anywhere;
     }
     .manifest-list > div:last-child {
       grid-column: auto;

@@ -4,6 +4,8 @@
 
 - `src/App.tsx`: Anwendungsshell und fachliche Flächen.
 - `src/domain.ts`: kanonische Tages-, DLI-, VPD- und Mixlogik.
+- `src/run-state.ts`: RunPackage-v2-Domäne, Migration, Tasks, Overrides und Audit.
+- `src/run-storage.ts`: austauschbares Multi-Run-Repository auf IndexedDB.
 - `src/styles.css`: semantische Design-Tokens und responsive Regeln.
 - `src/data/`: Knowledge Base, Audit, Skills und AI Context.
 - `public/data/evidence-guarded-workbook-v6.json`: kanonischer, generierter v6-Snapshot.
@@ -30,8 +32,9 @@
 4. Für KI-Verhalten und Guardrails: `src/data/ai-context.json` und `src/data/skills.json`.
 5. Für Rechtsprofile: `src/data/legal-profile.schema.json`; die Example-Datei enthält keine persönlichen Werte.
 6. Für Ist-/Ziel-Fähigkeiten und Architekturtrigger: `src/data/capability-roadmap.json`.
-7. Das Quellen-XLSX bleibt forensische Referenz, wird aber nicht von der Web-App neu berechnet.
-8. `data-manifest.json` autorisiert Version und Provenienz; `deep-research-input.md` ist ausdrücklich nicht kanonisch.
+7. Für Fremdcode-Governance und Epics: `src/data/integration-epics.json`.
+8. Das Quellen-XLSX bleibt forensische Referenz, wird aber nicht von der Web-App neu berechnet.
+9. `data-manifest.json` autorisiert Version und Provenienz; `deep-research-input.md` ist ausdrücklich nicht kanonisch.
 
 ## Invariants
 
@@ -52,6 +55,9 @@
 - Guided/Advanced/Expert bleiben die kanonischen Linsen; neue Stufen benötigen Nutzerforschung und dürfen Ergebnisse nie verändern.
 - Sicherheitskritische Warnungen persistent und zugänglich darstellen; Toasts sind nur Zusatzsignale.
 - Kontrollbereiche, organische N-Raten oder Photoperioddaten nicht ohne Scope als Optimum übertragen.
+- EvidenceStore und RunPackage niemals zu einem veränderbaren Mischobjekt verschmelzen.
+- Aktive Run-Snapshots nicht mutieren; Korrekturen und Overrides ausschließlich append-only mit Grund und AuditEvent speichern.
+- Fremdcode erst nach dokumentiertem Repository-, Commit-, Lizenz-, Security- und Fachlogik-Intake übernehmen.
 
 ## UI and accessibility
 

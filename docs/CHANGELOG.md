@@ -1,5 +1,14 @@
 # Changelog
 
+## v6 Native Run Domain v2 · 2026-08-09
+
+- `RunPackage v2` mit immutable Konfigurations-Snapshots, Zonen, Pflanzen, typisierten `ScientificValue`-Messungen, strukturierten Beobachtungen, semantischen Tasks, Overrides und AuditEvents eingeführt.
+- Automatische, verlustfreie Migration bestehender RunPackage-v1-Daten implementiert.
+- IndexedDB auf eine austauschbare Multi-Run-`RunRepository`-Schnittstelle erweitert und Run-Historie als 18. Arbeitsbereich ergänzt.
+- Messkorrekturen als Superseding-Events statt Löschung umgesetzt; Override erfordert Begründung und bleibt reversibel.
+- Setup um Pre-Flight-Review und Aktivierungs-Snapshot, Today um Blocker/Soll-Ist/NEXT-WHY und Journal um strukturierte Beobachtung, Korrektur und Override erweitert.
+- Third-Party-Intake-Gate und 20 maschinenlesbare Integrations-Epics ergänzt; kein ungeprüfter Fremdcode importiert.
+
 ## v6 Operational Workspace · 2026-08-09
 
 - Fünf neue Arbeitsbereiche für Run-Setup, Mess-/Ereignislog, Recht & Bestand, Berichte und Systemdiagnose ergänzt; insgesamt 17 Routen.

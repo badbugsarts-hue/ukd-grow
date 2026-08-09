@@ -8,6 +8,7 @@ const routes = [
   "log",
   "today",
   "timeline",
+  "history",
   "mix",
   "climate",
   "nutrients",

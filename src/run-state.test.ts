@@ -1,15 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { DAILY_COLUMNS, type DayPlan as DomainDayPlan } from "./domain";
 import {
+  activateRun,
   addInventoryEvent,
   addObservation,
+  addRunOverride,
+  addStructuredObservation,
   acknowledgeAlert,
   createDefaultRunPackage,
   createObservation,
   deriveRunAlerts,
+  effectiveRunConfig,
   inventoryBalance,
+  migrateRunPackage,
   runToCsv,
   setTaskCompleted,
+  supersedeMeasurement,
+  updateRunConfig,
   validateRunPackage,
 } from "./run-state";
 
@@ -22,16 +29,20 @@ function plan(day = 4): DomainDayPlan {
 }
 
 describe("versioned run state", () => {
-  it("creates a complete v1 package with explicit missing water values", () => {
+  it("creates a complete v2 package with explicit assets and missing water values", () => {
     const run = createDefaultRunPackage(new Date("2026-08-09T12:00:00Z"));
-    expect(run.schemaVersion).toBe("1.0.0");
+    expect(run.schemaVersion).toBe("2.0.0");
+    expect(run.status).toBe("draft");
+    expect(run.configurationSnapshot.immutable).toBe(true);
+    expect(run.zones).toHaveLength(1);
+    expect(run.plants).toHaveLength(1);
     expect(run.config.startDate).toBe("2026-08-09");
     expect(run.config.water.sourcePh).toBeNull();
     expect(validateRunPackage(run).ok).toBe(true);
   });
 
   it("rejects incompatible or incomplete imports", () => {
-    expect(validateRunPackage({ schemaVersion: "2.0.0" })).toEqual({
+    expect(validateRunPackage({ schemaVersion: "9.0.0" })).toEqual({
       ok: false,
       errors: expect.arrayContaining([
         expect.stringContaining("nicht unterstützt"),
@@ -45,6 +56,9 @@ describe("versioned run state", () => {
     observation.values.phIn = 6.5;
     const next = addObservation(run, observation);
     expect(next.observations).toHaveLength(1);
+    expect(next.measurements[0]?.metric).toBe("water.ph");
+    expect(next.measurements[0]?.reading.semantic).toBe("measured");
+    expect(next.measurements[0]?.reading.source.kind).toBe("manual");
     expect(next.events[0]?.category).toBe("measurement");
   });
 
@@ -65,6 +79,11 @@ describe("versioned run state", () => {
     run = acknowledgeAlert(run, "alert-1");
     run = acknowledgeAlert(run, "alert-1");
     expect(run.completedTasks["4"]).toEqual(["Drain prüfen"]);
+    expect(run.tasks[0]).toMatchObject({
+      title: "Drain prüfen",
+      requirement: "required",
+      state: "completed",
+    });
     expect(run.acknowledgedAlertIds).toEqual(["alert-1"]);
   });
 
@@ -99,5 +118,94 @@ describe("versioned run state", () => {
     const csv = runToCsv(run);
     expect(csv).toContain('"day"');
     expect(csv).toContain('"A, ""B"""');
+  });
+
+  it("freezes the active snapshot while later profile edits stay separate", () => {
+    let run = createDefaultRunPackage();
+    run = updateRunConfig(run, { ...run.config, genetics: "Snapshot A" });
+    run = activateRun(run, new Date("2026-08-09T14:00:00Z"));
+    expect(effectiveRunConfig(run).genetics).toBe("Snapshot A");
+    run = updateRunConfig(run, { ...run.config, genetics: "Profile B" });
+    expect(run.config.genetics).toBe("Profile B");
+    expect(effectiveRunConfig(run).genetics).toBe("Snapshot A");
+  });
+
+  it("migrates a legacy v1 package without losing observations", () => {
+    const current = createDefaultRunPackage();
+    const observation = createObservation(2);
+    observation.values.ecIn = 0.9;
+    const legacy = structuredClone(
+      addObservation(current, observation),
+    ) as unknown as Record<string, unknown>;
+    legacy.schemaVersion = "1.0.0";
+    for (const key of [
+      "status",
+      "configurationSnapshot",
+      "zones",
+      "plants",
+      "measurements",
+      "structuredObservations",
+      "tasks",
+      "overrides",
+      "auditEvents",
+    ])
+      delete legacy[key];
+    const migrated = migrateRunPackage(legacy);
+    expect(migrated?.schemaVersion).toBe("2.0.0");
+    expect(migrated?.observations).toHaveLength(1);
+    expect(migrated?.measurements[0]?.metric).toBe("water.ec");
+    expect(validateRunPackage(legacy).ok).toBe(true);
+  });
+
+  it("supersedes a bad measurement without deleting its history", () => {
+    let run = createDefaultRunPackage();
+    const observation = createObservation(3);
+    observation.values.ecIn = 14;
+    run = addObservation(run, observation);
+    const original = run.measurements[0];
+    expect(original).toBeDefined();
+    run = supersedeMeasurement(
+      run,
+      original?.id ?? "",
+      1.4,
+      "decimal-entry-error",
+      new Date("2026-08-09T15:00:00Z"),
+    );
+    expect(run.measurements).toHaveLength(2);
+    expect(
+      run.measurements.find((entry) => entry.id === original?.id)?.supersededBy,
+    ).toBeTruthy();
+    expect(run.measurements[0]?.reading.value).toBe(1.4);
+    expect(run.auditEvents[0]?.action).toBe("measurement-superseded");
+  });
+
+  it("records structured observations and reversible expert overrides", () => {
+    let run = createDefaultRunPackage();
+    run = addStructuredObservation(run, {
+      id: "obs-1",
+      runId: run.id,
+      zoneId: run.zones[0]?.id ?? "zone",
+      observedAt: "2026-08-09T16:00:00Z",
+      category: "foliage",
+      severity: "mild",
+      text: "Blattspitzen leicht heller",
+      tags: [],
+      photoIds: [],
+    });
+    run = addRunOverride(run, {
+      id: "override-1",
+      field: "ec.target",
+      canonicalValue: 0.8,
+      overrideValue: 0.9,
+      evidenceConflict: "outside-plan",
+      reason: "Dokumentierter Versuch",
+      createdAt: "2026-08-09T16:05:00Z",
+      reversible: true,
+    });
+    expect(run.structuredObservations[0]?.category).toBe("foliage");
+    expect(run.overrides[0]?.reason).toBe("Dokumentierter Versuch");
+    expect(run.events.map((entry) => entry.category)).toEqual(
+      expect.arrayContaining(["observation", "override"]),
+    );
   });
 });

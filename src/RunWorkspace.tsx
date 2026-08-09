@@ -8,16 +8,23 @@ import {
 import { AlertCenter } from "./AlertCenter";
 import { DAILY_COLUMNS, type DayPlan, numberAt } from "./domain";
 import {
+  activateRun,
   addInventoryEvent,
   addObservation,
   addRunEvent,
+  addRunOverride,
+  addStructuredObservation,
+  createDefaultRunPackage,
   createObservation,
   deriveRunAlerts,
+  effectiveRunConfig,
   inventoryBalance,
   runToCsv,
+  supersedeMeasurement,
   updateRunConfig,
   validateRunPackage,
 } from "./run-state";
+import { indexedDbRunRepository } from "./run-storage";
 import type {
   InventoryEvent,
   LegalBasis,
@@ -25,7 +32,9 @@ import type {
   ObservationValues,
   RunConfig,
   RunEvent,
+  RunOverride,
   RunPackage,
+  StructuredObservation,
 } from "./types";
 
 interface RunProps {
@@ -50,6 +59,19 @@ export function RunSetupWorkspace({ run, onChange }: RunProps) {
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2500);
   };
+  const unknownWater = Object.values(draft.water).filter(
+    (value) => value === null,
+  ).length;
+  const blockers = [
+    !draft.name.trim(),
+    !draft.genetics.trim(),
+    draft.plantCount < 1,
+    draft.tentWidthCm <= 0 || draft.tentDepthCm <= 0 || draft.tentHeightCm <= 0,
+  ].filter(Boolean).length;
+  const activate = () => {
+    if (blockers > 0) return;
+    onChange(activateRun(updateRunConfig(run, draft)));
+  };
   return (
     <form className="page-stack" onSubmit={save}>
       <section className="workspace-banner">
@@ -57,13 +79,29 @@ export function RunSetupWorkspace({ run, onChange }: RunProps) {
           <small>VERSIONIERTE RUN-KONFIGURATION</small>
           <h2>{draft.name}</h2>
           <p>
-            Änderungen betreffen den aktiven Run. Der Evidence-Guarded-v6-
-            Snapshot bleibt unverändert und nachvollziehbar.
+            Status: <b>{run.status.toUpperCase()}</b>.{" "}
+            {run.status === "draft"
+              ? "Bis zur Aktivierung wird der Entwurf bearbeitet."
+              : "Der aktive Snapshot v" +
+                run.configurationSnapshot.version +
+                " bleibt unverändert; Profiländerungen gelten erst für einen neuen Run."}
           </p>
         </div>
-        <button className="primary-button" type="submit">
-          Konfiguration speichern
-        </button>
+        <div className="button-row">
+          <button className="secondary-button" type="submit">
+            Setup-Profil speichern
+          </button>
+          {run.status === "draft" && (
+            <button
+              className="primary-button"
+              type="button"
+              disabled={blockers > 0}
+              onClick={activate}
+            >
+              Run aktivieren
+            </button>
+          )}
+        </div>
       </section>
       {saved && (
         <p className="save-state" role="status">
@@ -218,6 +256,47 @@ export function RunSetupWorkspace({ run, onChange }: RunProps) {
           automatische Athena-, CalMag- oder Säuredosis ab.
         </p>
       </section>
+      <section
+        className="panel setup-review"
+        aria-labelledby="setup-review-title"
+      >
+        <header>
+          <div>
+            <small>PRE-FLIGHT REVIEW</small>
+            <h2 id="setup-review-title">Aktivierungsprüfung</h2>
+          </div>
+          <span className={`run-state-badge ${run.status}`}>{run.status}</span>
+        </header>
+        <div className="review-metrics">
+          <div>
+            <small>BEKANNT</small>
+            <strong>{18 - unknownWater}</strong>
+          </div>
+          <div>
+            <small>UNBEKANNT</small>
+            <strong>{unknownWater}</strong>
+          </div>
+          <div>
+            <small>WARNUNGEN</small>
+            <strong>{unknownWater > 0 ? 1 : 0}</strong>
+          </div>
+          <div>
+            <small>BLOCKER</small>
+            <strong>{blockers}</strong>
+          </div>
+          <div>
+            <small>OVERRIDES</small>
+            <strong>
+              {run.overrides.filter((entry) => !entry.reversedAt).length}
+            </strong>
+          </div>
+        </div>
+        <p>
+          Unbekannte Wasserwerte bleiben zulässig und sichtbar, erzeugen aber
+          Safety-Gates. Aktivierung friert die Konfiguration als
+          reproduzierbaren Snapshot ein.
+        </p>
+      </section>
     </form>
   );
 }
@@ -230,6 +309,18 @@ export function RunLogWorkspace({
   const [draft, setDraft] = useState(() => createObservation(plan.day));
   const [eventTitle, setEventTitle] = useState("");
   const [eventDetail, setEventDetail] = useState("");
+  const [observationCategory, setObservationCategory] =
+    useState<StructuredObservation["category"]>("general");
+  const [observationSeverity, setObservationSeverity] =
+    useState<StructuredObservation["severity"]>("info");
+  const [observationText, setObservationText] = useState("");
+  const [correctionId, setCorrectionId] = useState("");
+  const [correctedValue, setCorrectedValue] = useState<number | null>(null);
+  const [correctionReason, setCorrectionReason] = useState("");
+  const [overrideField, setOverrideField] = useState("");
+  const [canonicalValue, setCanonicalValue] = useState("");
+  const [overrideValue, setOverrideValue] = useState("");
+  const [overrideReason, setOverrideReason] = useState("");
   useEffect(() => setDraft(createObservation(plan.day)), [plan.day]);
   const updateValue = (key: keyof ObservationValues, value: number | null) =>
     setDraft((current) => ({
@@ -260,6 +351,56 @@ export function RunLogWorkspace({
     onChange(addRunEvent(run, item));
     setEventTitle("");
     setEventDetail("");
+  };
+  const saveStructuredObservation = (event: FormEvent) => {
+    event.preventDefault();
+    if (!observationText.trim()) return;
+    const item: StructuredObservation = {
+      id: crypto.randomUUID(),
+      runId: run.id,
+      zoneId: run.zones[0]?.id ?? "unassigned-zone",
+      ...(run.plants.length === 1 && run.plants[0]
+        ? { plantId: run.plants[0].id }
+        : {}),
+      observedAt: new Date().toISOString(),
+      category: observationCategory,
+      severity: observationSeverity,
+      text: observationText.trim(),
+      tags: [],
+      photoIds: [],
+    };
+    onChange(addStructuredObservation(run, item));
+    setObservationText("");
+  };
+  const saveCorrection = (event: FormEvent) => {
+    event.preventDefault();
+    if (!correctionId || correctedValue === null || !correctionReason.trim())
+      return;
+    onChange(
+      supersedeMeasurement(run, correctionId, correctedValue, correctionReason),
+    );
+    setCorrectionId("");
+    setCorrectedValue(null);
+    setCorrectionReason("");
+  };
+  const saveOverride = (event: FormEvent) => {
+    event.preventDefault();
+    if (!overrideField.trim() || !overrideReason.trim()) return;
+    const item: RunOverride = {
+      id: crypto.randomUUID(),
+      field: overrideField.trim(),
+      canonicalValue,
+      overrideValue,
+      evidenceConflict: "Außerhalb des kanonischen Evidence-/Planwerts",
+      reason: overrideReason.trim(),
+      createdAt: new Date().toISOString(),
+      reversible: true,
+    };
+    onChange(addRunOverride(run, item));
+    setOverrideField("");
+    setCanonicalValue("");
+    setOverrideValue("");
+    setOverrideReason("");
   };
   const alerts = deriveRunAlerts(run, plan);
   return (
@@ -461,6 +602,140 @@ export function RunLogWorkspace({
           </div>
         </form>
       </div>
+      <section className="quick-log-grid" aria-label="Strukturiertes Journal">
+        <form className="panel form-panel" onSubmit={saveStructuredObservation}>
+          <header>
+            <div>
+              <small>QUICK LOG · KEINE AUTOMATISCHE DIAGNOSE</small>
+              <h2>Beobachtung</h2>
+            </div>
+          </header>
+          <div className="stacked-fields">
+            <label>
+              <span>Kategorie</span>
+              <select
+                value={observationCategory}
+                onChange={(event) =>
+                  setObservationCategory(
+                    event.target.value as StructuredObservation["category"],
+                  )
+                }
+              >
+                <option value="general">Allgemein</option>
+                <option value="foliage">Blattwerk</option>
+                <option value="root-zone">Wurzelzone</option>
+                <option value="structure">Struktur</option>
+                <option value="pest">Schädling</option>
+                <option value="environment">Umwelt</option>
+              </select>
+            </label>
+            <label>
+              <span>Schwere</span>
+              <select
+                value={observationSeverity}
+                onChange={(event) =>
+                  setObservationSeverity(
+                    event.target.value as StructuredObservation["severity"],
+                  )
+                }
+              >
+                <option value="info">Information</option>
+                <option value="mild">Leicht</option>
+                <option value="moderate">Moderat</option>
+                <option value="severe">Schwer</option>
+              </select>
+            </label>
+            <label>
+              <span>Beobachtung</span>
+              <textarea
+                rows={4}
+                value={observationText}
+                onChange={(event) => setObservationText(event.target.value)}
+              />
+            </label>
+            <button className="secondary-button" type="submit">
+              Beobachtung speichern
+            </button>
+          </div>
+        </form>
+        <form className="panel form-panel" onSubmit={saveCorrection}>
+          <header>
+            <div>
+              <small>SUPERSEDING · NICHT LÖSCHEN</small>
+              <h2>Messwert korrigieren</h2>
+            </div>
+          </header>
+          <div className="stacked-fields">
+            <label>
+              <span>Originalmessung</span>
+              <select
+                value={correctionId}
+                onChange={(event) => setCorrectionId(event.target.value)}
+              >
+                <option value="">Messung auswählen</option>
+                {run.measurements
+                  .filter((entry) => !entry.supersededBy)
+                  .slice(0, 50)
+                  .map((entry) => (
+                    <option key={entry.id} value={entry.id}>
+                      {entry.metric} · {String(entry.reading.value)}{" "}
+                      {entry.reading.unit ?? ""}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <NumberField
+              label="Korrigierter Wert"
+              value={correctedValue}
+              onChange={setCorrectedValue}
+            />
+            <TextField
+              label="Korrekturgrund"
+              value={correctionReason}
+              onChange={setCorrectionReason}
+            />
+            <button className="secondary-button" type="submit">
+              Korrektur als neues Event speichern
+            </button>
+          </div>
+        </form>
+        <form className="panel form-panel" onSubmit={saveOverride}>
+          <header>
+            <div>
+              <small>EXPERT DECISION · REVERSIBEL</small>
+              <h2>Override dokumentieren</h2>
+            </div>
+          </header>
+          <div className="stacked-fields">
+            <TextField
+              label="Feld / Regel"
+              value={overrideField}
+              onChange={setOverrideField}
+            />
+            <TextField
+              label="Kanonischer Wert"
+              value={canonicalValue}
+              onChange={setCanonicalValue}
+            />
+            <TextField
+              label="Override-Wert"
+              value={overrideValue}
+              onChange={setOverrideValue}
+            />
+            <label>
+              <span>Begründung</span>
+              <textarea
+                rows={3}
+                value={overrideReason}
+                onChange={(event) => setOverrideReason(event.target.value)}
+              />
+            </label>
+            <button className="secondary-button" type="submit">
+              Override mit Begründung speichern
+            </button>
+          </div>
+        </form>
+      </section>
       <section className="panel">
         <header>
           <div>
@@ -488,6 +763,106 @@ export function RunLogWorkspace({
             ))
           )}
         </div>
+      </section>
+    </div>
+  );
+}
+
+export function RunHistoryWorkspace({ run, onChange }: RunProps) {
+  const [runs, setRuns] = useState<RunPackage[]>([]);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    indexedDbRunRepository
+      .listRuns()
+      .then((values) =>
+        setRuns(
+          values.some((entry) => entry.id === run.id)
+            ? values
+            : [run, ...values],
+        ),
+      )
+      .catch((cause: unknown) =>
+        setError(
+          cause instanceof Error ? cause.message : "Run-Liste fehlgeschlagen",
+        ),
+      );
+  }, [run]);
+  const createRun = async () => {
+    try {
+      const next = createDefaultRunPackage();
+      await indexedDbRunRepository.createRun(next);
+      onChange(next);
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Run konnte nicht angelegt werden",
+      );
+    }
+  };
+  const selectRun = async (selected: RunPackage) => {
+    await indexedDbRunRepository.setActiveRun(selected.id);
+    onChange(selected);
+  };
+  return (
+    <div className="page-stack">
+      <section className="workspace-banner">
+        <div>
+          <small>WORKSPACE / RUN REPOSITORY</small>
+          <h2>Versionierte Runs</h2>
+          <p>
+            Jeder Run besitzt einen eigenen Konfigurations-Snapshot, Messwerte,
+            Journal, Tasks, Overrides und Audit-Events. Wechsel verändert keine
+            historischen Daten.
+          </p>
+        </div>
+        <button
+          className="primary-button"
+          type="button"
+          onClick={() => void createRun()}
+        >
+          Neuen Run-Entwurf anlegen
+        </button>
+      </section>
+      {error && (
+        <p className="inline-error" role="alert">
+          {error}
+        </p>
+      )}
+      <section className="run-history-grid" aria-label="Gespeicherte Runs">
+        {runs.length === 0 ? (
+          <EmptyState text="Der aktive Run wird beim nächsten Autosave in der Historie sichtbar." />
+        ) : (
+          runs.map((entry) => (
+            <article
+              key={entry.id}
+              className={entry.id === run.id ? "active" : ""}
+            >
+              <div>
+                <small>
+                  {entry.status.toUpperCase()} · SNAPSHOT v
+                  {entry.configurationSnapshot.version}
+                </small>
+                <h2>{effectiveRunConfig(entry).name}</h2>
+                <p>
+                  {effectiveRunConfig(entry).genetics} ·{" "}
+                  {entry.measurements.length} Messwerte ·{" "}
+                  {entry.structuredObservations.length} Beobachtungen
+                </p>
+              </div>
+              <div className="button-row">
+                <span>{formatTimestamp(entry.updatedAt)}</span>
+                {entry.id === run.id ? (
+                  <b>AKTIV</b>
+                ) : (
+                  <button type="button" onClick={() => void selectRun(entry)}>
+                    Run öffnen
+                  </button>
+                )}
+              </div>
+            </article>
+          ))
+        )}
       </section>
     </div>
   );
@@ -720,15 +1095,16 @@ export function LegalWorkspace({
 export function ReportsWorkspace({ run, onChange }: RunProps) {
   const [message, setMessage] = useState("");
   const importRef = useRef<HTMLInputElement>(null);
+  const config = effectiveRunConfig(run);
   const exportJson = () =>
     download(
-      `${safeName(run.config.name)}.ukd-run.json`,
+      `${safeName(config.name)}.ukd-run.json`,
       JSON.stringify(run, null, 2),
       "application/json",
     );
   const exportCsv = () =>
     download(
-      `${safeName(run.config.name)}-measurements.csv`,
+      `${safeName(config.name)}-measurements.csv`,
       runToCsv(run),
       "text/csv;charset=utf-8",
     );
@@ -797,6 +1173,86 @@ export function ReportsWorkspace({ run, onChange }: RunProps) {
       run.events,
     );
     addSheet(
+      "Measurements",
+      [
+        "id",
+        "runId",
+        "zoneId",
+        "plantId",
+        "metric",
+        "value",
+        "unit",
+        "semantic",
+        "sourceKind",
+        "sourceReference",
+        "quality",
+        "measuredAt",
+        "supersededBy",
+        "correctionReason",
+      ],
+      run.measurements.map(({ reading, ...entry }) => ({
+        ...entry,
+        value: reading.value,
+        unit: reading.unit ?? "",
+        semantic: reading.semantic,
+        sourceKind: reading.source.kind,
+        sourceReference: reading.source.reference,
+        quality: reading.quality ?? "unknown",
+      })),
+    );
+    addSheet(
+      "Journal",
+      [
+        "id",
+        "runId",
+        "zoneId",
+        "plantId",
+        "observedAt",
+        "category",
+        "severity",
+        "text",
+      ],
+      run.structuredObservations,
+    );
+    addSheet(
+      "Tasks",
+      [
+        "id",
+        "day",
+        "title",
+        "requirement",
+        "state",
+        "phase",
+        "reason",
+        "dueAt",
+        "completedAt",
+      ],
+      run.tasks,
+    );
+    addSheet(
+      "Overrides",
+      [
+        "id",
+        "field",
+        "canonicalValue",
+        "overrideValue",
+        "evidenceConflict",
+        "reason",
+        "createdAt",
+        "reversedAt",
+      ],
+      run.overrides.map((entry) => ({
+        ...entry,
+        canonicalValue: JSON.stringify(entry.canonicalValue),
+        overrideValue: JSON.stringify(entry.overrideValue),
+      })),
+    );
+    addSheet(
+      "Audit",
+      ["id", "occurredAt", "action", "entityType", "entityId", "detail"],
+      run.auditEvents,
+    );
+    addSheet(
       "Inventory",
       [
         "id",
@@ -811,7 +1267,7 @@ export function ReportsWorkspace({ run, onChange }: RunProps) {
     );
     const buffer = await workbook.xlsx.writeBuffer();
     download(
-      `${safeName(run.config.name)}.xlsx`,
+      `${safeName(config.name)}.xlsx`,
       buffer,
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     );
@@ -820,13 +1276,16 @@ export function ReportsWorkspace({ run, onChange }: RunProps) {
     const { jsPDF } = await import("jspdf");
     const document = new jsPDF();
     document.setFontSize(18);
-    document.text(run.config.name, 14, 20);
+    document.text(config.name, 14, 20);
     document.setFontSize(10);
     const lines = [
       `Schema: ${run.schemaVersion}`,
-      `Genetik: ${run.config.genetics}`,
-      `Start: ${run.config.startDate}`,
-      `Messungen: ${run.observations.length}`,
+      `Genetik: ${config.genetics}`,
+      `Start: ${config.startDate}`,
+      `Messdatensätze: ${run.observations.length}`,
+      `Typisierte Messwerte: ${run.measurements.length}`,
+      `Strukturierte Beobachtungen: ${run.structuredObservations.length}`,
+      `Overrides: ${run.overrides.length}`,
       `Ereignisse: ${run.events.length}`,
       `Bestandssaldo: ${inventoryBalance(run).toFixed(2)} g`,
       "",
@@ -838,7 +1297,7 @@ export function ReportsWorkspace({ run, onChange }: RunProps) {
         ),
     ];
     document.text(lines, 14, 30, { maxWidth: 180 });
-    document.save(`${safeName(run.config.name)}-report.pdf`);
+    document.save(`${safeName(config.name)}-report.pdf`);
   };
   return (
     <div className="page-stack">
@@ -878,7 +1337,7 @@ export function ReportsWorkspace({ run, onChange }: RunProps) {
         />
         <ExportCard
           title="Excel Workbook"
-          text="Separate Blätter für Messungen, Ereignisse und Bestand."
+          text="Separate Blätter für Messungen, Journal, Tasks, Overrides, Audit und Bestand."
           action="XLSX exportieren"
           onClick={() => void exportXlsx()}
         />
@@ -896,7 +1355,7 @@ export function ReportsWorkspace({ run, onChange }: RunProps) {
         />
         <ExportCard
           title="Restore"
-          text="Nur valide RunPackage-v1-Dateien werden übernommen."
+          text="RunPackage v2 wird validiert; v1 wird kontrolliert und verlustfrei migriert."
           action="JSON importieren"
           onClick={() => importRef.current?.click()}
         />

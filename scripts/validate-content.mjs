@@ -23,6 +23,7 @@ const [
   skills,
   legalProfile,
   capabilityRoadmap,
+  integrationEpics,
   manifest,
 ] = await Promise.all([
   readJson("public/data/evidence-guarded-workbook-v6.json"),
@@ -32,6 +33,7 @@ const [
   readJson("src/data/skills.json"),
   readJson("src/data/legal-profile.example.json"),
   readJson("src/data/capability-roadmap.json"),
+  readJson("src/data/integration-epics.json"),
   readJson("public/data/data-manifest.json"),
 ]);
 
@@ -145,6 +147,20 @@ assert(
   capabilityRoadmap.performance?.coreWebVitals?.inpMillisecondsMax === 200,
   "Capability roadmap must use INP rather than the retired FID metric",
 );
+assert(
+  integrationEpics.thirdPartyIntakeGate?.default === "REJECT_UNTIL_VERIFIED",
+  "Third-party intake must default to reject until verified",
+);
+assert(
+  integrationEpics.epics?.length === 20,
+  "Integration roadmap must contain EPIC-01 through EPIC-20",
+);
+assert(
+  integrationEpics.candidatePatterns?.every(
+    (candidate) => candidate.codeImportAllowed === false,
+  ),
+  "Unverified third-party candidates must not allow code import",
+);
 
 assert(
   manifest.canonicalWorkbook.sha256 ===
@@ -188,6 +204,6 @@ if (failures.length > 0) {
   process.exitCode = 1;
 } else {
   process.stdout.write(
-    `Content gate passed: ${knowledge.claims.length} claims, ${knowledge.sources.length} sources, ${audit.rows.length} findings, ${skills.skills.length} skills.\n`,
+    `Content gate passed: ${knowledge.claims.length} claims, ${knowledge.sources.length} sources, ${audit.rows.length} findings, ${skills.skills.length} skills, ${integrationEpics.epics.length} integration epics.\n`,
   );
 }

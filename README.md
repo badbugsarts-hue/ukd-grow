@@ -25,10 +25,10 @@ pnpm check
 
 - Guided-, Advanced- und Expert-Linse ohne Änderung der fachlichen Ergebnisse
 - 27 vollständig migrierte Workbook-Blätter und 55 Audit-Findings
-- 17 Arbeitsbereiche inklusive Run-Setup, Mess-/Ereignislog, Cockpit, Tagesplan, 81-Tage-Timeline und Batch-Mischlabor
+- 18 Arbeitsbereiche inklusive Run-Setup, Mess-/Ereignislog, Run-Historie, Cockpit, Tagesplan, 81-Tage-Timeline und Batch-Mischlabor
 - Klima-, Licht-, Nährstoff-, Produkt-, Kompatibilitäts- und Diagnoseflächen
 - globale Suche, kontextuelle Hilfe, Light/Dark, responsive Mobile-Navigation
-- persistentes lokales RunPackage mit Messwerten, Checklisten, Warnungen und nachvollziehbarem Ereignisprotokoll
+- lokales Multi-Run-Repository mit RunPackage v2, immutable Setup-Snapshots, typisierten Messwerten, semantischen Tasks, Overrides und Audit-Protokoll
 - validiertes JSON-Backup/Restore sowie CSV-, XLSX-, PDF- und Druckexport
 - installierbare Offline-Shell, Manifest-/Hashdiagnose, Hochkontrast und Textskalierung
 - kuratierte Knowledge Base mit Claim-Status, Evidenzklasse, Scope, Unsicherheit und Quellen
@@ -48,6 +48,7 @@ Die Anwendung ist eine Planungs- und Dokumentationshilfe. Kalender- und Dosiswer
 - `src/data/skills.json`: ausführbare fachliche Skill-Verträge
 - `src/data/legal-profile.schema.json`: Schema für lokale, nicht eingecheckte Rechtsprofile
 - `src/data/capability-roadmap.json`: implementierte, geplante und bedingt aktivierbare Fähigkeiten
+- `src/data/integration-epics.json`: 20 Epics und verpflichtender Intake-Gate für ungeprüften Fremdcode
 - `src/run-state.ts`: versioniertes Run-Modell, Warnlogik, Importvalidierung und Exportabbildung
 - `src/run-storage.ts`: lokaler IndexedDB-Speicher für den aktiven Run
 - `src/domain.ts`: geteilte Berechnungs- und Mappinglogik
