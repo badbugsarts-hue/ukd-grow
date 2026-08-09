@@ -7,7 +7,9 @@
     "operational": "evidence-guarded-workbook-v6.json / 02_Daily_Master",
     "claims": "knowledge-base.json",
     "audit": "legacy-audit.json",
-    "rules": "skills.json"
+    "rules": "skills.json",
+    "legalProfileTemplate": "legal-profile.example.json",
+    "capabilityRoadmap": "capability-roadmap.json"
   },
   "invariants": [
     "Pflanzenreaktion, Messwerte und Sicherheitsgrenzen überschreiben Kalenderwerte.",
@@ -19,6 +21,14 @@
     "Rhino Skin/Hesilicio sind standardmäßig aus, wenn Athena Balance als Siliziumquelle verwendet wird.",
     "Ein Seed-Run ist kein kontrollierter kausaler A/B-Test.",
     "KCanG §§3,9,10 sind die Rechtsbasis dieses privaten deutschen Setups; GACP/GMP darf nicht als pauschale Homegrow-Lizenzpflicht gerendert werden.",
+    "KCanG-Eigenanbau, MedCanG-Apothekenbezug und eine Erlaubnis nach § 4 MedCanG sind getrennte Rechtsgrundlagen und Bestandskonten.",
+    "Die Ertragsprognose bildet die technische Setup-Kapazität ohne künstliche Grammgrenze ab; zulässiger Bestand und Vernichtung werden separat geprüft.",
+    "Eine geplante spätere Vernichtung autorisiert keinen zwischenzeitlichen Besitz und keine Anbautätigkeit.",
+    "Patienten-, Rezept- und Genehmigungsdaten bleiben lokal und werden nur nach Dokumentprüfung als verifiziert markiert.",
+    "Nicht vorhandene Backend-, Auth-, Datenbank- oder Sensorfunktionen niemals als implementiert oder live darstellen.",
+    "Jeder operative Wert wird semantisch als Soll, gemessen, simuliert, fehlend oder veraltet behandelt.",
+    "Guided, Advanced und Expert bleiben semantische Linsen; eine 1-10-Skala benötigt vor Implementierung belastbare Nutzerforschung.",
+    "Kritische Warnungen bleiben persistent und zugänglich; ein flüchtiger Toast allein genügt nicht.",
     "Eine Studie mit 78–98 % versus 37–58 % RH beweist Schäden extremer Feuchte, aber kein universelles RH-Optimum.",
     "212–283 mg N/L aus einem organischen Coir-Versuch ist kein mineralisches HESI-Coco-Soll.",
     "12/12-Logik photoperiodischer Pflanzen wird nicht auf Autoflower übertragen; auch 18 h bleibt eine UKD-Arbeitshypothese.",
@@ -43,6 +53,8 @@
     "Blatttemperatur",
     "Leckage-/Bewässerungsstatus",
     "Rechts-/Quellen-Freshness",
+    "Rechtsgrundlage und Dokumentprüfstatus",
+    "Getrennte Bestände aus Eigenanbau und Apothekenabgabe",
     "Genetik-/Photoperiodstatus"
   ],
   "updatedAt": "2026-08-08"

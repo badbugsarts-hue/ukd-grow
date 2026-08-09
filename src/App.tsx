@@ -1,8 +1,14 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import auditData from "./data/legacy-audit.json";
-import knowledgeData from "./data/knowledge-base.json";
-import aiContext from "./data/ai-context.json";
-import skillsData from "./data/skills.json";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
+import { AlertCenter } from "./AlertCenter";
 import {
   DAILY_COLUMNS,
   calculateMix,
@@ -11,30 +17,64 @@ import {
   numberAt,
   textAt,
 } from "./domain";
+import {
+  acknowledgeAlert,
+  createDefaultRunPackage,
+  deriveRunAlerts,
+  latestObservation,
+  setTaskCompleted,
+} from "./run-state";
+import { loadActiveRun, saveActiveRun } from "./run-storage";
 import type {
   AuditFinding,
   CellValue,
   ExperienceLens,
   KnowledgeBase,
+  LegalProfile,
   RouteId,
+  RunPackage,
   Workbook,
   WorkbookSheet,
 } from "./types";
 
 let workbook: Workbook = {};
-const knowledge = knowledgeData as KnowledgeBase;
-const audit = auditData as {
+let knowledge: KnowledgeBase = {
+  schemaVersion: "",
+  reviewedAt: "",
+  scope: "",
+  evidenceScale: {},
+  claims: [],
+  sources: [],
+};
+let audit: {
   schemaVersion: string;
   source: string;
   reviewedAt?: string;
   rows: AuditFinding[];
-};
-const AUDIT_COUNT = audit.rows.length;
+} = { schemaVersion: "", source: "", rows: [] };
+let aiContext: { schemaVersion: string } = { schemaVersion: "" };
+let skillsData: { skills: unknown[] } = { skills: [] };
+const AUDIT_COUNT = 55;
 const EMPTY_SHEET: WorkbookSheet = {
   range: "A1:A1",
   values: [[]],
   formulas: [[]],
 };
+const RunSetupWorkspace = lazy(async () => ({
+  default: (await import("./RunWorkspace")).RunSetupWorkspace,
+}));
+const RunLogWorkspace = lazy(async () => ({
+  default: (await import("./RunWorkspace")).RunLogWorkspace,
+}));
+const LegalWorkspace = lazy(async () => ({
+  default: (await import("./RunWorkspace")).LegalWorkspace,
+}));
+const ReportsWorkspace = lazy(async () => ({
+  default: (await import("./RunWorkspace")).ReportsWorkspace,
+}));
+const SystemWorkspace = lazy(async () => ({
+  default: (await import("./RunWorkspace")).SystemWorkspace,
+}));
 const DEFAULT_NAV: NavItem = {
   id: "cockpit",
   label: "Cockpit",
@@ -61,6 +101,22 @@ const NAV: NavItem[] = [
     icon: "⌂",
     group: "Operator",
     description: "Run-Status und wichtigste Entscheidungen",
+  },
+  {
+    id: "setup",
+    label: "Run einrichten",
+    short: "Setup",
+    icon: "⚙",
+    group: "Operator",
+    description: "Konfiguration, Wasserprofil und Systemgrenzen",
+  },
+  {
+    id: "log",
+    label: "Messungen & Log",
+    short: "Log",
+    icon: "✎",
+    group: "Operator",
+    description: "Soll/Ist-Werte, Ereignisse und Alerts",
   },
   {
     id: "today",
@@ -150,6 +206,30 @@ const NAV: NavItem[] = [
     group: "System",
     description: "27 Blätter, Werte und Formeln",
   },
+  {
+    id: "legal",
+    label: "Recht & Bestand",
+    short: "Bestand",
+    icon: "§",
+    group: "System",
+    description: "Lokales Rechtsprofil und Bestandsereignisse",
+  },
+  {
+    id: "reports",
+    label: "Sichern & Berichte",
+    short: "Export",
+    icon: "⇩",
+    group: "System",
+    description: "Backup, Restore, CSV, XLSX und PDF",
+  },
+  {
+    id: "system",
+    label: "Daten & Integrationen",
+    short: "System",
+    icon: "◎",
+    group: "System",
+    description: "Manifestprüfung, Offline- und Integrationsstatus",
+  },
 ];
 
 const LENSES: Array<{ id: ExperienceLens; label: string; compact: string }> = [
@@ -168,6 +248,20 @@ const HELP: Record<
     how: "Tag wählen, Stop-Regeln prüfen und dann Heute oder Mischlabor öffnen.",
     interpret:
       "Sollwerte sind Plantrajektorien. Aktuelle Pflanzen- und Messdaten haben Vorrang.",
+  },
+  setup: {
+    what: "Die versionierte Konfiguration des aktiven Runs.",
+    why: "Planwerte sind nur mit dokumentiertem Setup und Wasserprofil interpretierbar.",
+    how: "Felder prüfen, Wasser-Baseline messen und Änderungen bewusst speichern.",
+    interpret:
+      "Eine Konfigurationsänderung erzeugt ein Ereignis; der kanonische v6-Plan bleibt als Referenz unverändert.",
+  },
+  log: {
+    what: "Manuelle Soll/Ist-Messungen, Aktionen und persistente Alerts.",
+    why: "Planwerte werden erst durch aktuelle Messungen und Beobachtungen operativ nutzbar.",
+    how: "Messwerte mit Zeitstempel speichern, Abweichungen prüfen und Alerts nur nach Prüfung quittieren.",
+    interpret:
+      "Gemessen, fehlend und veraltet sind unterschiedliche Datenzustände; kein Wert wird als live dargestellt.",
   },
   today: {
     what: "Alle operativen Werte und Aufgaben für einen Tag.",
@@ -243,6 +337,27 @@ const HELP: Record<
     interpret:
       "Berechnete Werte stammen aus dem Evidence-Guarded-v6-Workbook und werden hier nicht still neu erfunden.",
   },
+  legal: {
+    what: "Ein sitzungsgebundener Import geprüfter Rechtsprofile plus getrenntes Bestandslog.",
+    why: "KCanG, Apothekenbezug und individuelle Erlaubnisse dürfen nicht still addiert werden.",
+    how: "Nur ein geprüftes lokales Profil importieren und jede Bestandsbewegung einzeln dokumentieren.",
+    interpret:
+      "Das Modul ersetzt keine Rechtsberatung und speichert das sensible Profil nicht im Browser.",
+  },
+  reports: {
+    what: "Der vollständige Backup-, Restore- und Berichtsbereich.",
+    why: "Ein operativer Run braucht portable, versionierte und prüfbare Daten.",
+    how: "Vor Änderungen JSON sichern; Importe werden vor Übernahme validiert.",
+    interpret:
+      "CSV/XLSX sind Arbeitsdaten, PDF ist eine Momentaufnahme; JSON bleibt das verlustfreie Austauschformat.",
+  },
+  system: {
+    what: "Datenintegrität, Offline-Status und ehrliche Integrationsgrenzen.",
+    why: "Ein Update darf Quellen, Hashes oder lokale Daten nicht still verändern.",
+    how: "Manifest prüfen, Version vergleichen und Integrationen nur nach freigegebenem Protokoll aktivieren.",
+    interpret:
+      "Sensorik, Cloud und Gerätesteuerung bleiben deaktiviert, solange Sicherheits- und Vertrauensmodell fehlen.",
+  },
 };
 
 function readRoute(): RouteId {
@@ -258,7 +373,8 @@ function readLens(): ExperienceLens {
 }
 
 function readDay(): number {
-  const query = Number(new URLSearchParams(window.location.search).get("day"));
+  const queryParam = new URLSearchParams(window.location.search).get("day");
+  const query = queryParam === null ? Number.NaN : Number(queryParam);
   const saved = Number(localStorage.getItem("ukd:day"));
   const value = Number.isFinite(query) && query >= 0 ? query : saved;
   return Math.max(
@@ -269,6 +385,7 @@ function readDay(): number {
 
 function App() {
   const [data, setData] = useState<Workbook | null>(null);
+  const [referenceReady, setReferenceReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -291,6 +408,35 @@ function App() {
     return () => controller.abort();
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      import("./data/legacy-audit.json"),
+      import("./data/knowledge-base.json"),
+      import("./data/ai-context.json"),
+      import("./data/skills.json"),
+    ])
+      .then(([auditModule, knowledgeModule, contextModule, skillsModule]) => {
+        if (!active) return;
+        audit = auditModule.default as typeof audit;
+        knowledge = knowledgeModule.default as KnowledgeBase;
+        aiContext = contextModule.default;
+        skillsData = skillsModule.default;
+        setReferenceReady(true);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Referenzdaten konnten nicht geladen werden",
+        );
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   if (loadError)
     return (
       <DataState
@@ -299,7 +445,7 @@ function App() {
         error
       />
     );
-  if (!data)
+  if (!data || !referenceReady)
     return (
       <DataState
         title="Operator Workspace wird vorbereitet"
@@ -320,7 +466,64 @@ function Workspace() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [run, setRun] = useState<RunPackage>(() => createDefaultRunPackage());
+  const [runHydrated, setRunHydrated] = useState(false);
+  const [storageError, setStorageError] = useState("");
+  const [legalProfile, setLegalProfile] = useState<LegalProfile | null>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const plan = useMemo(() => getDayPlan(workbook, day), [day]);
+
+  const rememberFocus = () => {
+    returnFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+  };
+  const openHelp = () => {
+    rememberFocus();
+    setHelpOpen(true);
+  };
+  const openPalette = () => {
+    rememberFocus();
+    setPaletteOpen(true);
+  };
+  const closeOverlays = () => {
+    setHelpOpen(false);
+    setPaletteOpen(false);
+    window.requestAnimationFrame(() => returnFocusRef.current?.focus());
+  };
+
+  useEffect(() => {
+    let active = true;
+    loadActiveRun()
+      .then((saved) => {
+        if (active && saved) setRun(saved);
+      })
+      .catch(() => {
+        if (active)
+          setStorageError(
+            "Lokaler Speicher ist nicht verfügbar. Bitte über Sichern & Berichte exportieren.",
+          );
+      })
+      .finally(() => {
+        if (active) setRunHydrated(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!runHydrated) return;
+    const timer = window.setTimeout(() => {
+      saveActiveRun(run).catch(() =>
+        setStorageError(
+          "Autosave fehlgeschlagen. Bitte jetzt ein JSON-Backup exportieren.",
+        ),
+      );
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [run, runHydrated]);
 
   useEffect(() => {
     const onHash = () => setRoute(readRoute());
@@ -346,14 +549,31 @@ function Workspace() {
     const onKey = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
+        returnFocusRef.current =
+          document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
         setPaletteOpen(true);
       }
       if (event.key === "Escape") {
         setPaletteOpen(false);
         setHelpOpen(false);
         setNavOpen(false);
+        window.requestAnimationFrame(() => returnFocusRef.current?.focus());
       }
-      if (event.key === "?") setHelpOpen(true);
+      const target = event.target;
+      const editing =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable);
+      if (event.key === "?" && !editing) {
+        returnFocusRef.current =
+          document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
+        setHelpOpen(true);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -394,7 +614,7 @@ function Workspace() {
           <button
             className="command-trigger"
             type="button"
-            onClick={() => setPaletteOpen(true)}
+            onClick={openPalette}
           >
             <span>⌕</span>
             <span>Suche, Ansicht oder Aktion</span>
@@ -404,7 +624,7 @@ function Workspace() {
           <button
             className="icon-button"
             type="button"
-            onClick={() => setHelpOpen(true)}
+            onClick={openHelp}
             aria-label="Hilfe zur Ansicht"
           >
             ?
@@ -428,32 +648,45 @@ function Workspace() {
             lens={lens}
             day={day}
             setDay={setDay}
-            onHelp={() => setHelpOpen(true)}
+            onHelp={openHelp}
           />
-          {lens === "guided" && (
-            <GuidedBanner route={route} onHelp={() => setHelpOpen(true)} />
+          {storageError && (
+            <p className="inline-error global-error" role="alert">
+              {storageError}
+            </p>
           )}
-          <RouteContent
-            route={route}
-            lens={lens}
-            plan={plan}
-            day={day}
-            setDay={setDay}
-            navigate={navigate}
-          />
+          {lens === "guided" && (
+            <GuidedBanner route={route} onHelp={openHelp} />
+          )}
+          <Suspense
+            fallback={
+              <p className="route-loading" role="status">
+                Arbeitsbereich wird geladen…
+              </p>
+            }
+          >
+            <RouteContent
+              route={route}
+              lens={lens}
+              plan={plan}
+              day={day}
+              setDay={setDay}
+              navigate={navigate}
+              run={run}
+              setRun={setRun}
+              legalProfile={legalProfile}
+              setLegalProfile={setLegalProfile}
+            />
+          </Suspense>
         </main>
         <MobileBar route={route} onNavigate={navigate} />
       </div>
       {helpOpen && (
-        <HelpDrawer
-          route={route}
-          lens={lens}
-          onClose={() => setHelpOpen(false)}
-        />
+        <HelpDrawer route={route} lens={lens} onClose={closeOverlays} />
       )}
       {paletteOpen && (
         <CommandPalette
-          onClose={() => setPaletteOpen(false)}
+          onClose={closeOverlays}
           onNavigate={navigate}
           setDay={setDay}
         />
@@ -601,9 +834,13 @@ function PageHeader({
       </div>
       <div className="header-actions">
         {![
+          "setup",
           "knowledge",
           "audit",
           "raw",
+          "legal",
+          "reports",
+          "system",
           "products",
           "compatibility",
           "diagnostics",
@@ -659,6 +896,10 @@ function RouteContent({
   day,
   setDay,
   navigate,
+  run,
+  setRun,
+  legalProfile,
+  setLegalProfile,
 }: {
   route: RouteId;
   lens: ExperienceLens;
@@ -666,14 +907,37 @@ function RouteContent({
   day: number;
   setDay: (day: number) => void;
   navigate: (route: RouteId) => void;
+  run: RunPackage;
+  setRun: (run: RunPackage) => void;
+  legalProfile: LegalProfile | null;
+  setLegalProfile: (profile: LegalProfile | null) => void;
 }) {
   switch (route) {
     case "cockpit":
       return (
-        <Cockpit plan={plan} lens={lens} setDay={setDay} navigate={navigate} />
+        <Cockpit
+          plan={plan}
+          lens={lens}
+          setDay={setDay}
+          navigate={navigate}
+          run={run}
+          setRun={setRun}
+        />
       );
+    case "setup":
+      return <RunSetupWorkspace run={run} onChange={setRun} />;
+    case "log":
+      return <RunLogWorkspace run={run} plan={plan} onChange={setRun} />;
     case "today":
-      return <Today plan={plan} lens={lens} navigate={navigate} />;
+      return (
+        <Today
+          plan={plan}
+          lens={lens}
+          navigate={navigate}
+          run={run}
+          setRun={setRun}
+        />
+      );
     case "timeline":
       return <Timeline day={day} setDay={setDay} lens={lens} />;
     case "mix":
@@ -694,6 +958,19 @@ function RouteContent({
       return <AuditPage lens={lens} />;
     case "raw":
       return <RawData lens={lens} />;
+    case "legal":
+      return (
+        <LegalWorkspace
+          run={run}
+          onChange={setRun}
+          profile={legalProfile}
+          onProfileChange={setLegalProfile}
+        />
+      );
+    case "reports":
+      return <ReportsWorkspace run={run} onChange={setRun} />;
+    case "system":
+      return <SystemWorkspace />;
   }
 }
 
@@ -702,13 +979,19 @@ function Cockpit({
   lens,
   setDay,
   navigate,
+  run,
+  setRun,
 }: {
   plan: ReturnType<typeof getDayPlan>;
   lens: ExperienceLens;
   setDay: (day: number) => void;
   navigate: (route: RouteId) => void;
+  run: RunPackage;
+  setRun: (run: RunPackage) => void;
 }) {
   const day = plan.day;
+  const observation = latestObservation(run, day);
+  const alerts = deriveRunAlerts(run, plan);
   return (
     <div className="page-stack">
       <section className="run-strip">
@@ -721,7 +1004,7 @@ function Cockpit({
         </div>
         <div>
           <small>Genetik</small>
-          <strong>Double Grape Auto</strong>
+          <strong>{run.config.genetics}</strong>
         </div>
         <div>
           <small>Ziel</small>
@@ -830,11 +1113,16 @@ function Cockpit({
           <dl className="compact-list">
             <div>
               <dt>Logstatus</dt>
-              <dd>OFFEN</dd>
+              <dd>{observation ? "ERFASST" : "OFFEN"}</dd>
             </div>
             <div>
               <dt>Wasserchemie</dt>
-              <dd>UNBEKANNT</dd>
+              <dd>
+                {run.config.water.sourcePh !== null &&
+                run.config.water.sourceEc !== null
+                  ? "ERFASST"
+                  : "UNBEKANNT"}
+              </dd>
             </div>
             <div>
               <dt>Bewässerung</dt>
@@ -843,6 +1131,12 @@ function Cockpit({
           </dl>
         </Panel>
       </div>
+      <AlertCenter
+        compact
+        alerts={alerts}
+        acknowledgedIds={run.acknowledgedAlertIds}
+        onAcknowledge={(id) => setRun(acknowledgeAlert(run, id))}
+      />
       <div className="two-column">
         <Panel title="12-Wochen-Trajektorie" kicker="LICHT & KLIMA">
           <MultiLineChart
@@ -899,10 +1193,14 @@ function Today({
   plan,
   lens,
   navigate,
+  run,
+  setRun,
 }: {
   plan: ReturnType<typeof getDayPlan>;
   lens: ExperienceLens;
   navigate: (route: RouteId) => void;
+  run: RunPackage;
+  setRun: (run: RunPackage) => void;
 }) {
   const sections = [
     {
@@ -997,7 +1295,12 @@ function Today({
       <div className="two-column wide-left">
         <Panel title="Aktionen & Qualität" kicker="CHECKLISTE">
           <p className="prose-callout">{textAt(plan, DAILY_COLUMNS.qa)}</p>
-          <Checklist />
+          <Checklist
+            completed={run.completedTasks[String(plan.day)] ?? []}
+            onChange={(task, completed) =>
+              setRun(setTaskCompleted(run, plan.day, task, completed))
+            }
+          />
         </Panel>
         <Panel title="Training / Canopy" kicker="PFLANZENREAKTION">
           <h3>{textAt(plan, DAILY_COLUMNS.training)}</h3>
@@ -1088,7 +1391,12 @@ function Timeline({
         title="Tagesmatrix"
         kicker={lens === "guided" ? "± 3 TAGE" : "81 TAGE"}
       >
-        <div className="data-table-wrap">
+        <section
+          className="data-table-wrap"
+          aria-label="Tagesmatrix, horizontal scrollbar"
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: Safari needs keyboard focus on horizontally scrollable table regions.
+          tabIndex={0}
+        >
           <table className="data-table timeline-table">
             <thead>
               <tr>
@@ -1140,7 +1448,7 @@ function Timeline({
               })}
             </tbody>
           </table>
-        </div>
+        </section>
       </Panel>
     </div>
   );
@@ -1311,11 +1619,12 @@ function Climate({
                 values: rows.map((row) => Number(row[8] ?? 0)),
               },
               {
-                label: "Watt × 4",
+                label: "Watt",
                 color: "#8ad2c7",
-                values: rows.map((row) => Number(row[7] ?? 0) * 4),
+                values: rows.map((row) => Number(row[7] ?? 0)),
               },
             ]}
+            selectedIndex={plan.day}
           />
         </Panel>
         <Panel title="Klimatrajektorie" kicker="TAG 0–80">
@@ -1327,11 +1636,12 @@ function Climate({
                 values: rows.map((row) => Number(row[13] ?? 0)),
               },
               {
-                label: "Temp × 2",
+                label: "Temperatur",
                 color: "#ef705c",
-                values: rows.map((row) => Number(row[11] ?? 0) * 2),
+                values: rows.map((row) => Number(row[11] ?? 0)),
               },
             ]}
+            selectedIndex={plan.day}
           />
         </Panel>
       </div>
@@ -1484,23 +1794,24 @@ function LibraryPage({
 }) {
   const sheet = workbook[sheetName] ?? EMPTY_SHEET;
   const [query, setQuery] = useState("");
-  const rows = useMemo(
-    () =>
-      sheet.values.filter((row) =>
-        row.some((cell) =>
-          String(cell ?? "")
-            .toLowerCase()
-            .includes(query.toLowerCase()),
-        ),
-      ),
-    [sheet, query],
-  );
-  const limit = lens === "guided" ? 24 : rows.length;
+  const rows = useMemo(() => {
+    const header = sheet.values[0] ?? [];
+    const matches = sheet.values.slice(1).filter((row) =>
+      row
+        .map((cell) => String(cell ?? ""))
+        .join(" ")
+        .toLowerCase()
+        .includes(query.toLowerCase()),
+    );
+    return [header, ...matches];
+  }, [sheet, query]);
+  const resultCount = Math.max(0, rows.length - 1);
+  const limit = lens === "guided" ? 25 : rows.length;
   return (
     <div className="page-stack">
       <Panel
         title={sheetName.replace(/^\d+_/, "").replaceAll("_", " ")}
-        kicker={`${sheet.range} · ${rows.length} TREFFER`}
+        kicker={`${sheet.range} · ${resultCount} TREFFER`}
         action={
           <label className="table-search">
             <span>⌕</span>
@@ -1514,6 +1825,11 @@ function LibraryPage({
         }
       >
         <GenericTable rows={rows.slice(0, limit)} sticky />
+        {resultCount === 0 && (
+          <p className="table-empty" role="status">
+            Keine Treffer für „{query}“.
+          </p>
+        )}
         {lens === "guided" && rows.length > limit && (
           <p className="table-footnote">
             Guided zeigt die ersten {limit} Treffer. Advanced oder Expert zeigt
@@ -1627,9 +1943,12 @@ function Diagnostics({ lens }: { lens: ExperienceLens }) {
 
 function KnowledgePage({ lens }: { lens: ExperienceLens }) {
   const [evidence, setEvidence] = useState("all");
-  const [openId, setOpenId] = useState<string | null>(
-    knowledge.claims[0]?.id ?? null,
-  );
+  const [openId, setOpenId] = useState<string | null>(() => {
+    const requested = new URLSearchParams(window.location.search).get("claim");
+    return knowledge.claims.some((claim) => claim.id === requested)
+      ? requested
+      : (knowledge.claims[0]?.id ?? null);
+  });
   const claims = knowledge.claims.filter(
     (claim) => evidence === "all" || claim.evidence === evidence,
   );
@@ -1827,7 +2146,12 @@ function AuditPage({ lens }: { lens: ExperienceLens }) {
 
 function RawData({ lens }: { lens: ExperienceLens }) {
   const names = Object.keys(workbook);
-  const [sheetName, setSheetName] = useState(names[0] ?? "00_Dashboard");
+  const [sheetName, setSheetName] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get("sheet");
+    return requested && names.includes(requested)
+      ? requested
+      : (names[0] ?? "00_Dashboard");
+  });
   const sheet = workbook[sheetName] ?? EMPTY_SHEET;
   const [formulas, setFormulas] = useState(lens === "expert");
   useEffect(() => {
@@ -1996,8 +2320,13 @@ function FlowStep({
   );
 }
 
-function Checklist() {
-  const [done, setDone] = useState<Record<string, boolean>>({});
+function Checklist({
+  completed,
+  onChange,
+}: {
+  completed: string[];
+  onChange: (task: string, completed: boolean) => void;
+}) {
   const items = [
     "Bewässerung und Leck prüfen",
     "Blattwinkel / Stress beobachten",
@@ -2010,10 +2339,8 @@ function Checklist() {
         <label key={item}>
           <input
             type="checkbox"
-            checked={Boolean(done[item])}
-            onChange={(event) =>
-              setDone({ ...done, [item]: event.target.checked })
-            }
+            checked={completed.includes(item)}
+            onChange={(event) => onChange(item, event.target.checked)}
           />
           <span>{item}</span>
         </label>
@@ -2053,33 +2380,99 @@ function GenericTable({
   rows: CellValue[][];
   sticky?: boolean;
 }) {
+  const [sort, setSort] = useState<{
+    column: number;
+    direction: "ascending" | "descending";
+  } | null>(null);
   const width = Math.max(0, ...rows.map((row) => row.length));
+  const displayRows = useMemo(() => {
+    if (!sort || rows.length <= 2) return rows;
+    const [header, ...body] = rows;
+    body.sort((left, right) => {
+      const a = left[sort.column];
+      const b = right[sort.column];
+      const comparison =
+        typeof a === "number" && typeof b === "number"
+          ? a - b
+          : String(a ?? "").localeCompare(String(b ?? ""), "de", {
+              numeric: true,
+              sensitivity: "base",
+            });
+      return sort.direction === "ascending" ? comparison : -comparison;
+    });
+    return header ? [header, ...body] : body;
+  }, [rows, sort]);
+  const headerRow = displayRows[0] ?? [];
   const occurrences = new Map<string, number>();
-  const keyedRows = rows.map((row) => {
+  const keyedRows = displayRows.slice(1).map((row) => {
     const contentKey = JSON.stringify(row);
     const occurrence = (occurrences.get(contentKey) ?? 0) + 1;
     occurrences.set(contentKey, occurrence);
     return { row, key: `${contentKey}:${occurrence}` };
   });
   return (
-    <div className="data-table-wrap">
+    <section
+      className="data-table-wrap"
+      aria-label="Datentabelle, horizontal scrollbar"
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: Safari needs keyboard focus on horizontally scrollable table regions.
+      tabIndex={0}
+    >
       <table className={`data-table ${sticky ? "sticky" : ""}`}>
-        <tbody>
-          {keyedRows.map(({ row, key }, rowIndex) => (
-            <tr key={key} className={rowIndex === 0 ? "header-row" : ""}>
+        {headerRow.length > 0 && (
+          <thead>
+            <tr className="header-row">
               {Array.from({ length: width }, (_, columnIndex) => {
-                const Tag = rowIndex === 0 ? "th" : "td";
+                const active = sort?.column === columnIndex;
                 return (
-                  <Tag key={columnName(columnIndex)}>
+                  <th
+                    key={columnName(columnIndex)}
+                    scope="col"
+                    aria-sort={active ? sort.direction : "none"}
+                  >
+                    <button
+                      type="button"
+                      className="table-sort"
+                      onClick={() =>
+                        setSort((current) => ({
+                          column: columnIndex,
+                          direction:
+                            current?.column === columnIndex &&
+                            current.direction === "ascending"
+                              ? "descending"
+                              : "ascending",
+                        }))
+                      }
+                    >
+                      {formatCell(headerRow[columnIndex])}
+                      <span aria-hidden="true">
+                        {active
+                          ? sort.direction === "ascending"
+                            ? "↑"
+                            : "↓"
+                          : "↕"}
+                      </span>
+                    </button>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+        )}
+        <tbody>
+          {keyedRows.map(({ row, key }) => (
+            <tr key={key}>
+              {Array.from({ length: width }, (_, columnIndex) => {
+                return (
+                  <td key={columnName(columnIndex)}>
                     {formatCell(row[columnIndex])}
-                  </Tag>
+                  </td>
                 );
               })}
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+    </section>
   );
 }
 function SheetSlice({
@@ -2149,44 +2542,89 @@ function ExpertTrace({ plan }: { plan: ReturnType<typeof getDayPlan> }) {
 
 function MultiLineChart({
   series,
+  selectedIndex,
 }: {
   series: Array<{ label: string; color: string; values: number[] }>;
+  selectedIndex?: number;
 }) {
-  const all = series.flatMap((item) => item.values);
-  const max = Math.max(...all, 1);
-  const min = Math.min(...all, 0);
-  const range = max - min || 1;
   const points = (values: number[]) =>
-    values
-      .map(
-        (value, index) =>
-          `${(index / Math.max(1, values.length - 1)) * 100},${54 - ((value - min) / range) * 48}`,
-      )
-      .join(" ");
+    (() => {
+      const max = Math.max(...values, 1);
+      const min = Math.min(...values, 0);
+      const range = max - min || 1;
+      return values
+        .map(
+          (value, index) =>
+            `${(index / Math.max(1, values.length - 1)) * 100},${54 - ((value - min) / range) * 48}`,
+        )
+        .join(" ");
+    })();
+  const maxLength = Math.max(...series.map((item) => item.values.length), 1);
+  const markerX =
+    selectedIndex === undefined
+      ? null
+      : (selectedIndex / Math.max(1, maxLength - 1)) * 100;
   return (
-    <svg
-      className="line-chart"
-      viewBox="0 0 100 60"
-      preserveAspectRatio="none"
-      role="img"
-      aria-label={`Kurvendiagramm: ${series.map((item) => item.label).join(", ")}`}
-    >
-      <g className="chart-grid">
-        <line x1="0" y1="6" x2="100" y2="6" />
-        <line x1="0" y1="30" x2="100" y2="30" />
-        <line x1="0" y1="54" x2="100" y2="54" />
-      </g>
-      {series.map((item) => (
-        <polyline
-          key={item.label}
-          fill="none"
-          stroke={item.color}
-          strokeWidth="1.5"
-          vectorEffect="non-scaling-stroke"
-          points={points(item.values)}
-        />
-      ))}
-    </svg>
+    <div className="chart-block">
+      <svg
+        className="line-chart"
+        viewBox="0 0 100 60"
+        preserveAspectRatio="none"
+        role="img"
+        aria-label={`Kurvendiagramm: ${series.map((item) => item.label).join(", ")}`}
+      >
+        <desc>
+          Jede Datenreihe verwendet ihre eigene beschriftete Min-Max-Skala.
+          {selectedIndex === undefined
+            ? ""
+            : ` Markierung bei Run-Tag ${selectedIndex}.`}
+        </desc>
+        <g className="chart-grid">
+          <line x1="0" y1="6" x2="100" y2="6" />
+          <line x1="0" y1="30" x2="100" y2="30" />
+          <line x1="0" y1="54" x2="100" y2="54" />
+        </g>
+        {markerX !== null && (
+          <line
+            className="chart-marker"
+            x1={markerX}
+            y1="4"
+            x2={markerX}
+            y2="56"
+          />
+        )}
+        {series.map((item) => (
+          <polyline
+            key={item.label}
+            fill="none"
+            stroke={item.color}
+            strokeWidth="1.5"
+            vectorEffect="non-scaling-stroke"
+            points={points(item.values)}
+          />
+        ))}
+      </svg>
+      <dl className="chart-scale-list">
+        {series.map((item) => {
+          const selected =
+            selectedIndex === undefined
+              ? item.values.at(-1)
+              : item.values[selectedIndex];
+          return (
+            <div key={item.label}>
+              <dt>
+                <i style={{ background: item.color }} /> {item.label}
+              </dt>
+              <dd>
+                {Math.min(...item.values).toFixed(1)}–
+                {Math.max(...item.values).toFixed(1)} · Auswahl{" "}
+                {selected?.toFixed(1) ?? "—"}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+    </div>
   );
 }
 
@@ -2200,8 +2638,11 @@ function HelpDrawer({
   onClose: () => void;
 }) {
   const help = HELP[route];
+  const dialogRef = useRef<HTMLElement>(null);
+  useDialogFocusTrap(dialogRef, onClose);
   return (
     <aside
+      ref={dialogRef}
       className="help-drawer"
       role="dialog"
       aria-modal="true"
@@ -2278,8 +2719,11 @@ function CommandPalette({
   setDay: (day: number) => void;
 }) {
   const [query, setQuery] = useState("");
+  const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
   useEffect(() => inputRef.current?.focus(), []);
+  useDialogFocusTrap(dialogRef, onClose);
   const items = useMemo(() => {
     const q = query.toLowerCase().trim();
     const nav = NAV.map((item) => ({
@@ -2292,13 +2736,23 @@ function CommandPalette({
       key: `claim-${claim.id}`,
       title: claim.title,
       meta: `Evidenz ${claim.evidence} · ${claim.status}`,
-      action: () => onNavigate("knowledge"),
+      action: () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set("claim", claim.id);
+        window.history.replaceState({}, "", url);
+        onNavigate("knowledge");
+      },
     }));
     const sheets = Object.keys(workbook).map((name) => ({
       key: `sheet-${name}`,
       title: name,
       meta: "Legacy-Workbook-Blatt",
-      action: () => onNavigate("raw"),
+      action: () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set("sheet", name);
+        window.history.replaceState({}, "", url);
+        onNavigate("raw");
+      },
     }));
     const days = Array.from({ length: 81 }, (_, day) => ({
       key: `day-${day}`,
@@ -2315,6 +2769,12 @@ function CommandPalette({
       )
       .slice(0, 12);
   }, [query, onNavigate, setDay]);
+  const runItem = (index: number) => {
+    const item = items[index];
+    if (!item) return;
+    item.action();
+    onClose();
+  };
   return (
     <div className="palette-backdrop">
       <button
@@ -2324,6 +2784,7 @@ function CommandPalette({
         aria-label="Suche schließen"
       />
       <section
+        ref={dialogRef}
         className="command-palette"
         role="dialog"
         aria-modal="true"
@@ -2334,20 +2795,40 @@ function CommandPalette({
           <input
             ref={inputRef}
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setActiveIndex(0);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowDown") {
+                event.preventDefault();
+                setActiveIndex((index) =>
+                  items.length === 0
+                    ? 0
+                    : Math.min(items.length - 1, index + 1),
+                );
+              }
+              if (event.key === "ArrowUp") {
+                event.preventDefault();
+                setActiveIndex((index) => Math.max(0, index - 1));
+              }
+              if (event.key === "Enter") {
+                event.preventDefault();
+                runItem(activeIndex);
+              }
+            }}
             placeholder="Suche nach Seite, Tag, Claim oder Datenblatt…"
           />
           <kbd>Esc</kbd>
         </label>
         <div className="palette-results">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <button
               type="button"
               key={item.key}
-              onClick={() => {
-                item.action();
-                onClose();
-              }}
+              className={index === activeIndex ? "active" : ""}
+              onMouseEnter={() => setActiveIndex(index)}
+              onClick={() => runItem(index)}
             >
               <div>
                 <strong>{item.title}</strong>
@@ -2363,7 +2844,7 @@ function CommandPalette({
         <footer>
           <span>↑↓ navigieren</span>
           <span>↵ öffnen</span>
-          <span>27 Blätter · 10 Claims</span>
+          <span>27 Blätter · {knowledge.claims.length} Claims</span>
         </footer>
       </section>
     </div>
@@ -2377,7 +2858,7 @@ function MobileBar({
   route: RouteId;
   onNavigate: (route: RouteId) => void;
 }) {
-  const ids: RouteId[] = ["cockpit", "today", "timeline", "mix", "knowledge"];
+  const ids: RouteId[] = ["cockpit", "today", "log", "mix", "knowledge"];
   return (
     <nav className="mobile-bar" aria-label="Mobile Schnellnavigation">
       {ids.map((id) => {
@@ -2483,6 +2964,44 @@ function DataState({
       </div>
     </main>
   );
+}
+
+function useDialogFocusTrap(
+  dialogRef: RefObject<HTMLElement | null>,
+  onClose: () => void,
+) {
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const focusable = () =>
+      [
+        ...dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ].filter((element) => !element.hasAttribute("hidden"));
+    if (!dialog.contains(document.activeElement)) focusable()[0]?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const elements = focusable();
+      const first = elements[0];
+      const last = elements.at(-1);
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    dialog.addEventListener("keydown", onKeyDown);
+    return () => dialog.removeEventListener("keydown", onKeyDown);
+  }, [dialogRef, onClose]);
 }
 
 export default App;

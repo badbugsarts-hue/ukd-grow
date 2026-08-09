@@ -23,7 +23,7 @@
     {
       "id": "blumat-indoor",
       "title": "Tropf-Blumat im Innenbereich",
-      "statement": "Der Hersteller beschreibt Tropf-Blumat als Außensystem und untersagt die Verwendung im Innenbereich. Es ist deshalb kein UKD-Referenzsystem für diesen Indoor-Plan.",
+      "statement": "Der Hersteller definiert Tropf-Blumat bestimmungsgemäß für Pflanzen im Außenbereich. Eine Innenanwendung liegt damit außerhalb der dokumentierten Zweckbestimmung und ist kein UKD-Referenzsystem für diesen Indoor-Plan; dies ist eine Hersteller-/Produktscope-Grenze, kein gesetzliches Indoor-Verbot.",
       "status": "verified",
       "evidence": "A",
       "scope": "Tropf-Blumat; nicht pauschal alle Produkte der Marke Blumat",
@@ -116,9 +116,63 @@
       "statement": "Für Volljährige sind am Wohnsitz oder gewöhnlichen Aufenthalt bis zu 50 g Cannabis bezogen auf das Trockengewicht und bis zu drei lebende Pflanzen erlaubt. Cannabis und Vermehrungsmaterial müssen vor dem Zugriff Dritter, insbesondere von Kindern und Jugendlichen, geschützt werden.",
       "status": "verified",
       "evidence": "A",
-      "scope": "Deutschland; KCanG §§3 und 10 am Prüftag",
+      "scope": "Deutschland; Konsumcannabis und privater Eigenanbau nach KCanG §§3, 9 und 10 am Prüftag; nicht automatisch verschriebenes Medizinalcannabis oder eine individuelle Erlaubnis",
       "uncertainty": "Rechtslage kann sich ändern; vor Ernte, Lagerung und jedem Release erneut prüfen.",
-      "sourceIds": ["kcang-3", "kcang-10"]
+      "sourceIds": ["kcang-3", "kcang-9", "kcang-10", "bmg-cang-faq"]
+    },
+    {
+      "id": "medical-cannabis-legal-path-de",
+      "title": "Medizinalcannabis ist ein eigener Rechts- und Herkunftspfad",
+      "statement": "Medizinalcannabis stammt nach MedCanG aus einem zu medizinischen Zwecken staatlich kontrollierten Anbau und wird Patientinnen und Patienten aufgrund ärztlicher Verschreibung über eine Apotheke abgegeben. Eine Verschreibung oder Kostenübernahme erlaubt nicht automatisch den privaten Anbau als Medizinalcannabis; für Anbau zu medizinischen Zwecken ist grundsätzlich eine Erlaubnis nach § 4 MedCanG erforderlich.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "Deutschland; MedCanG §§2 bis 5 und BfArM-Erlaubnisverfahren am Prüftag",
+      "uncertainty": "Eine individuelle Erlaubnis kann Tätigkeiten, Betriebsstätte, Art, Laufzeit und Umfang abweichend konkretisieren und muss im Original geprüft werden.",
+      "sourceIds": [
+        "medcang",
+        "bfarm-medcang-permit",
+        "bmg-medical-cannabis-faq"
+      ]
+    },
+    {
+      "id": "yield-inventory-separation",
+      "title": "Ertragsmodell und zulässiger Bestand sind getrennt",
+      "statement": "Der UKD-Plan darf den technisch erwartbaren Bruttoertrag des Setups ohne künstliche Grammobergrenze modellieren. Er muss davon getrennt Eigenanbau-Bestand, verschriebenen Apothekenbestand, dokumentierte Vernichtung und die jeweils geprüfte Rechtsgrundlage führen. Eine Prognose oder beabsichtigte Vernichtung ist selbst keine Erlaubnis.",
+      "status": "ukd-policy",
+      "evidence": "C",
+      "scope": "Projektarchitektur und Compliance-Gate; keine individuelle Rechtsberatung",
+      "uncertainty": "Konkrete erlaubte Tätigkeiten und Mengen folgen allein dem aktuellen Gesetz oder einem geprüften individuellen Bescheid.",
+      "sourceIds": []
+    },
+    {
+      "id": "core-web-vitals-2026",
+      "title": "Core Web Vitals verwenden INP statt FID",
+      "statement": "Die aktuellen Core Web Vitals sind LCP, INP und CLS. Als gute Zielwerte nennt Google LCP bis 2,5 Sekunden, INP bis 200 Millisekunden und CLS bis 0,1; bewertet wird am 75. Perzentil der Seitenaufrufe, getrennt nach Mobil und Desktop.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "Web-Performance-Messung nach web.dev am Prüftag; Felddaten benötigen reale Nutzung",
+      "uncertainty": "Metriken und Schwellen können sich ändern; Lab-Tests ersetzen keine Felddaten.",
+      "sourceIds": ["web-vitals-2026"]
+    },
+    {
+      "id": "sensitive-browser-storage",
+      "title": "Browser-Verschlüsselung macht Local Storage nicht automatisch sicher",
+      "statement": "OWASP empfiehlt, sensible Informationen nicht in Local Storage zu speichern, weil JavaScript und damit auch erfolgreicher XSS darauf zugreifen kann. Web Crypto stellt kryptografische Primitiven bereit, löst aber Schlüsselmanagement und Gesamtsicherheit nicht automatisch.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Browserseitige Speicherung sensibler Rechts-, Patienten-, Auth- und Bestandsdaten",
+      "uncertainty": "Ein geprüftes Offline-Sicherheitsdesign kann andere Speicherpfade erlauben, benötigt aber Threat Model, Schlüsselkonzept und Security Review.",
+      "sourceIds": ["owasp-html5-storage", "mdn-web-crypto"]
+    },
+    {
+      "id": "next-static-server-boundary",
+      "title": "Statischer Next.js-Export ist kein dynamisches Backend",
+      "statement": "Next.js kann statisch exportieren, doch dynamische Request-Werte, Cookies, Server Actions und weitere serverpflichtige Features stehen im statischen Export nicht zur Verfügung. Ein Wechsel zu Next.js erzeugt deshalb nicht automatisch Persistenz, Authentifizierung oder eine dynamische API.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "Next.js App Router mit statischem Export am Prüftag",
+      "uncertainty": "Ein serverseitig betriebener Next.js-Deploy kann diese Fähigkeiten bereitstellen, erhöht aber Betriebs- und Sicherheitsumfang.",
+      "sourceIds": ["next-static-export-2026"]
     },
     {
       "id": "gacp-gmp-scope",
@@ -204,6 +258,70 @@
       "publisher": "Bundesministerium der Justiz / gesetze-im-internet.de",
       "type": "law",
       "url": "https://www.gesetze-im-internet.de/kcang/__10.html",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "bmg-cang-faq",
+      "title": "Fragen und Antworten zum Cannabisgesetz",
+      "publisher": "Bundesministerium für Gesundheit",
+      "type": "official-guidance",
+      "url": "https://www.bundesgesundheitsministerium.de/themen/cannabis/faq-cannabisgesetz/seite",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "medcang",
+      "title": "Medizinal-Cannabisgesetz",
+      "publisher": "Bundesministerium der Justiz / gesetze-im-internet.de",
+      "type": "law",
+      "url": "https://www.gesetze-im-internet.de/medcang/BJNR06D0C0024.html",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "bfarm-medcang-permit",
+      "title": "Erlaubnis nach § 4 MedCanG",
+      "publisher": "Bundesinstitut für Arzneimittel und Medizinprodukte",
+      "type": "official-guidance",
+      "url": "https://www.bfarm.de/DE/Bundesopiumstelle/Medizinisches-Cannabis/Erlaubnis/_artikel.html",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "bmg-medical-cannabis-faq",
+      "title": "Cannabis als Medizin - Fragen und Antworten",
+      "publisher": "Bundesministerium für Gesundheit",
+      "type": "official-guidance",
+      "url": "https://www.bundesgesundheitsministerium.de/service/begriffe-von-a-z/c/cannabis/faq-cannabis-als-medizin/seite",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "web-vitals-2026",
+      "title": "Web Vitals",
+      "publisher": "Google web.dev",
+      "type": "first-party-technical",
+      "url": "https://web.dev/articles/vitals",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "owasp-html5-storage",
+      "title": "HTML5 Security Cheat Sheet",
+      "publisher": "OWASP Foundation",
+      "type": "security-guidance",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "mdn-web-crypto",
+      "title": "Web Crypto API",
+      "publisher": "Mozilla Developer Network",
+      "type": "web-platform-reference",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API",
+      "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "next-static-export-2026",
+      "title": "Next.js Static Exports",
+      "publisher": "Vercel / Next.js",
+      "type": "first-party-technical",
+      "url": "https://nextjs.org/docs/app/guides/static-exports",
       "checkedAt": "2026-08-08"
     },
     {

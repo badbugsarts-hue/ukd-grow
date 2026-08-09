@@ -36,6 +36,10 @@ Entwickle den UKD Grow Masterplan als wartbaren Operator Workspace weiter. Bewah
 - Keine Parameter auf ein gewünschtes Ergebnis hin anpassen.
 - Seed-Runs nicht kausal überinterpretieren.
 - GACP/GMP-Scope nicht mit privatem KCanG-Eigenanbau vermischen.
+- KCanG-Eigenanbau, MedCanG-Apothekenbezug und eine §-4-Erlaubnis als getrennte Rechtsgrundlagen und Bestandskonten behandeln.
+- Technischen Bruttoertrag ohne künstliche Grammgrenze modellieren; zulässigen Bestand und Vernichtung über eigene Gates prüfen.
+- Eine Prognose oder geplante spätere Vernichtung niemals als Besitz- oder Anbauerlaubnis darstellen.
+- Individuelle Genehmigungswerte nur nach Originaldokumentprüfung und nie in Git oder Local Storage speichern.
 - Kontrollgruppe oder beobachteten Bereich nie ohne Optimumversuch als „optimal“ bezeichnen.
 - Bei Quellenkonflikten beide Positionen mit Claim-Typ anzeigen; nicht mitteln.
 
@@ -45,6 +49,9 @@ Entwickle den UKD Grow Masterplan als wartbaren Operator Workspace weiter. Bewah
 - Fachcontent von UI trennen; Schemas versionieren.
 - Shareable, persistent, transient und domain state bewusst trennen.
 - Kein `innerHTML`, keine Secrets, kein Tracking.
+- Implementierte Fähigkeiten aus `capability-roadmap.json` lesen; Backend, Live-Sensorik, Auth oder Kollaboration nicht halluzinieren.
+- Soll, gemessen, simuliert, fehlend und veraltet in Domänentypen und UI explizit unterscheiden.
+- Kritische Warnungen persistent und zugänglich halten; Toasts nie als einziges Safety-Gate verwenden.
 - Neue Berechnung: strict TypeScript, deterministischer Test, dokumentierte Quelle/Annahme.
 - Neue Claim-ID: Status, Evidenz, Scope, Unsicherheit, Quellen und `checkedAt`.
 

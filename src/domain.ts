@@ -63,7 +63,8 @@ export function getDailySheet(workbook: Workbook): WorkbookSheet {
 
 export function getDayPlan(workbook: Workbook, day: number): DayPlan {
   const sheet = getDailySheet(workbook);
-  const rowIndex = Math.max(0, Math.min(80, Math.round(day))) + 1;
+  const safeDay = Number.isFinite(day) ? Math.round(day) : 0;
+  const rowIndex = Math.max(0, Math.min(80, safeDay)) + 1;
   const row = sheet.values[rowIndex];
   if (!row) throw new Error(`No day row ${day}`);
   return {
@@ -126,7 +127,7 @@ export interface MixItem {
 }
 
 export function calculateMix(plan: DayPlan, batchLiters: number): MixItem[] {
-  const volume = Math.max(0, batchLiters);
+  const volume = Number.isFinite(batchLiters) ? Math.max(0, batchLiters) : 0;
   const items: Array<[string, number, string, string?]> = [
     [
       "Athena Balance",
