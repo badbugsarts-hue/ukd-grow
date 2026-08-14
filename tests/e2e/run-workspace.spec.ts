@@ -24,7 +24,7 @@ test("run setup autosaves in IndexedDB and drives the cockpit", async ({
   await page.getByLabel("Quell-EC (mS/cm):").fill("0.3");
   await page.getByLabel("Calcium (mg/L):").fill("60");
   await page.getByLabel("Magnesium (mg/L):").fill("20");
-  await page.getByLabel("Medium:").selectOption("Soil");
+  await page.getByLabel("Medium:").selectOption("Erde");
   await page.getByLabel("Topfvolumen (L):").fill("11");
   await page.getByLabel("Max. Lampenleistung (W):").fill("140");
   await page.getByLabel("Photoperiode (Stunden/Tag):").fill("18");
@@ -32,7 +32,7 @@ test("run setup autosaves in IndexedDB and drives the cockpit", async ({
   await page.getByLabel("Tiefe (cm):").fill("60");
   await page.getByLabel("Höhe (cm):").fill("180");
   await page.getByRole("button", { name: /Run Aktivieren/i }).click();
-  await expect(page.locator(".run-state-badge")).toContainText("active");
+  await expect(page.getByText("✅ Run ist AKTIV")).toBeVisible();
   await page.waitForTimeout(500);
   await page.reload();
   await expect(page.getByLabel("Genetik / Strain:")).toHaveValue("Test Genetic 2026");
@@ -115,13 +115,16 @@ test("today checklist persists across navigation and reload", async ({
   page,
 }) => {
   await open(page, "today");
+  await page.getByRole("button", { name: "Schritt 3: Maßnahmen & Bestätigung" }).click();
   const task = page.getByLabel("Zelt-Klima & Sensoren pruefen");
   await task.check();
   await open(page, "cockpit");
   await open(page, "today");
+  await page.getByRole("button", { name: "Schritt 3: Maßnahmen & Bestätigung" }).click();
   await expect(page.getByLabel("Zelt-Klima & Sensoren pruefen")).toBeChecked();
   await page.waitForTimeout(500);
   await page.reload();
+  await page.getByRole("button", { name: "Schritt 3: Maßnahmen & Bestätigung" }).click();
   await expect(page.getByLabel("Zelt-Klima & Sensoren pruefen")).toBeChecked();
 });
 
@@ -151,7 +154,7 @@ test("all report formats download and invalid restore is rejected", async ({
     mimeType: "application/json",
     buffer: Buffer.from('{"schemaVersion":"9"}'),
   });
-  await expect(page.getByRole("status")).toContainText("Fehler");
+  await expect(page.locator(".inline-error")).toContainText("Fehler");
 });
 
 test("legal profile stays session-only while inventory persists", async ({
