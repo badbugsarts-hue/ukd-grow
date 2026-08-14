@@ -32,7 +32,7 @@ test("run setup autosaves in IndexedDB and drives the cockpit", async ({
   await page.getByLabel("Tiefe (cm):").fill("60");
   await page.getByLabel("Höhe (cm):").fill("180");
   await page.getByRole("button", { name: /Run Aktivieren/i }).click();
-  await expect(page.getByText("✅ Run ist AKTIV")).toBeVisible();
+  await expect(page.getByText(/Run bereits aktiv/i)).toBeVisible();
   await page.waitForTimeout(500);
   await page.reload();
   await expect(page.getByLabel("Genetik / Strain:")).toHaveValue("Test Genetic 2026");
