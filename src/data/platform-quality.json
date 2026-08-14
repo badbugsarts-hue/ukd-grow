@@ -1,0 +1,209 @@
+{
+  "schemaVersion": "1.0.0",
+  "reviewedAt": "2026-08-09",
+  "productScience": {
+    "principle": "Measure whether users reach a safe, correct decision; feature presence is not an outcome.",
+    "journeys": [
+      {
+        "id": "JOURNEY-TODAY-BEGINNER",
+        "job": "Als neuer Nutzer möchte ich in höchstens 90 Sekunden erkennen, was heute erforderlich und was blockiert ist.",
+        "audience": "guided",
+        "successMetric": "correct-action-identification",
+        "target": ">= 90% without facilitator help"
+      },
+      {
+        "id": "JOURNEY-EVIDENCE-EXPERT",
+        "job": "Als Experte möchte ich Formel, Eingangswerte, Version und Quelle einer Ableitung in höchstens 10 Sekunden öffnen.",
+        "audience": "expert",
+        "successMetric": "time-to-lineage",
+        "target": "p90 <= 10s"
+      },
+      {
+        "id": "JOURNEY-TARGET-MEASURED",
+        "job": "Als Nutzer möchte ich Target, Measurement, Derived und Missing sicher unterscheiden.",
+        "audience": "all",
+        "successMetric": "semantic-comprehension",
+        "target": ">= 95% correct classification"
+      },
+      {
+        "id": "JOURNEY-RECOVERY",
+        "job": "Als Betreiber möchte ich ein Backup prüfen und ohne stillen Datenverlust wiederherstellen.",
+        "audience": "advanced",
+        "successMetric": "verified-restore-success",
+        "target": "100% valid fixtures; 0 corrupted imports accepted"
+      }
+    ],
+    "studyProtocol": {
+      "minimumParticipantsPerLens": 5,
+      "measures": [
+        "task-completion",
+        "time-to-decision",
+        "critical-error-rate",
+        "assistance-count",
+        "semantic-comprehension",
+        "single-ease-question"
+      ],
+      "releaseBlocker": "Any undetected critical error or semantic comprehension below 90%."
+    }
+  },
+  "hazards": [
+    {
+      "id": "HZ-001",
+      "hazard": "Wrong run, zone or plant receives an entry",
+      "probability": "possible",
+      "severity": "high",
+      "detectability": "medium",
+      "mitigation": "Persistent operations header, explicit entity IDs and confirmation before bulk operations.",
+      "residualRisk": "low"
+    },
+    {
+      "id": "HZ-002",
+      "hazard": "Stale, unknown or conflicting sensor value is interpreted as truth",
+      "probability": "likely",
+      "severity": "high",
+      "detectability": "high",
+      "mitigation": "Trust assessment blocks interpretation for stale, unverified, calibration-due, outlier and conflicting states.",
+      "residualRisk": "low"
+    },
+    {
+      "id": "HZ-003",
+      "hazard": "Unit or decimal entry error changes a decision",
+      "probability": "possible",
+      "severity": "high",
+      "detectability": "high",
+      "mitigation": "Typed units, plausibility bounds and append-only superseding corrections.",
+      "residualRisk": "low"
+    },
+    {
+      "id": "HZ-004",
+      "hazard": "Formula or evidence update silently changes an active run",
+      "probability": "unlikely",
+      "severity": "high",
+      "detectability": "high",
+      "mitigation": "Immutable configuration/evidence snapshot, golden tests and versioned lineage.",
+      "residualRisk": "low"
+    },
+    {
+      "id": "HZ-005",
+      "hazard": "Incomplete setup or duplicate operation reaches execution",
+      "probability": "possible",
+      "severity": "medium",
+      "detectability": "high",
+      "mitigation": "Pre-flight blockers, idempotent task IDs and explicit state-machine transitions.",
+      "residualRisk": "low"
+    },
+    {
+      "id": "HZ-006",
+      "hazard": "Override hides an evidence conflict",
+      "probability": "possible",
+      "severity": "high",
+      "detectability": "high",
+      "mitigation": "Reason is mandatory; override is visible, reversible and recorded in domain and audit logs.",
+      "residualRisk": "medium"
+    },
+    {
+      "id": "HZ-007",
+      "hazard": "Corrupted backup is accepted",
+      "probability": "unlikely",
+      "severity": "high",
+      "detectability": "high",
+      "mitigation": "Canonical SHA-256 payload verification before schema validation and restore.",
+      "residualRisk": "low"
+    },
+    {
+      "id": "HZ-008",
+      "hazard": "Actuator command continues after stale data or disconnect",
+      "probability": "possible",
+      "severity": "critical",
+      "detectability": "medium",
+      "mitigation": "Actuation remains disabled until a separate fail-safe state machine, timeout, limits and manual stop are verified.",
+      "residualRisk": "not-accepted"
+    }
+  ],
+  "failureUx": [
+    {
+      "condition": "measurement-missing",
+      "messagePattern": "Name the missing input, explain the blocked interpretation, show last valid value, then offer recovery actions.",
+      "actions": [
+        "enter-measurement",
+        "explain-requirement",
+        "documented-override"
+      ]
+    },
+    {
+      "condition": "backup-corrupt",
+      "messagePattern": "State checksum failure and reject before mutation.",
+      "actions": ["choose-another-backup", "open-recovery-guide"]
+    },
+    {
+      "condition": "storage-full",
+      "messagePattern": "Preserve current in-memory state, stop further writes and guide an immediate verified export.",
+      "actions": ["export-backup", "storage-diagnostics"]
+    },
+    {
+      "condition": "sensor-conflict",
+      "messagePattern": "Identify conflicting devices and suspend automatic interpretation.",
+      "actions": [
+        "inspect-devices",
+        "recalibrate",
+        "manual-reference-measurement"
+      ]
+    }
+  ],
+  "slos": [
+    {
+      "id": "SLO-CALC-001",
+      "indicator": "local-calculation-success",
+      "objective": ">= 99.99% on valid inputs",
+      "releaseGate": true
+    },
+    {
+      "id": "SLO-MIG-001",
+      "indicator": "silent-migration-failures",
+      "objective": "0",
+      "releaseGate": true
+    },
+    {
+      "id": "SLO-RESTORE-001",
+      "indicator": "corrupt-imports-accepted",
+      "objective": "0",
+      "releaseGate": true
+    },
+    {
+      "id": "SLO-TODAY-001",
+      "indicator": "today-recomputation-p95",
+      "objective": "< 100ms on reference hardware",
+      "releaseGate": false
+    },
+    {
+      "id": "SLO-CALC-002",
+      "indicator": "critical-calculation-golden-coverage",
+      "objective": "100%",
+      "releaseGate": true
+    }
+  ],
+  "recovery": {
+    "format": "ukd-run-backup/1.0.0",
+    "integrity": "SHA-256 over canonical payload JSON",
+    "testedPaths": ["v3-roundtrip", "corrupt-reject", "v2-to-v3-migration"],
+    "rollbackRule": "Never mutate the active run until integrity and schema validation both pass."
+  },
+  "privacyClasses": {
+    "public": "Published product and evidence documentation.",
+    "project": "Run configuration and non-identifying scientific observations.",
+    "personal": "User preferences or identifiers.",
+    "sensitive": "Legal profile, medical context or precise location.",
+    "secret": "Credentials, tokens and private keys. Never export to diagnostics."
+  },
+  "diagnosticsPolicy": {
+    "default": "local-only",
+    "productAnalytics": "off",
+    "operationalDiagnostics": "local and user-exported",
+    "forbidden": [
+      "legal-profile",
+      "free-text-notes",
+      "measurements",
+      "credentials"
+    ]
+  }
+}

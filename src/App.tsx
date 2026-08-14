@@ -19,6 +19,7 @@ import {
 	VpdDliCalculatorPanel,
 	MasterplanOverviewPanel,
 	FeedingSchedulePanel,
+	AutoflowerCockpitPanel,
 } from "./components/panels";
 import {
 	calculateMix,
@@ -207,6 +208,14 @@ const NAV: NavItem[] = [
 		description: "UKD-relevante Produktmatrix",
 	},
 	{
+		id: "autoflower",
+		label: "Genetics Cockpit",
+		short: "Genetik",
+		icon: "🌱",
+		group: "Bibliothek",
+		description: "Master Class Autoflower Selection",
+	},
+	{
 		id: "compatibility",
 		label: "Kompatibilität",
 		short: "Matrix",
@@ -386,6 +395,12 @@ const HELP: Record<
 		why: "Die Liste macht Rollen, Phasen und Risiken vergleichbar.",
 		how: "Suchen und anschließend Kompatibilität prüfen.",
 		interpret: "Der Katalog ist UKD-relevant, nicht global vollständig.",
+	},
+	autoflower: {
+		what: "Die Master Class Genetics Selection für Autoflowers und Fast Versions.",
+		why: "Schnelle Filterung nach Erfahrungslevel und Ertrag.",
+		how: "Suchen, Typ auswählen und Details einsehen.",
+		interpret: "Ein starker Ertrag erfordert optimale Umweltbedingungen.",
 	},
 	compatibility: {
 		what: "Die Legacy-Kompatibilitätsmatrix als zugängliche Datentabelle.",
@@ -1113,6 +1128,7 @@ function PageHeader({
 					"reports",
 					"system",
 					"products",
+					"autoflower",
 					"compatibility",
 					"diagnostics",
 				].includes(item.id) && (
@@ -1279,6 +1295,8 @@ function RouteContent({
 			return <Nutrients plan={plan} lens={lens} navigate={navigate} />;
 		case "products":
 			return <LibraryPage sheetName="17_All_Products" lens={lens} />;
+		case "autoflower":
+			return <AutoflowerCockpitPanel navigate={navigate} />;
 		case "compatibility":
 			return <LibraryPage sheetName="16_Compatibility" lens={lens} />;
 		case "diagnostics":

@@ -4,6 +4,7 @@ tmp/
 test-results/
 playwright-report/
 coverage/
+artifacts/
 .env
 .env.*
 !.env.example
@@ -14,3 +15,6 @@ coverage/
 # Sensitive, user-specific legal/medical profiles stay local.
 legal-profile.local.json
 *.legal-profile.local.json
+
+# Design Prototypes and Mockups
+.antigravitz/

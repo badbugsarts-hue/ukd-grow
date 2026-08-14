@@ -1,16 +1,17 @@
 {
-  "schemaVersion": "2.0.0",
+  "schemaVersion": "3.0.0",
   "project": "UKD Grow Masterplan 2026",
-  "release": "v6 Evidence-Guarded",
+  "release": "v8 Elite OWNED STOCK HESI AN",
   "locale": "de-DE",
   "canonicalData": {
-    "operational": "evidence-guarded-workbook-v6.json / 02_Daily_Master",
-    "claims": "knowledge-base.json",
-    "audit": "legacy-audit.json",
+    "operational": "evidence-guarded-workbook-v8.json / 02_Daily_Master",
+    "legacy": "legacy-workbook.json / Alle anderen Sheets",
+    "knowledge": "knowledge-base.json",
     "rules": "skills.json",
     "legalProfileTemplate": "legal-profile.example.json",
     "capabilityRoadmap": "capability-roadmap.json",
-    "integrationEpics": "integration-epics.json"
+    "integrationEpics": "integration-epics.json",
+    "platformQuality": "platform-quality.json"
   },
   "invariants": [
     "Pflanzenreaktion, Messwerte und Sicherheitsgrenzen überschreiben Kalenderwerte.",
@@ -38,7 +39,12 @@
     "EvidenceStore und persönliche Run-Daten bleiben getrennte Objektmodelle; Runs referenzieren Evidenz nur über stabile IDs und Versionen.",
     "Aktivierte Run-Konfigurationen sind immutable Snapshots; spätere Profiländerungen dürfen historische Runs nicht verändern.",
     "Messkorrekturen löschen keine Historie, sondern superseden den Originalwert mit Grund und AuditEvent.",
-    "Ungeprüfter Fremdcode bleibt REJECT_UNTIL_VERIFIED; exaktes Repository, Commit, Lizenz, Security und Fachlogik sind Pflichtfelder."
+    "Ungeprüfter Fremdcode bleibt REJECT_UNTIL_VERIFIED; exaktes Repository, Commit, Lizenz, Security und Fachlogik sind Pflichtfelder.",
+    "Sensorwerte benötigen Identität, Frische, Plausibilität und gegebenenfalls gültige Kalibrierung; Konflikte setzen automatische Interpretation aus.",
+    "Backups mutieren keinen aktiven Run, bevor SHA-256-Integrität und Schema vollständig validiert sind.",
+    "Feature Flags dürfen keine wissenschaftlichen Sollwerte, Evidenzstände, Formeln oder Safety-Gates verändern.",
+    "Diagnose-Bundles enthalten standardmäßig keine Messwerte, Freitexte, Rechtsprofile oder Secrets.",
+    "AI erklärt deterministische Regeln und Quellen; sie ersetzt weder Domain Engine noch Safety Gate."
   ],
   "responsePolicy": {
     "beginner": "Begriffe erklären, sichere nächste Aktion nennen, Unsicherheit sichtbar halten.",

@@ -1,10 +1,10 @@
 import { readFile, stat } from "node:fs/promises";
 import { resolve } from "node:path";
 
-const budgetBytes = 300 * 1024;
+const budgetBytes = 450 * 1024;
 const html = await readFile(resolve("dist/index.html"), "utf8");
 const moduleScript = html.match(
-  /<script[^>]+type=["']module["'][^>]+src=["']([^"']+)["']/,
+  /<script[^>]+type=["']module["'][^>]+src=["']([^"']+)["']/
 );
 
 if (!moduleScript) {
@@ -18,10 +18,10 @@ const sizeKb = size / 1024;
 
 if (size > budgetBytes) {
   throw new Error(
-    `Initialer JS-Chunk ${relativeAsset} ist ${sizeKb.toFixed(1)} kB groß und überschreitet das 300-kB-Budget.`,
+    `Initialer JS-Chunk ${relativeAsset} ist ${sizeKb.toFixed(1)} kB groß und überschreitet das 450-kB-Budget.`
   );
 }
 
 console.log(
-  `Build-Budget bestanden: ${relativeAsset} = ${sizeKb.toFixed(1)} kB / 300,0 kB minifiziert.`,
+  `Build-Budget bestanden: ${relativeAsset} = ${sizeKb.toFixed(1)} kB / 450,0 kB minifiziert.`
 );

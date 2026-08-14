@@ -15,11 +15,11 @@ type Workbook = Record<
 
 `02_Daily_Master` ist die operative Tagesquelle. Spalten werden ausschließlich über `DAILY_COLUMNS` in `src/domain.ts` adressiert.
 
-## RunPackage v2
+## RunPackage v3
 
-Persönliche Run-Daten liegen außerhalb des EvidenceStore. Ein Run enthält einen unveränderlichen `RunConfigurationSnapshot`, Zonen, Pflanzen, typisierte `ScientificValue`-Messungen, strukturierte Beobachtungen, semantische Tasks, Overrides und append-only AuditEvents. Korrekturen superseden einen Messwert mit Referenz und Grund; das Original bleibt erhalten.
+Persönliche Run-Daten liegen außerhalb des EvidenceStore. Ein Run enthält einen unveränderlichen `RunConfigurationSnapshot`, Zonen, Pflanzen, typisierte `ScientificValue`-Messungen, vollständige Lineage, Geräte, Kalibrierungen, strukturierte Beobachtungen, semantische Tasks, Overrides, Domain Events und append-only AuditEvents. Korrekturen superseden einen Messwert mit Referenz und Grund; das Original bleibt erhalten.
 
-`RunRepository` abstrahiert Speicherung, Auflistung und Auswahl mehrerer Runs. Die aktuelle Implementierung nutzt IndexedDB v2. JSON v1 wird beim Lesen kontrolliert nach v2 migriert.
+`RunRepository` abstrahiert Speicherung, Auflistung und Auswahl mehrerer Runs. Die aktuelle Implementierung nutzt IndexedDB v3. JSON v1/v2 wird beim Lesen kontrolliert nach v3 migriert. Das materialisierte RunPackage dient dem schnellen Offlinebetrieb; das Domain-Event-Log macht Zustandsänderungen reproduzierbar.
 
 ## Knowledge claim
 
@@ -51,4 +51,4 @@ Das Profil speichert keine pauschal addierte „Gesamtfreigabe“. Der technisch
 
 Eine externe Planung oder ein Mockup darf einen `conditional`-Eintrag nicht als vorhandene Funktion darstellen. Der Wechsel zu `implemented` benötigt Code, Tests, Betriebsdokumentation und ein aktualisiertes Reviewdatum.
 
-`integration-epics.json` ergänzt den Fremdcode-Intake und 20 Entwicklungs-Epics. Unverifizierte Kandidaten haben immer `codeImportAllowed=false`; Pattern-Studium ist keine Lizenz- oder Qualitätsfreigabe.
+`integration-epics.json` ergänzt den Fremdcode-Intake und 28 Entwicklungs-Epics. `platform-quality.json` strukturiert User-Journeys, Hazards, Failure UX, lokale SLOs, Recovery und Datenschutzklassen. Unverifizierte Kandidaten haben immer `codeImportAllowed=false`; Pattern-Studium ist keine Lizenz- oder Qualitätsfreigabe.

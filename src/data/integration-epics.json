@@ -195,6 +195,54 @@
       "title": "Optional Automation Safety Layer",
       "priority": "P4",
       "status": "conditional"
+    },
+    {
+      "id": "EPIC-21",
+      "title": "Product Research & Human Factors",
+      "priority": "P0",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-22",
+      "title": "Data Lifecycle & Event Architecture",
+      "priority": "P0",
+      "status": "implemented"
+    },
+    {
+      "id": "EPIC-23",
+      "title": "Scientific Measurement & Analytics",
+      "priority": "P1",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-24",
+      "title": "Reliability & Observability",
+      "priority": "P1",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-25",
+      "title": "Secure SDLC & Supply Chain",
+      "priority": "P0",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-26",
+      "title": "Platform & Integration SDK",
+      "priority": "P2",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-27",
+      "title": "Release & Evolution System",
+      "priority": "P1",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-28",
+      "title": "Guarded Intelligence Layer",
+      "priority": "P4",
+      "status": "conditional"
     }
   ]
 }

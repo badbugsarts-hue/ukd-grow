@@ -52,7 +52,11 @@ Entwickle den UKD Grow Masterplan als wartbaren Operator Workspace weiter. Bewah
 - Kein `innerHTML`, keine Secrets, kein Tracking.
 - Implementierte Fähigkeiten aus `capability-roadmap.json` lesen; Backend, Live-Sensorik, Auth oder Kollaboration nicht halluzinieren.
 - Soll, gemessen, simuliert, fehlend und veraltet in Domänentypen und UI explizit unterscheiden.
-- EvidenceStore und RunRepository strikt trennen; RunPackage v2 referenziert Evidenz, mutiert sie aber nicht.
+- EvidenceStore und RunRepository strikt trennen; RunPackage v3 referenziert Evidenz, mutiert sie aber nicht.
+- Domain Events append-only halten; materialisierte Zustände müssen aus ihrem Verlauf prüfbar bleiben.
+- Messwerte benötigen Lineage und Trust-Status. Bei stale, calibration-due, conflicting, outlier oder suspect keine automatische Interpretation.
+- Backup-Restore erst nach SHA-256- und Schema-Gate; beschädigte Daten niemals teilweise importieren.
+- Feature Flags dürfen niemals wissenschaftliche Wahrheit, Regeln, Evidenz oder Safety variieren.
 - Aktivierte Konfigurationen als immutable Snapshots speichern; Korrekturen per Superseding, Overrides nur mit Grund und AuditEvent.
 - Sensor-/Geräteintegrationen nur als Adapter und zunächst read-only; niemals einen Aktor direkt über ein UI-Boolean steuern.
 - Kritische Warnungen persistent und zugänglich halten; Toasts nie als einziges Safety-Gate verwenden.

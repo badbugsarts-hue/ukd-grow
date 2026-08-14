@@ -10,6 +10,7 @@ export type Workbook = Record<string, WorkbookSheet>;
 export type ExperienceLens = "guided" | "advanced" | "expert";
 export type RouteId =
 	| "masterplan"
+	| "autoflower"
 	| "cockpit"
 	| "setup"
 	| "log"

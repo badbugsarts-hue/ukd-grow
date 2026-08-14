@@ -1,0 +1,62 @@
+[
+  { 
+    "title": "Sweet Mandarin Zkittlez XL Auto", 
+    "image": "/api/placeholder/400/400",
+    "description": "Extrem ertragreich mit starkem Zkittlez-Aroma und hohem THC-Gehalt. Schnelle Ernte nach nur 8 Wochen.",
+    "tags": ["XL Ertrag", "Schnell", "THC 24%"],
+    "type": "Autoflower",
+    "provenienz": "EU-Registriert",
+    "level": "Anfänger",
+    "yield": "50-120g"
+  },
+  { 
+    "title": "Bruce Banner Auto", 
+    "image": "/api/placeholder/400/400",
+    "description": "Riesige Harzproduktion und massives Wachstum. Benötigt Platz, belohnt mit intensiven Diesel-Noten.",
+    "tags": ["Harzmonster", "Hoch", "THC 25%"],
+    "type": "Autoflower",
+    "provenienz": "In-House",
+    "level": "Fortgeschritten",
+    "yield": "80-150g"
+  },
+  { 
+    "title": "Royal Gorilla Automatic", 
+    "image": "/api/placeholder/400/400",
+    "description": "Legendäre Gorilla-Genetik im Auto-Format. Verzeiht Fehler, extrem klebrige Blüten.",
+    "tags": ["Robust", "Stark", "THC 20%"],
+    "type": "Autoflower",
+    "provenienz": "Seedbank",
+    "level": "Anfänger",
+    "yield": "60-100g"
+  },
+  { 
+    "title": "Northern Lights Fast V", 
+    "image": "/api/placeholder/400/400",
+    "description": "Fast-Version des Klassikers. Extrem geruchswarm in der Blüte, hoher CBD Anteil für Entspannung.",
+    "tags": ["Geruchsarm", "Fast Version", "THC 18%"],
+    "type": "Fast Version",
+    "provenienz": "Community",
+    "level": "Anfänger",
+    "yield": "70-130g"
+  },
+  { 
+    "title": "Amnesia Haze Auto", 
+    "image": "/api/placeholder/400/400",
+    "description": "Klassisches Sativa-High in einer Auto. Benötigt gute Feuchtigkeitskontrolle wegen Schimmelrisiko.",
+    "tags": ["Sativa", "Klassiker", "THC 19%"],
+    "type": "Autoflower",
+    "provenienz": "EU-Registriert",
+    "level": "Expert",
+    "yield": "40-90g"
+  },
+  { 
+    "title": "RQS Watermelon Automatic", 
+    "image": "/api/placeholder/400/400",
+    "description": "Wunderschöne Farbgebung am Ende der Blüte, intensiver Melonen-Geschmack und tiefe Entspannung.",
+    "tags": ["Terpene", "Farbenspiel", "THC 20%"],
+    "type": "Autoflower",
+    "provenienz": "Seedbank",
+    "level": "Fortgeschritten",
+    "yield": "50-100g"
+  }
+]

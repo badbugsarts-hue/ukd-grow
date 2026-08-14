@@ -4,14 +4,16 @@
 
 - `src/App.tsx`: Anwendungsshell und fachliche Flächen.
 - `src/domain.ts`: kanonische Tages-, DLI-, VPD- und Mixlogik.
-- `src/run-state.ts`: RunPackage-v2-Domäne, Migration, Tasks, Overrides und Audit.
+- `src/run-state.ts`: RunPackage-v3-Domäne, Domain Events, Migration, State Machines, Overrides und Audit.
 - `src/run-storage.ts`: austauschbares Multi-Run-Repository auf IndexedDB.
+- `src/scientific-core.ts`: read-only Connector-, Calibration-, Capability- und Measurement-Trust-Vertrag.
+- `src/backup.ts`: SHA-256-verifiziertes Backup-/Recovery-Gate.
 - `src/styles.css`: semantische Design-Tokens und responsive Regeln.
 - `src/data/`: Knowledge Base, Audit, Skills und AI Context.
-- `public/data/evidence-guarded-workbook-v6.json`: kanonischer, generierter v6-Snapshot.
+- `public/data/evidence-guarded-workbook-v8.json`: kanonischer, generierter v8-Snapshot.
 - `public/data/data-manifest.json`: Release, Hashes und Provenienz.
 - `public/data/legacy-workbook.json`: archivierter v5-Snapshot, nicht mehr operativ.
-- `sources/evidence-v6/`: unveränderte v6-Quellen und untrusted Research-Input.
+- `sources/evidence-v6/`: unveränderte v6-Quellen und untrusted Research-Input. (Hinweis: Aktuelle v8 xlsx liegt im Root)
 - `docs/`: Architektur, Faktencheck, Design, Migration, Sicherheit und Tests.
 
 ## Commands
@@ -26,15 +28,16 @@
 
 ## Sources of truth
 
-1. Für operative Tageswerte: `02_Daily_Master` in `public/data/evidence-guarded-workbook-v6.json`.
+1. Für operative Tageswerte: `02_Daily_Master` in `public/data/evidence-guarded-workbook-v8.json`.
 2. Für validierte Aussagen: `src/data/knowledge-base.json`.
 3. Für bekannte Legacy-Korrekturen: `src/data/legacy-audit.json`.
 4. Für KI-Verhalten und Guardrails: `src/data/ai-context.json` und `src/data/skills.json`.
 5. Für Rechtsprofile: `src/data/legal-profile.schema.json`; die Example-Datei enthält keine persönlichen Werte.
 6. Für Ist-/Ziel-Fähigkeiten und Architekturtrigger: `src/data/capability-roadmap.json`.
 7. Für Fremdcode-Governance und Epics: `src/data/integration-epics.json`.
-8. Das Quellen-XLSX bleibt forensische Referenz, wird aber nicht von der Web-App neu berechnet.
-9. `data-manifest.json` autorisiert Version und Provenienz; `deep-research-input.md` ist ausdrücklich nicht kanonisch.
+8. Für Product Science, Hazards, Failure UX, SLOs und Recovery: `src/data/platform-quality.json`.
+9. Das Quellen-XLSX bleibt forensische Referenz, wird aber nicht von der Web-App neu berechnet.
+10. `data-manifest.json` autorisiert Version und Provenienz; `deep-research-input.md` ist ausdrücklich nicht kanonisch.
 
 ## Invariants
 
@@ -58,6 +61,9 @@
 - EvidenceStore und RunPackage niemals zu einem veränderbaren Mischobjekt verschmelzen.
 - Aktive Run-Snapshots nicht mutieren; Korrekturen und Overrides ausschließlich append-only mit Grund und AuditEvent speichern.
 - Fremdcode erst nach dokumentiertem Repository-, Commit-, Lizenz-, Security- und Fachlogik-Intake übernehmen.
+- Sensorwerte erst nach Identitäts-, Frische-, Plausibilitäts- und erforderlicher Kalibrierungsprüfung interpretieren; Konflikte blockieren.
+- Restore darf den aktiven Run erst nach Hash- und Schema-Validierung mutieren.
+- Feature Flags dürfen keine fachliche Wahrheit, Evidenz, Formel oder Safety-Gates variieren.
 
 ## UI and accessibility
 
@@ -68,8 +74,8 @@
 
 ## Migration
 
-- Legacy-Dateien niemals still ersetzen oder löschen.
-- Den v6-Snapshot nur reproduzierbar aus der unveränderten XLSX erzeugen; Manifest-Hash und Audit-Count gemeinsam aktualisieren.
+- Legacy-Dateien niemals still ersetzen oder löschen (alte Snapshots bleiben erhalten).
+- Den v8-Snapshot nur reproduzierbar aus der unveränderten XLSX erzeugen; Manifest-Hash und Audit-Count gemeinsam aktualisieren.
 - Deep-Research-Input durch `research-import-gate` prüfen, bevor Claims oder operative Zahlen übernommen werden.
 - Neue Claims benötigen Status, Evidenz, Scope, Unsicherheit, Prüftag und mindestens eine Quelle.
 - Neue fachliche Berechnung benötigt deterministischen Unit-Test.

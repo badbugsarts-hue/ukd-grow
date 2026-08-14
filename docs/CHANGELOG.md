@@ -1,5 +1,15 @@
 # Changelog
 
+## v6.1 Platform Lifecycle Foundation · 2026-08-09
+
+- `RunPackage v3` mit Domain Events, v1/v2-Migration, Geräte-/Kalibrierungsmodell und vollständiger ScientificValue-Lineage eingeführt.
+- Formale Task-State-Machine und reproduzierbare Eventprojektion ergänzt.
+- Sensor-Trust-Layer blockiert stale, unkalibrierte, unplausible und widersprüchliche Werte; Connector-Vertrag bleibt read-only.
+- SHA-256-verifizierte Backup-Envelopes, Korruptions-/Roundtrip-/Migrationstests und datensparsames Diagnose-Bundle ergänzt.
+- Product-Science-Journeys, Human-Factors-Protokoll, Hazard Register, Failure UX, SLOs, Recovery- und Privacy-Policy maschinenlesbar integriert.
+- SSDF-/ASVS-/SPDX-/SLSA-/OpenFeature-/OpenTelemetry-/WCAG-Primärquellen geprüft und in die Knowledge Base übernommen.
+- CI-Actions auf exakte Commits gepinnt; Dependabot, Secret-Pattern-Scan, SPDX-SBOM, Lizenzbericht und Build-Provenienz ergänzt.
+
 ## v6 Native Run Domain v2 · 2026-08-09
 
 - `RunPackage v2` mit immutable Konfigurations-Snapshots, Zonen, Pflanzen, typisierten `ScientificValue`-Messungen, strukturierten Beobachtungen, semantischen Tasks, Overrides und AuditEvents eingeführt.

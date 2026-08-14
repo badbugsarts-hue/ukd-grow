@@ -1,7 +1,7 @@
 {
   "name": "ukd-grow-masterplan-2026",
   "private": true,
-  "version": "6.0.0",
+  "version": "6.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,9 +14,11 @@
     "test:content": "node scripts/validate-content.mjs",
     "test:budget": "node scripts/check-build-budget.mjs",
     "test:e2e": "playwright test",
+    "security": "pnpm audit --prod && node scripts/scan-secrets.mjs",
+    "release:metadata": "node scripts/generate-release-metadata.mjs",
     "test:watch": "vitest",
     "format": "prettier --write .",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:content && pnpm build && pnpm test:budget && pnpm test:e2e"
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:content && pnpm security && pnpm build && pnpm test:budget && pnpm release:metadata && pnpm test:e2e"
   },
   "dependencies": {
     "exceljs": "^4.4.0",

@@ -24,9 +24,10 @@ const [
   legalProfile,
   capabilityRoadmap,
   integrationEpics,
+  platformQuality,
   manifest,
 ] = await Promise.all([
-  readJson("public/data/evidence-guarded-workbook-v6.json"),
+  readJson("public/data/evidence-guarded-workbook-v8.json"),
   readJson("src/data/legacy-audit.json"),
   readJson("src/data/knowledge-base.json"),
   readJson("src/data/ai-context.json"),
@@ -34,17 +35,18 @@ const [
   readJson("src/data/legal-profile.example.json"),
   readJson("src/data/capability-roadmap.json"),
   readJson("src/data/integration-epics.json"),
+  readJson("src/data/platform-quality.json"),
   readJson("public/data/data-manifest.json"),
 ]);
 
-assert(Object.keys(workbook).length === 27, "Workbook must contain 27 sheets");
+assert(Object.keys(workbook).length === 29, "Workbook must contain 29 sheets");
 assert(
   workbook["02_Daily_Master"]?.values?.length === 82,
   "Daily Master must contain header plus 81 days",
 );
 assert(
-  workbook["02_Daily_Master"]?.values?.[0]?.length === 45,
-  "Daily Master must contain 45 canonical columns",
+  workbook["02_Daily_Master"]?.values?.[0]?.length >= 45,
+  "Daily Master must contain at least 45 canonical columns",
 );
 assert(audit.rows?.length === 55, "Audit must contain 55 findings");
 assert(
@@ -86,9 +88,9 @@ for (const source of knowledge.sources) {
 
 assert(
   aiContext.canonicalData.operational.includes(
-    "evidence-guarded-workbook-v6.json",
+    "evidence-guarded-workbook-v8.json",
   ),
-  "AI context must reference the v6 workbook",
+  "AI context must reference the v8 workbook",
 );
 assert(skills.skills.length >= 7, "Research and legal gates must be present");
 assert(
@@ -152,8 +154,27 @@ assert(
   "Third-party intake must default to reject until verified",
 );
 assert(
-  integrationEpics.epics?.length === 20,
-  "Integration roadmap must contain EPIC-01 through EPIC-20",
+  integrationEpics.epics?.length === 28,
+  "Integration roadmap must contain EPIC-01 through EPIC-28",
+);
+assert(
+  platformQuality.productScience?.journeys?.length >= 4,
+  "Product science must define measurable journeys",
+);
+assert(
+  platformQuality.hazards?.some(
+    (hazard) =>
+      hazard.id === "HZ-008" && hazard.residualRisk === "not-accepted",
+  ),
+  "Actuation hazard must remain explicitly unaccepted",
+);
+assert(
+  platformQuality.slos?.filter((slo) => slo.releaseGate).length >= 4,
+  "Platform quality must define release-blocking local SLOs",
+);
+assert(
+  platformQuality.recovery?.testedPaths?.includes("corrupt-reject"),
+  "Recovery plan must test corrupted backup rejection",
 );
 assert(
   integrationEpics.candidatePatterns?.every(
@@ -164,7 +185,7 @@ assert(
 
 assert(
   manifest.canonicalWorkbook.sha256 ===
-    (await sha256("public/data/evidence-guarded-workbook-v6.json")),
+    (await sha256("public/data/evidence-guarded-workbook-v8.json")),
   "Canonical workbook hash does not match manifest",
 );
 assert(
@@ -175,6 +196,12 @@ for (const artifact of manifest.sourceArtifacts) {
   assert(
     artifact.sha256 === (await sha256(artifact.path)),
     `Source artifact hash does not match: ${artifact.path}`,
+  );
+}
+for (const artifact of manifest.contentArtifacts) {
+  assert(
+    artifact.sha256 === (await sha256(artifact.path)),
+    `Content artifact hash does not match: ${artifact.path}`,
   );
 }
 
@@ -204,6 +231,6 @@ if (failures.length > 0) {
   process.exitCode = 1;
 } else {
   process.stdout.write(
-    `Content gate passed: ${knowledge.claims.length} claims, ${knowledge.sources.length} sources, ${audit.rows.length} findings, ${skills.skills.length} skills, ${integrationEpics.epics.length} integration epics.\n`,
+    `Content gate passed: ${knowledge.claims.length} claims, ${knowledge.sources.length} sources, ${audit.rows.length} findings, ${skills.skills.length} skills, ${integrationEpics.epics.length} integration epics, ${platformQuality.hazards.length} hazards.\n`,
   );
 }

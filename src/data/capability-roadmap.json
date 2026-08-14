@@ -8,8 +8,8 @@
     "database": "none",
     "authentication": "none",
     "sensorGateway": "none",
-    "persistence": "multi-run RunRepository with RunPackage v2 in IndexedDB; non-sensitive UI preferences in localStorage; legal profile session-only",
-    "telemetry": "none"
+    "persistence": "multi-run RunRepository with RunPackage v3 in IndexedDB; verified backup envelope; non-sensitive UI preferences in localStorage; legal profile session-only",
+    "telemetry": "no remote telemetry; local privacy-preserving diagnostics only"
   },
   "experienceLens": {
     "implemented": ["guided", "advanced", "expert"],
@@ -32,6 +32,8 @@
       "run events",
       "semantic tasks",
       "immutable configuration snapshots",
+      "domain events and migration events",
+      "device and calibration records",
       "overrides and audit events",
       "alert acknowledgements",
       "non-document inventory events"
@@ -64,12 +66,12 @@
     {
       "id": "persistent-run-log",
       "status": "implemented",
-      "evidence": "RunPackage schema v2, multi-run IndexedDB repository, automatic v1 migration, validated JSON restore, CSV/XLSX/PDF exports and migration-safe validation are implemented and tested."
+      "evidence": "RunPackage schema v3, multi-run IndexedDB repository, automatic v1/v2 migration, SHA-256-verified JSON restore, CSV/XLSX/PDF exports and migration-safe validation are implemented and tested."
     },
     {
-      "id": "native-run-domain-v2",
+      "id": "native-run-domain-v3",
       "status": "implemented",
-      "evidence": "Immutable configuration snapshots, zones, plants, ScientificValue measurements, structured observations, semantic tasks, overrides and append-only audit events are implemented."
+      "evidence": "Immutable configuration snapshots, zones, plants, ScientificValue lineage, DomainEvent envelopes, formal task transitions, devices/calibrations, overrides and append-only audit events are implemented."
     },
     {
       "id": "local-run-history",
@@ -89,7 +91,17 @@
     {
       "id": "browser-side-export",
       "status": "implemented",
-      "evidence": "Validated JSON backup/restore plus CSV, XLSX, PDF and print outputs are available without a backend."
+      "evidence": "SHA-256-verified backup/restore plus CSV, XLSX, PDF and print outputs are available without a backend; corruption and v2 migration are tested."
+    },
+    {
+      "id": "scientific-measurement-trust",
+      "status": "implemented",
+      "evidence": "Read-only provider contract, capability negotiation and trust assessment cover freshness, calibration, plausibility and conflicting measurements."
+    },
+    {
+      "id": "privacy-preserving-diagnostics",
+      "status": "implemented",
+      "evidence": "A local user-triggered diagnostic bundle exports app/storage/schema health and counts without measurements, notes, legal profiles or credentials."
     },
     {
       "id": "live-sensor-ingestion",

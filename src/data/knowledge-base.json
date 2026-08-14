@@ -233,6 +233,66 @@
       "scope": "UKD 60×60-cm-/11-L-Coco-Plan",
       "uncertainty": "Ohne reale Sensorik und Run-Daten sind die Bandgrenzen nicht validiert.",
       "sourceIds": []
+    },
+    {
+      "id": "otel-operational-diagnostics",
+      "title": "OpenTelemetry trennt Instrumentierung vom Backend",
+      "statement": "OpenTelemetry ist ein quelloffenes, anbieter- und werkzeugneutrales Framework für Erzeugung, Export und Sammlung von Traces, Metrics und Logs; es ist selbst kein Observability-Backend.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "Langfristiger UKD-Diagnostikvertrag; aktuelle Implementierung bleibt lokal und ohne Telemetrieexport.",
+      "uncertainty": "Eine spätere Instrumentierung benötigt weiterhin Datenschutz-, Retention- und Opt-in-Entscheidungen.",
+      "sourceIds": ["opentelemetry-overview"]
+    },
+    {
+      "id": "ssdf-version-status-2026",
+      "title": "NIST SSDF Versionsstatus",
+      "statement": "NIST SP 800-218 SSDF 1.1 ist die veröffentlichte Basis von 2022. SP 800-218 Rev. 1 / SSDF 1.2 liegt seit 17.12.2025 als Initial Public Draft vor und ist nicht als finale Norm zu behandeln.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "Secure-SDLC-Governance am Prüftag 09.08.2026.",
+      "uncertainty": "Der Entwurfsstatus kann sich ändern und muss vor Release-Policy-Updates erneut geprüft werden.",
+      "sourceIds": ["nist-ssdf-11", "nist-ssdf-12-draft"]
+    },
+    {
+      "id": "owasp-asvs-version-2026",
+      "title": "OWASP ASVS 5.0.0 ist stabil",
+      "statement": "OWASP bezeichnet ASVS 5.0.0 als aktuelle stabile Fassung und stellt Anforderungen auch maschinenlesbar bereit; UKD referenziert Anforderungen deshalb immer mit Versionspräfix.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "Webanwendungs-Sicherheitsanforderungen, nicht fachwissenschaftliche Kultivierungsregeln.",
+      "uncertainty": "Der UKD-Scope und das Zielniveau müssen je Release separat festgelegt werden.",
+      "sourceIds": ["owasp-asvs-500"]
+    },
+    {
+      "id": "software-provenance-standards",
+      "title": "SBOM und Build-Provenienz sind getrennte Provenienzschichten",
+      "statement": "SPDX ist ein offener internationaler Standard zur Darstellung von Softwarekomponenten und SBOMs. SLSA 1.2 ist eine freigegebene Spezifikation für schrittweise Supply-Chain-Sicherheitsgarantien einschließlich Provenienz.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "UKD Release-Artefakte und Abhängigkeiten.",
+      "uncertainty": "Das Erzeugen eines Dokuments allein beweist noch kein bestimmtes SLSA-Level; Verifikation und vertrauenswürdige Builder bleiben erforderlich.",
+      "sourceIds": ["spdx-overview", "slsa-12"]
+    },
+    {
+      "id": "feature-flag-boundary",
+      "title": "Feature Flags dürfen keine fachliche Wahrheit variieren",
+      "statement": "OpenFeature definiert eine anbieterneutrale Evaluierungs-API und Provider-Schicht für Feature Flags. UKD darf Flags für technische Auslieferung nutzen, nicht für unterschiedliche wissenschaftliche Sollwerte oder Evidenzstände.",
+      "status": "verified-with-boundary",
+      "evidence": "A",
+      "scope": "Technische Release-Steuerung; UKD-spezifische Safety-Grenze ist eine Engineering-Entscheidung.",
+      "uncertainty": "Ein konkreter Flag-Provider ist noch nicht ausgewählt und derzeit nicht erforderlich.",
+      "sourceIds": ["openfeature-intro"]
+    },
+    {
+      "id": "wcag-22-new-criteria",
+      "title": "WCAG 2.2 erweitert konkrete Interaktionsanforderungen",
+      "statement": "WCAG 2.2 ist seit 05.10.2023 W3C Recommendation und ergänzt unter anderem Focus Not Obscured, Dragging Movements, Target Size, Consistent Help und Redundant Entry.",
+      "status": "verified",
+      "evidence": "A",
+      "scope": "Automatisierte und manuelle UKD-Accessibility-Abnahme.",
+      "uncertainty": "Automatisierte axe-Prüfungen decken reale Assistive-Technology- und Human-Factors-Tests nicht vollständig ab.",
+      "sourceIds": ["w3c-wcag22-new"]
     }
   ],
   "sources": [
@@ -491,6 +551,70 @@
       "type": "manufacturer-label",
       "url": "https://hesi.nl/de/PK-13-14",
       "checkedAt": "2026-08-08"
+    },
+    {
+      "id": "opentelemetry-overview",
+      "title": "What is OpenTelemetry?",
+      "publisher": "OpenTelemetry / CNCF",
+      "type": "first-party-standard-documentation",
+      "url": "https://opentelemetry.io/docs/what-is-opentelemetry/",
+      "checkedAt": "2026-08-09"
+    },
+    {
+      "id": "nist-ssdf-11",
+      "title": "NIST SP 800-218 SSDF Version 1.1",
+      "publisher": "NIST Computer Security Resource Center",
+      "type": "government-security-standard",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+      "checkedAt": "2026-08-09"
+    },
+    {
+      "id": "nist-ssdf-12-draft",
+      "title": "NIST SP 800-218 Rev. 1 SSDF Version 1.2 Initial Public Draft",
+      "publisher": "NIST Computer Security Resource Center",
+      "type": "government-security-draft",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/r1/ipd",
+      "checkedAt": "2026-08-09"
+    },
+    {
+      "id": "owasp-asvs-500",
+      "title": "OWASP Application Security Verification Standard 5.0.0",
+      "publisher": "OWASP Foundation",
+      "type": "application-security-standard",
+      "url": "https://owasp.org/www-project-application-security-verification-standard/",
+      "checkedAt": "2026-08-09"
+    },
+    {
+      "id": "spdx-overview",
+      "title": "System Package Data Exchange",
+      "publisher": "SPDX / Linux Foundation",
+      "type": "software-supply-chain-standard",
+      "url": "https://spdx.dev/",
+      "checkedAt": "2026-08-09"
+    },
+    {
+      "id": "slsa-12",
+      "title": "SLSA Specification 1.2",
+      "publisher": "SLSA",
+      "type": "software-supply-chain-specification",
+      "url": "https://slsa.dev/spec/v1.2/",
+      "checkedAt": "2026-08-09"
+    },
+    {
+      "id": "openfeature-intro",
+      "title": "OpenFeature Introduction",
+      "publisher": "OpenFeature / CNCF",
+      "type": "first-party-standard-documentation",
+      "url": "https://openfeature.dev/docs/reference/intro/",
+      "checkedAt": "2026-08-09"
+    },
+    {
+      "id": "w3c-wcag22-new",
+      "title": "What's New in WCAG 2.2",
+      "publisher": "W3C Web Accessibility Initiative",
+      "type": "web-accessibility-standard",
+      "url": "https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/",
+      "checkedAt": "2026-08-09"
     }
   ]
 }

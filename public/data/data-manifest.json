@@ -1,13 +1,14 @@
 {
-  "schemaVersion": "1.0.0",
-  "release": "v6 Evidence-Guarded",
-  "generatedAt": "2026-08-08",
+  "schemaVersion": "2.0.0",
+  "release": "v8 Elite OWNED STOCK HESI AN",
+  "applicationRelease": "v7.0 Masterplan Upgrade",
+  "generatedAt": "2026-08-10",
   "canonicalWorkbook": {
-    "path": "data/evidence-guarded-workbook-v6.json",
-    "sha256": "2966B253977D8D103DACA53494D9E6BA27187D8C9CD7DBDEA31F388D9BFE3A91",
-    "sheets": 27,
-    "formulas": 2945,
-    "sourceSha256": "5EB667D80EEBD9C9872CB72FD53963E002D02CF79B0AC550A8A41B56FF4F5155"
+    "path": "data/evidence-guarded-workbook-v8.json",
+    "sha256": "4F9071844702547E2CE3014480ED316740560893FAAB36AE9C083A243658EBD1",
+    "sheets": 29,
+    "formulas": 4205,
+    "sourceSha256": "D61AF676375733BD0FA9A82F5E7C2355333C73A44D632424215E345CE2D20702"
   },
   "audit": {
     "path": "src/data/legacy-audit.json",
@@ -17,9 +18,9 @@
   },
   "sourceArtifacts": [
     {
-      "path": "sources/evidence-v6/UKD_Grow_Masterplan_Elite_2026_v6_EVIDENCE_GUARDED.xlsx",
+      "path": "UKD_Grow_Masterplan_Elite_2026_v8_OWNED_STOCK_HESI_AN.xlsx",
       "role": "operational-source",
-      "sha256": "5EB667D80EEBD9C9872CB72FD53963E002D02CF79B0AC550A8A41B56FF4F5155"
+      "sha256": "D61AF676375733BD0FA9A82F5E7C2355333C73A44D632424215E345CE2D20702"
     },
     {
       "path": "sources/evidence-v6/UKD_Grow_Masterplan_2026_v6_EVIDENCE_GUARDED_Mobile.pdf",
@@ -30,6 +31,38 @@
       "path": "sources/evidence-v6/deep-research-input.md",
       "role": "untrusted-research-input",
       "sha256": "5BA3AEDB096A38721DF69ABBDA96C8815147F7BB138ED1036E51F276915FA576"
+    }
+  ],
+  "contentArtifacts": [
+    {
+      "path": "src/data/knowledge-base.json",
+      "role": "verified-claims",
+      "sha256": "9AE66150D0CA3529E85F9671BD418AAADADC97BAD175D30DB144304C786C7D42"
+    },
+    {
+      "path": "src/data/ai-context.json",
+      "role": "guarded-ai-context",
+      "sha256": "440B35DD99B9E70401C7FC16C4648A9E4AACCC4E91C961AEBE8FDCF7021F0AB9"
+    },
+    {
+      "path": "src/data/skills.json",
+      "role": "domain-skill-contracts",
+      "sha256": "D8E61323B35A7ABF611E1CC635B1596637D95D3A797EB9FEAC32CEBD12727DA6"
+    },
+    {
+      "path": "src/data/capability-roadmap.json",
+      "role": "capability-truth",
+      "sha256": "E7EC27500395416EEDBB1003ECF7413DB50B5F996A77CF270C72B443EB97A40C"
+    },
+    {
+      "path": "src/data/integration-epics.json",
+      "role": "integration-governance",
+      "sha256": "0241C0AACACAB5433A82BF047467DF335463AA889E88327B7B3D3E06D880ED3C"
+    },
+    {
+      "path": "src/data/platform-quality.json",
+      "role": "product-safety-lifecycle",
+      "sha256": "976C3EDFB6C02AF27E42C73869467C81A131D4DC49004A65A90F006C78456177"
     }
   ],
   "importPolicy": "Raw research input is never canonical. Claims enter the knowledge base only after primary-source, scope, conflict, uncertainty, and freshness review."

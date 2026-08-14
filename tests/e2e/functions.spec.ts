@@ -106,7 +106,7 @@ test("sidebar, contextual help and command palette navigation work", async ({
   isMobile,
 }) => {
   test.skip(isMobile, "desktop shell interaction test");
-  await gotoRoute(page, "cockpit", "guided", 4);
+  await gotoRoute(page, "cockpit", "expert", 4);
 
   for (const label of [
     "Heute",
@@ -122,10 +122,15 @@ test("sidebar, contextual help and command palette navigation work", async ({
     "Rohdaten",
     "Cockpit",
   ]) {
-    await page
-      .locator(".sidebar nav")
-      .getByRole("button", { name: label })
-      .click();
+    const btn = page.locator(".sidebar nav").getByRole("button", { name: label, exact: true });
+    // if button is inside a collapsed group, we need to expand it first
+    // Since we don't know the group easily, we can just expand all groups for the test
+    const collapsedHeaders = page.locator('.nav-group.is-collapsed .nav-group-header');
+    const count = await collapsedHeaders.count();
+    for (let i = 0; i < count; i++) {
+        await collapsedHeaders.nth(0).click();
+    }
+    await btn.click();
     await expect(page.locator("#main-content h1")).toHaveText(label);
   }
 

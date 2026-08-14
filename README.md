@@ -28,8 +28,11 @@ pnpm check
 - 18 Arbeitsbereiche inklusive Run-Setup, Mess-/Ereignislog, Run-Historie, Cockpit, Tagesplan, 81-Tage-Timeline und Batch-Mischlabor
 - Klima-, Licht-, Nährstoff-, Produkt-, Kompatibilitäts- und Diagnoseflächen
 - globale Suche, kontextuelle Hilfe, Light/Dark, responsive Mobile-Navigation
-- lokales Multi-Run-Repository mit RunPackage v2, immutable Setup-Snapshots, typisierten Messwerten, semantischen Tasks, Overrides und Audit-Protokoll
-- validiertes JSON-Backup/Restore sowie CSV-, XLSX-, PDF- und Druckexport
+- lokales Multi-Run-Repository mit RunPackage v3, Domain Events, immutable Setup-Snapshots, vollständiger ScientificValue-Lineage, formalen Task-Transitions, Overrides und Audit-Protokoll
+- SHA-256-verifiziertes JSON-Backup/Restore mit v1/v2-Migration sowie CSV-, XLSX-, PDF- und Druckexport
+- Geräte-/Kalibrierungsmodelle, read-only Connector-Vertrag, Capability Negotiation und Sensor-Trust-Gate ohne Fake-Live-Daten
+- lokales datensparsames Diagnose-Bundle, Product-Science-Journeys, Hazard Register, Failure UX und lokale SLOs
+- Secure-SDLC-Gates, gepinnte CI-Actions, Dependabot, SPDX-SBOM, Lizenzbericht und Build-Provenienz
 - installierbare Offline-Shell, Manifest-/Hashdiagnose, Hochkontrast und Textskalierung
 - kuratierte Knowledge Base mit Claim-Status, Evidenzklasse, Scope, Unsicherheit und Quellen
 - maschinenlesbare Agenten-Kontexte in `src/data/ai-context.json` und `src/data/skills.json`
@@ -48,9 +51,12 @@ Die Anwendung ist eine Planungs- und Dokumentationshilfe. Kalender- und Dosiswer
 - `src/data/skills.json`: ausführbare fachliche Skill-Verträge
 - `src/data/legal-profile.schema.json`: Schema für lokale, nicht eingecheckte Rechtsprofile
 - `src/data/capability-roadmap.json`: implementierte, geplante und bedingt aktivierbare Fähigkeiten
-- `src/data/integration-epics.json`: 20 Epics und verpflichtender Intake-Gate für ungeprüften Fremdcode
+- `src/data/integration-epics.json`: 28 Epics und verpflichtender Intake-Gate für ungeprüften Fremdcode
+- `src/data/platform-quality.json`: User-Journeys, Hazard Register, Failure UX, SLOs, Recovery und Privacy-Klassen
 - `src/run-state.ts`: versioniertes Run-Modell, Warnlogik, Importvalidierung und Exportabbildung
-- `src/run-storage.ts`: lokaler IndexedDB-Speicher für den aktiven Run
+- `src/run-storage.ts`: versioniertes lokales Multi-Run-Repository mit v2→v3-Store-Migration
+- `src/scientific-core.ts`: Trust/Calibration/Capability-Vertrag für spätere read-only Sensoradapter
+- `src/backup.ts`: kanonisch gehashte Backup- und Recovery-Gates
 - `src/domain.ts`: geteilte Berechnungs- und Mappinglogik
 
 Die unveränderten v6-Quellen liegen unter `sources/evidence-v6/`. Architektur, Deep-Research-Audit, Evidenzregeln, Faktencheck und Migration sind unter `docs/` dokumentiert. Die geprüfte 2026-Planrevision steht in `docs/MASTERPLAN_2026_REVIEWED.md`; die zweite Architektur-/UX-Prüfung in `docs/PLAN_AUDIT_ROUND2_2026.md`; Rechtsgrundlagen und Bestandskonten beschreibt `docs/LEGAL_PROFILES.md`.
