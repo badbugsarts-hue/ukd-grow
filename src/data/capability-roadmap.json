@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "1.0.0",
+  "reviewedAt": "2026-08-09",
+  "currentArchitecture": {
+    "frontend": "React 19 + strict TypeScript + Vite 8",
+    "deployment": "static vendor-neutral build",
+    "backend": "none",
+    "database": "none",
+    "authentication": "none",
+    "sensorGateway": "none",
+    "persistence": "multi-run RunRepository with RunPackage v2 in IndexedDB; non-sensitive UI preferences in localStorage; legal profile session-only",
+    "telemetry": "none"
+  },
+  "experienceLens": {
+    "implemented": ["guided", "advanced", "expert"],
+    "invariant": "The lens changes information density and explanation only, never source data, calculations, limits, or safety gates.",
+    "levelScaleDecision": "A 1-10 scale is rejected until user research demonstrates ten distinguishable and useful states."
+  },
+  "statePolicy": {
+    "url": ["route", "selected day", "experience lens"],
+    "localStorage": [
+      "theme",
+      "experience lens",
+      "selected day",
+      "contrast mode",
+      "text scale"
+    ],
+    "indexedDB": [
+      "versioned run configuration",
+      "measurements",
+      "structured observations",
+      "run events",
+      "semantic tasks",
+      "immutable configuration snapshots",
+      "overrides and audit events",
+      "alert acknowledgements",
+      "non-document inventory events"
+    ],
+    "sessionOnly": ["imported legal profile without document payload"],
+    "forbiddenInUrlOrLocalStorage": [
+      "patient data",
+      "prescription data",
+      "authorization documents",
+      "legal inventory",
+      "authentication secrets"
+    ]
+  },
+  "dataSemantics": [
+    "target",
+    "measured",
+    "derived",
+    "simulated",
+    "user-assumption",
+    "manufacturer-reference",
+    "missing",
+    "stale"
+  ],
+  "capabilities": [
+    {
+      "id": "static-operator-workspace",
+      "status": "implemented",
+      "evidence": "React UI, canonical workbook snapshot, knowledge base, exports, tests and CI exist in this repository."
+    },
+    {
+      "id": "persistent-run-log",
+      "status": "implemented",
+      "evidence": "RunPackage schema v2, multi-run IndexedDB repository, automatic v1 migration, validated JSON restore, CSV/XLSX/PDF exports and migration-safe validation are implemented and tested."
+    },
+    {
+      "id": "native-run-domain-v2",
+      "status": "implemented",
+      "evidence": "Immutable configuration snapshots, zones, plants, ScientificValue measurements, structured observations, semantic tasks, overrides and append-only audit events are implemented."
+    },
+    {
+      "id": "local-run-history",
+      "status": "implemented",
+      "evidence": "Users can create and switch isolated local runs through the RunRepository without overwriting historical snapshots."
+    },
+    {
+      "id": "measurement-and-alert-workflow",
+      "status": "implemented",
+      "evidence": "Manual measured values are recorded separately from targets; canonical persistent alerts, acknowledgements and event history are implemented."
+    },
+    {
+      "id": "offline-installable-shell",
+      "status": "implemented",
+      "evidence": "Web App Manifest and production service worker cache the application shell and canonical read-only datasets."
+    },
+    {
+      "id": "browser-side-export",
+      "status": "implemented",
+      "evidence": "Validated JSON backup/restore plus CSV, XLSX, PDF and print outputs are available without a backend."
+    },
+    {
+      "id": "live-sensor-ingestion",
+      "status": "conditional",
+      "trigger": "A named device protocol, trust boundary, offline behavior and calibration model are approved."
+    },
+    {
+      "id": "multi-user-backend",
+      "status": "conditional",
+      "trigger": "Authenticated collaboration or cross-device synchronization becomes a validated requirement."
+    },
+    {
+      "id": "server-side-export",
+      "status": "conditional",
+      "trigger": "Browser-side PDF/XLSX export fails documented fidelity or performance criteria."
+    },
+    {
+      "id": "nextjs-migration",
+      "status": "conditional",
+      "trigger": "SSR, authenticated server features, dynamic route handlers, database access or server-side jobs provide measured product value."
+    }
+  ],
+  "performance": {
+    "initialJavaScriptBudgetKbMinified": 300,
+    "coreWebVitals": {
+      "evaluationPercentile": 75,
+      "lcpMillisecondsMax": 2500,
+      "inpMillisecondsMax": 200,
+      "clsMax": 0.1
+    }
+  }
+}

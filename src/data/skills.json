@@ -94,7 +94,15 @@
         "Release prüfen",
         "Pflanzenzahl oder Bestand"
       ],
-      "inputs": ["jurisdiction", "activity", "asOfDate", "officialLawText"],
+      "inputs": [
+        "jurisdiction",
+        "activity",
+        "asOfDate",
+        "officialLawText",
+        "legalBasis",
+        "authorizationDocumentStatus",
+        "inventoryTransition"
+      ],
       "outputs": [
         "applicableSections",
         "allowedScope",
@@ -105,6 +113,10 @@
       "guardrails": [
         "Nur amtliche Normfassungen autorisieren Rechtsregeln",
         "Privaten Eigenanbau nicht mit medizinisch-gewerblicher GACP/GMP-Produktion vermischen",
+        "KCanG-Eigenanbau, verschriebenen Apothekenbestand und §-4-Erlaubnis getrennt bilanzieren",
+        "Individuelle Mengen und Tätigkeiten nur aus dem geprüften Originaldokument übernehmen",
+        "Technischen Ertrag nicht deckeln; stattdessen jeden Bestandsübergang und die Vernichtung gesondert prüfen",
+        "Geplante Vernichtung legalisiert keinen vorherigen unzulässigen Besitz",
         "Bei veraltetem Prüftag Rechtsmodul fail-closed markieren"
       ]
     },

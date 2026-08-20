@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "jurisdiction": "DE",
+  "verifiedAt": null,
+  "authorizations": [
+    {
+      "legalBasis": "kcang-private",
+      "documentVerified": true,
+      "validFrom": null,
+      "validUntil": null,
+      "authorizedActivities": ["possess", "cultivate", "destroy"],
+      "limits": {
+        "livePlants": 3,
+        "dispensedGramsPerPeriod": null,
+        "retainedDryGrams": 50
+      }
+    },
+    {
+      "legalBasis": "medcang-prescription",
+      "documentVerified": false,
+      "validFrom": null,
+      "validUntil": null,
+      "authorizedActivities": ["possess", "acquire-from-pharmacy"],
+      "limits": {
+        "livePlants": null,
+        "dispensedGramsPerPeriod": null,
+        "retainedDryGrams": null
+      }
+    },
+    {
+      "legalBasis": "medcang-section-4-permit",
+      "documentVerified": false,
+      "validFrom": null,
+      "validUntil": null,
+      "authorizedActivities": [],
+      "limits": {
+        "livePlants": null,
+        "dispensedGramsPerPeriod": null,
+        "retainedDryGrams": null
+      }
+    }
+  ],
+  "planning": {
+    "yieldModel": "technical-capacity-unconstrained",
+    "inventoryGateRequired": true,
+    "destructionLogRequired": true
+  }
+}

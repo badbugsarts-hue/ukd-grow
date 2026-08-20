@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ukd.local/schemas/legal-profile.schema.json",
+  "title": "UKD Legal Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jurisdiction",
+    "verifiedAt",
+    "authorizations",
+    "planning"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "jurisdiction": { "const": "DE" },
+    "verifiedAt": { "type": ["string", "null"], "format": "date" },
+    "authorizations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "legalBasis",
+          "documentVerified",
+          "validFrom",
+          "validUntil",
+          "authorizedActivities",
+          "limits"
+        ],
+        "properties": {
+          "legalBasis": {
+            "enum": [
+              "kcang-private",
+              "medcang-prescription",
+              "medcang-section-4-permit"
+            ]
+          },
+          "documentVerified": { "type": "boolean" },
+          "validFrom": { "type": ["string", "null"], "format": "date" },
+          "validUntil": { "type": ["string", "null"], "format": "date" },
+          "authorizedActivities": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "possess",
+                "acquire-from-pharmacy",
+                "cultivate",
+                "destroy"
+              ]
+            }
+          },
+          "limits": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "livePlants",
+              "dispensedGramsPerPeriod",
+              "retainedDryGrams"
+            ],
+            "properties": {
+              "livePlants": { "type": ["number", "null"], "minimum": 0 },
+              "dispensedGramsPerPeriod": {
+                "type": ["number", "null"],
+                "minimum": 0
+              },
+              "retainedDryGrams": {
+                "type": ["number", "null"],
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "planning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "yieldModel",
+        "inventoryGateRequired",
+        "destructionLogRequired"
+      ],
+      "properties": {
+        "yieldModel": { "const": "technical-capacity-unconstrained" },
+        "inventoryGateRequired": { "const": true },
+        "destructionLogRequired": { "const": true }
+      }
+    }
+  }
+}

@@ -10,3 +10,7 @@ coverage/
 *.log
 *.tsbuildinfo
 .DS_Store
+
+# Sensitive, user-specific legal/medical profiles stay local.
+legal-profile.local.json
+*.legal-profile.local.json

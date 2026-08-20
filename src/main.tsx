@@ -6,8 +6,23 @@ import "./styles.css";
 const root = document.getElementById("root");
 if (!root) throw new Error("Application root not found");
 
+document.documentElement.dataset.contrast =
+  localStorage.getItem("ukd:contrast") === "high" ? "high" : "normal";
+document.documentElement.dataset.textScale =
+  localStorage.getItem("ukd:text-scale") ?? "normal";
+
 createRoot(root).render(
   <StrictMode>
     <App />
   </StrictMode>,
 );
+
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}sw.js`)
+      .catch(() => {
+        // Offline support is an enhancement; the workspace remains usable online.
+      });
+  });
+}

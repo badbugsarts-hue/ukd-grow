@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "1.0.0",
+  "reviewedAt": "2026-08-09",
+  "principle": "UKD remains the canonical evidence and domain system. Third-party applications may contribute audited patterns or isolated components, never an unreviewed second domain core.",
+  "thirdPartyIntakeGate": {
+    "required": [
+      "exactRepository",
+      "exactCommitSha",
+      "licenseAndNotices",
+      "dependencyAudit",
+      "securityAudit",
+      "maintenanceStatus",
+      "tests",
+      "codeOwnership",
+      "relevantModule",
+      "embeddedScientificOrLegalLogic"
+    ],
+    "decisions": ["ADOPT", "ADAPT", "STUDY", "REJECT"],
+    "default": "REJECT_UNTIL_VERIFIED"
+  },
+  "candidatePatterns": [
+    {
+      "name": "Emerald Plant Tracker",
+      "decision": "STUDY",
+      "patterns": [
+        "multi-zone tracking",
+        "activity timeline",
+        "environment logging",
+        "CSV export"
+      ],
+      "repository": null,
+      "commitSha": null,
+      "licenseVerified": false,
+      "codeImportAllowed": false
+    },
+    {
+      "name": "GrowApp",
+      "decision": "STUDY",
+      "patterns": ["scheduler UX", "mobile phase navigation"],
+      "repository": null,
+      "commitSha": null,
+      "licenseVerified": false,
+      "codeImportAllowed": false
+    },
+    {
+      "name": "Isley",
+      "decision": "STUDY",
+      "patterns": [
+        "sensor adapters",
+        "journal",
+        "photo history",
+        "backup and restore"
+      ],
+      "repository": null,
+      "commitSha": null,
+      "licenseVerified": false,
+      "codeImportAllowed": false
+    },
+    {
+      "name": "GanjOS / Home Assistant patterns",
+      "decision": "STUDY",
+      "patterns": ["optional MQTT and Home Assistant connector boundary"],
+      "repository": null,
+      "commitSha": null,
+      "licenseVerified": false,
+      "codeImportAllowed": false
+    },
+    {
+      "name": "farmOS",
+      "decision": "STUDY",
+      "patterns": ["asset", "log", "activity", "observation"],
+      "repository": null,
+      "commitSha": null,
+      "licenseVerified": false,
+      "codeImportAllowed": false
+    }
+  ],
+  "epics": [
+    {
+      "id": "EPIC-01",
+      "title": "Third-Party Integration Governance",
+      "priority": "P0",
+      "status": "implemented"
+    },
+    {
+      "id": "EPIC-02",
+      "title": "Native Run Domain Model",
+      "priority": "P0",
+      "status": "implemented"
+    },
+    {
+      "id": "EPIC-03",
+      "title": "Versioned Local Persistence",
+      "priority": "P0",
+      "status": "implemented"
+    },
+    {
+      "id": "EPIC-04",
+      "title": "Pre-Setup & Profiles",
+      "priority": "P1",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-05",
+      "title": "Today / Now Operations Workspace",
+      "priority": "P1",
+      "status": "implemented"
+    },
+    {
+      "id": "EPIC-06",
+      "title": "Journal & Activity Timeline",
+      "priority": "P1",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-07",
+      "title": "Measurement & Observation System",
+      "priority": "P1",
+      "status": "implemented"
+    },
+    {
+      "id": "EPIC-08",
+      "title": "Context Wiki",
+      "priority": "P1",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-09",
+      "title": "Experience & Learning Layer",
+      "priority": "P1",
+      "status": "implemented"
+    },
+    {
+      "id": "EPIC-10",
+      "title": "Run History & Comparison",
+      "priority": "P2",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-11",
+      "title": "Calculation Engine Migration",
+      "priority": "P0",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-12",
+      "title": "Evidence Validation Engine",
+      "priority": "P0",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-13",
+      "title": "Override & Audit Trail",
+      "priority": "P0",
+      "status": "implemented"
+    },
+    {
+      "id": "EPIC-14",
+      "title": "Sensor Adapter Framework",
+      "priority": "P3",
+      "status": "conditional"
+    },
+    {
+      "id": "EPIC-15",
+      "title": "Home Assistant / MQTT Connector",
+      "priority": "P3",
+      "status": "conditional"
+    },
+    {
+      "id": "EPIC-16",
+      "title": "Ecowitt / AC Infinity Connectors",
+      "priority": "P3",
+      "status": "conditional"
+    },
+    {
+      "id": "EPIC-17",
+      "title": "Backup / Restore / Migration",
+      "priority": "P0",
+      "status": "implemented"
+    },
+    {
+      "id": "EPIC-18",
+      "title": "XLSX / PDF / CSV / JSON Interop",
+      "priority": "P1",
+      "status": "implemented"
+    },
+    {
+      "id": "EPIC-19",
+      "title": "Alert & Notification Engine",
+      "priority": "P2",
+      "status": "partial"
+    },
+    {
+      "id": "EPIC-20",
+      "title": "Optional Automation Safety Layer",
+      "priority": "P4",
+      "status": "conditional"
+    }
+  ]
+}

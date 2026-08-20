@@ -15,15 +15,27 @@ const assert = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-const [workbook, audit, knowledge, aiContext, skills, manifest] =
-  await Promise.all([
-    readJson("public/data/evidence-guarded-workbook-v6.json"),
-    readJson("src/data/legacy-audit.json"),
-    readJson("src/data/knowledge-base.json"),
-    readJson("src/data/ai-context.json"),
-    readJson("src/data/skills.json"),
-    readJson("public/data/data-manifest.json"),
-  ]);
+const [
+  workbook,
+  audit,
+  knowledge,
+  aiContext,
+  skills,
+  legalProfile,
+  capabilityRoadmap,
+  integrationEpics,
+  manifest,
+] = await Promise.all([
+  readJson("public/data/evidence-guarded-workbook-v6.json"),
+  readJson("src/data/legacy-audit.json"),
+  readJson("src/data/knowledge-base.json"),
+  readJson("src/data/ai-context.json"),
+  readJson("src/data/skills.json"),
+  readJson("src/data/legal-profile.example.json"),
+  readJson("src/data/capability-roadmap.json"),
+  readJson("src/data/integration-epics.json"),
+  readJson("public/data/data-manifest.json"),
+]);
 
 assert(Object.keys(workbook).length === 27, "Workbook must contain 27 sheets");
 assert(
@@ -87,6 +99,68 @@ assert(
   skills.skills.some((skill) => skill.id === "legal-release-gate"),
   "legal-release-gate is missing",
 );
+assert(
+  knowledge.claims.some(
+    (claim) => claim.id === "medical-cannabis-legal-path-de",
+  ),
+  "Medical cannabis legal-path claim is missing",
+);
+assert(
+  knowledge.claims.some((claim) => claim.id === "yield-inventory-separation"),
+  "Yield/inventory separation claim is missing",
+);
+assert(
+  legalProfile.planning?.yieldModel === "technical-capacity-unconstrained",
+  "Legal profile must not cap the technical yield model",
+);
+assert(
+  legalProfile.planning?.inventoryGateRequired === true &&
+    legalProfile.planning?.destructionLogRequired === true,
+  "Legal profile must gate inventory and document destruction",
+);
+assert(
+  ["kcang-private", "medcang-prescription", "medcang-section-4-permit"].every(
+    (basis) =>
+      legalProfile.authorizations.some(
+        (authorization) => authorization.legalBasis === basis,
+      ),
+  ),
+  "Legal profile must keep KCanG, prescription, and permit paths separate",
+);
+assert(
+  capabilityRoadmap.currentArchitecture?.backend === "none" &&
+    capabilityRoadmap.currentArchitecture?.sensorGateway === "none",
+  "Capability roadmap must describe the current backend and sensor state truthfully",
+);
+assert(
+  capabilityRoadmap.experienceLens?.implemented?.join(",") ===
+    "guided,advanced,expert",
+  "Capability roadmap must retain the three semantic experience lenses",
+);
+assert(
+  capabilityRoadmap.dataSemantics?.includes("measured") &&
+    capabilityRoadmap.dataSemantics?.includes("simulated") &&
+    capabilityRoadmap.dataSemantics?.includes("stale"),
+  "Capability roadmap must distinguish measured, simulated, and stale data",
+);
+assert(
+  capabilityRoadmap.performance?.coreWebVitals?.inpMillisecondsMax === 200,
+  "Capability roadmap must use INP rather than the retired FID metric",
+);
+assert(
+  integrationEpics.thirdPartyIntakeGate?.default === "REJECT_UNTIL_VERIFIED",
+  "Third-party intake must default to reject until verified",
+);
+assert(
+  integrationEpics.epics?.length === 20,
+  "Integration roadmap must contain EPIC-01 through EPIC-20",
+);
+assert(
+  integrationEpics.candidatePatterns?.every(
+    (candidate) => candidate.codeImportAllowed === false,
+  ),
+  "Unverified third-party candidates must not allow code import",
+);
 
 assert(
   manifest.canonicalWorkbook.sha256 ===
@@ -130,6 +204,6 @@ if (failures.length > 0) {
   process.exitCode = 1;
 } else {
   process.stdout.write(
-    `Content gate passed: ${knowledge.claims.length} claims, ${knowledge.sources.length} sources, ${audit.rows.length} findings, ${skills.skills.length} skills.\n`,
+    `Content gate passed: ${knowledge.claims.length} claims, ${knowledge.sources.length} sources, ${audit.rows.length} findings, ${skills.skills.length} skills, ${integrationEpics.epics.length} integration epics.\n`,
   );
 }
