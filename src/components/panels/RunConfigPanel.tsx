@@ -347,8 +347,20 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 	};
 
 	const handleSelectStrain = (strain: AutoflowerStrain) => {
+		const currentGenetics = config.genetics || "";
+		let newGenetics = strain.name;
+		
+		// Falls mehrere Pflanzen konfiguriert sind, erlaube das Anhängen mehrerer Strains
+		if (config.plantCount > 1 && currentGenetics && currentGenetics !== "Keine Genetik gewählt") {
+			if (!currentGenetics.includes(strain.name)) {
+				newGenetics = `${currentGenetics}, ${strain.name}`;
+			} else {
+				newGenetics = currentGenetics; // Already included
+			}
+		}
+
 		const updatedIdentity: PlantIdentity = {
-			breeder: strain.breeder,
+			breeder: strain.breeder, // This will store the latest selected breeder
 			seedType: strain.typ === "Autoflower" ? "autoflower" : "feminized",
 			seedLot: plantIdentity?.seedLot ?? null,
 			packBatch: plantIdentity?.packBatch ?? null,
@@ -359,13 +371,14 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 			emergenceDateIso: plantIdentity?.emergenceDateIso,
 			dayZeroAnchorDate: plantIdentity?.dayZeroAnchorDate,
 		};
+		
 		const updatedConfig: RunConfig = {
 			...config,
-			genetics: strain.name,
+			genetics: newGenetics,
 		};
 		const updatedRun = updatePlantIdentity(
 			{ ...run, config: updatedConfig },
-			strain.name,
+			newGenetics,
 			updatedIdentity,
 			config.dayZeroAnchor ?? "emergence",
 			config.startDate,
@@ -528,6 +541,14 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 				<div>
 					<strong style={{ color: "var(--muted)", display: "block", marginBottom: "4px" }}>🪴 Medium & Topf:</strong>
 					<span style={{ color: "var(--text)" }}>{config.pot?.nominalVolumeLiters} L · {config.mediumProduct || config.medium || "Kein Medium"}</span>
+				</div>
+				<div>
+					<strong style={{ color: "var(--muted)", display: "block", marginBottom: "4px" }}>🧪 Nährstoffe:</strong>
+					<span style={{ color: "var(--text)" }}>{config.nutrientSystem || "UKD HESI Conservative"}</span>
+				</div>
+				<div>
+					<strong style={{ color: "var(--muted)", display: "block", marginBottom: "4px" }}>💧 Bewässerung:</strong>
+					<span style={{ color: "var(--text)" }}>{config.irrigationSystem || "Manuell (Hand)"}</span>
 				</div>
 			</section>
 

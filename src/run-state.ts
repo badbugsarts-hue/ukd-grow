@@ -75,8 +75,8 @@ export function createDefaultRunPackage(now = new Date()): RunPackage {
   const zoneId = crypto.randomUUID();
   const plantId = crypto.randomUUID();
   const config: RunConfig = {
-    name: "UKD Masterplan v11 Variante B",
-    genetics: "Double Grape Auto",
+    name: "UKD Masterplan v11 Variante B (LST)",
+    genetics: "Double Grape",
     startDate: timestamp.slice(0, 10),
     endDay: 80,
     plantCount: 3,
@@ -1397,8 +1397,12 @@ export function migrateRunPackage(value: unknown): RunPackage | null {
   if (!value || typeof value !== "object") return null;
   let candidate = value as Record<string, unknown>;
 
-  if (candidate.schemaVersion === RUN_SCHEMA_VERSION)
+  if (candidate.schemaVersion === RUN_SCHEMA_VERSION) {
+    if (candidate.config && (candidate.config as any).genetics === "Double Grape Auto") {
+      (candidate.config as any).genetics = "Double Grape";
+    }
     return candidate as unknown as RunPackage;
+  }
 
   const importedAt = new Date().toISOString();
 
