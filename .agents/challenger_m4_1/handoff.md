@@ -1,107 +1,94 @@
-# Handoff Report — Challenger 1 (Milestone 4: App Shell Routing & State Integration)
-
-## Verdict: APPROVE
-
----
+# Milestone 4 Handoff Report: Pot Weight Dryback Tracking & State Management Adversarial Review
 
 ## 1. Observation
 
-### 1.1 TypeScript Compilation Check
-- Command: `npx tsc --noEmit`
-- Result: Exited with code `0`. Zero type errors reported across the entire codebase.
+Direct observations from codebase inspection and empirical command executions:
 
-### 1.2 Target Route & Component Mapping (`src/App.tsx`)
-- All 6 target routes requested in M4 are defined in `NAV` (`src/App.tsx`: lines 110-287) and routed in `RouteContent` (`src/App.tsx`: lines 1174-1264):
-  1. `today` (line 136, 1192) → `<DailyOperatorPanel plan={plan} lens={lens} navigate={navigate} run={run} onUpdateRun={setRun} />`
-  2. `mix` (line 160, 1206) → `<NutrientMixPanel run={run} plan={plan} lens={lens} onUpdateRun={setRun} navigate={navigate} />`
-  3. `setup` (line 119, 1188) → `<RunConfigPanel run={run} lens={lens} onUpdateRun={setRun} navigate={navigate} />`
-  4. `climate` (line 168, 1208) → `<EnvironmentTargetsPanel run={run} plan={plan} lens={lens} onUpdateRun={setRun} navigate={navigate} />`
-  5. `knowledge` (line 216, 1236) → `<ContextHelpGlossaryPanel run={run} plan={plan} lens={lens} onUpdateRun={setRun} navigate={navigate} />`
-  6. `calc` (line 176, 1218) → `<VpdDliCalculatorPanel run={run} plan={plan} lens={lens} onUpdateRun={setRun} navigate={navigate} />`
+1. **Gravimetric Dryback Math & Category Classification (`src/domain.ts:389-432`)**:
+   - `calculateSubstrateHydration(currentMassGrams, potProfile)` correctly computes:
+     - `availableWaterCapacity = Math.max(1, satMass - emptyMass)`
+     - `currentWaterGrams = Math.max(0, currentMassGrams - emptyMass)`
+     - `hydrationPercent = Math.min(100, Math.max(0, Math.round((currentWaterGrams / availableWaterCapacity) * 100)))`
+     - `depletionPercent = 100 - hydrationPercent`
+     - Clamps categories cleanly into 5 zones: `dry` (<20%), `light` (20–39%), `medium` (40–69%), `heavy` (70–89%), and `saturated` (≥90%).
+   - Inverted calibration (where `saturatedMassGrams <= emptyMassGrams`) is safely guarded: if `saturatedMassGrams > emptyMass` fails, it falls back to `emptyMass + fillVolumeLiters * 750`, preventing zero/negative divisions.
+   - Volume fallback: If `nominalVolumeLiters <= 0` or null, it falls back to 10L without throwing or producing NaN.
 
-### 1.3 Invalid Route Fallback Logic (`src/App.tsx`)
-- `readRoute()` (`src/App.tsx`: lines 448-451):
-  ```typescript
-  function readRoute(): RouteId {
-    const value = window.location.hash.replace(/^#\/?/, "") as RouteId;
-    return NAV.some((item) => item.id === value) ? value : "cockpit";
-  }
-  ```
-- Tested invalid hashes: `#invalid_route`, `#/unknown`, `#999`, `#`, `""`, `#random-hash-xyz`.
-- Output: All invalid hashes correctly fall back to `"cockpit"`.
+2. **Historical Dryback Rate Calculation (`src/components/panels/DailyOperatorPanel.tsx:592-610`)**:
+   - Historical dryback rate filters only strictly preceding observations (`obs.day < selectedDay` with `potMassGrams > 0`), taking the latest preceding observation.
+   - Delta time is calculated as `deltaHours = (selectedDay - prev.day) * 24`.
+   - If `massLoss <= 0` (e.g. re-watering occurred) or no previous observation exists, `historicalDrybackRate` returns `null` and renders fallback string `" — "`.
 
-### 1.4 Lens Switching & Persistence (`src/App.tsx`)
-- `readLens()` (`src/App.tsx`: lines 453-458):
-  ```typescript
-  function readLens(): ExperienceLens {
-    const query = new URLSearchParams(window.location.search).get("lens");
-    const saved = localStorage.getItem("ukd:lens");
-    const value = query ?? saved;
-    return value === "advanced" || value === "expert" ? value : "guided";
-  }
-  ```
-- Lens persistence `useEffect` (`src/App.tsx`: lines 623-630):
-  ```typescript
-  useEffect(() => {
-    localStorage.setItem("ukd:lens", lens);
-    localStorage.setItem("ukd:day", String(day));
-    const url = new URL(window.location.href);
-    url.searchParams.set("lens", lens);
-    url.searchParams.set("day", String(day));
-    window.history.replaceState({}, "", url);
-  }, [lens, day]);
-  ```
-- Tested transitions between `guided`, `advanced`, and `expert`: Lens selection is saved to `localStorage` under `ukd:lens` and synchronized with URL search parameter `?lens=...`.
+3. **Pure State Transitions & Audit Trail (`src/run-state.ts:415-470`)**:
+   - `updatePotProfile(run, pot)` immutably copies state, creates a `configuration-changed` audit event, and appends a `configuration.changed` domain event.
+   - Zero mutation verified on original `RunPackage` instance.
 
-### 1.5 Unit Test Suite Results (`npx vitest run`)
-- Core test suite (`src/**/*.test.ts`): 9 test files, 112 passed tests (100% pass rate).
-- Empirical M4 test suite (`src/m4-empirical-challenge.test.ts`): 14 passed tests verifying 6 routes, invalid route fallback, lens persistence, and zero-mutation state updates.
+4. **Dynamic German Recommendations across 3 Experience Lenses (`src/components/panels/DailyOperatorPanel.tsx:252-330, 2420-2478`)**:
+   - Comprehensive German recommendation titles and descriptions tailored to `guided`, `advanced`, and `expert` lenses without hardcoded assumptions or broken terminology.
+
+5. **Typecheck & Full Test Suite Execution**:
+   - `npx tsc --noEmit` exited with code 0 (0 type errors).
+   - `npx vitest run` executed 26 test files, 339 tests passing (100% pass rate, 0 failures).
 
 ---
 
 ## 2. Logic Chain
 
-1. **Observation 1.1** proves that `src/App.tsx` and `src/types.ts` adhere to strict TypeScript types, interface contracts, and import paths without syntax or type errors.
-2. **Observation 1.2** confirms that all 6 required routes (`today`, `mix`, `setup`, `climate`, `knowledge`, `calc`) are present in `NAV` and instantiated in `RouteContent` with the full `PanelProps` contract (`run`, `plan`, `lens`, `onUpdateRun`, `navigate`).
-3. **Observation 1.3** demonstrates that `readRoute()` strips leading `#` or `#\` and checks the target against `NAV.some(...)`. Any unmapped or corrupt route string returns `"cockpit"`, satisfying fail-safe navigation.
-4. **Observation 1.4** verifies that lens switching reads URL query params first, falls back to `localStorage.getItem("ukd:lens")`, defaults to `"guided"` for invalid strings, and writes changes back to both `localStorage` and `history.replaceState`.
-5. **Observation 1.5** demonstrates that all existing domain, panel, and state unit tests pass cleanly, and state transition functions (`addObservation`, `updateRunConfig`) operate immutably without mutating previous state snapshots.
+1. **Assumption Verification**:
+   - _Hypothesis 1_: Extreme boundary inputs (current mass = tare, mass > saturated, mass < tare, negative mass, 0L volume, inverted tare/sat) could cause division by zero or NaN.
+     - _Empirical test_: Tested in `src/components/panels/pot-weight-dryback.adversarial.test.tsx` (16 test cases + 1,000 randomized Monte Carlo fuzz runs).
+     - _Inference_: Math bounds `[0, 100]` for hydration and depletion strictly hold; `availableWaterGrams >= 0` always; category is always valid. Hypothesis refuted.
+   - _Hypothesis 2_: Missing historical observations or non-contiguous days could lead to negative rates or NaN crashes.
+     - _Empirical test_: Evaluated Day 0 standalone, Day 3 -> Day 5 (48h delta = 25.0 g/h), and watering increase (4800g > 2000g).
+     - _Inference_: Accurately computes `g/h` rate for valid loss across multi-day spans and safely returns `null` for watering events without negative numbers or NaN. Hypothesis refuted.
+   - _Hypothesis 3_: Rapid consecutive calibration updates could cause state mutation or audit event drift.
+     - _Empirical test_: Executed 20 rapid sequential calls to `updatePotProfile`.
+     - _Inference_: State remained fully immutable; all 20 events recorded in audit and domain event streams; no race condition or data corruption. Hypothesis refuted.
+
+2. **Compliance with AGENTS.md & ORIGINAL_REQUEST.md**:
+   - UI components respect 44px minimum touch targets and accessible `role="meter"` semantics.
+   - Zero mutation on active Run snapshots preserved.
+   - Full German localization and terminology consistent across all lenses.
 
 ---
 
 ## 3. Caveats
 
-- **Test harness caveat**: Three `.test.tsx` test files (`AppIntegration.test.tsx`, `interactive-verification.test.tsx`, `lens-badge-tooltip-m4.test.tsx`) attempt to call React functional components containing React hooks directly as functions outside a React DOM rendering context. This causes `TypeError: Cannot read properties of null (reading 'useState')` when vitest executes `.tsx` files directly without React Testing Library. This is a test file execution issue to be refined in Milestone 5, not a bug in `src/App.tsx` or `src/types.ts`.
+- **No live hardware scale connection**: This implementation gravimetrically tracks user-entered pot weights and estimates substrate hydration without direct Bluetooth/Wi-Fi scale hardware polling (as aligned with `capability-roadmap.json` live-sensor invariants in AGENTS.md).
+- **Substrate composition density**: The fallback density heuristic is calibrated to 750 g/L (typical for peat/coco mixes at field capacity). Users are encouraged to calibrate actual empty tare and saturated mass for non-standard substrates.
 
 ---
 
 ## 4. Conclusion
 
-**Verdict: APPROVE**
+### **VERDICT: APPROVE**
 
-Milestone 4 (App Shell Routing & State Integration) is fully implemented, empirically verified, and type-safe.
-- Navigation across all 6 core routes (`today`, `mix`, `setup`, `climate`, `knowledge`, `calc`) is active and properly mapped to panel components.
-- Invalid route fallback reliably redirects to `"cockpit"`.
-- Experience Lens switching correctly persists to `localStorage` and URL query state.
-- `npx tsc --noEmit` completes cleanly with 0 errors.
+The Milestone 4 Pot Weight Dryback Tracking Widget and state management implementation is robust, mathematically sound, resilient against extreme and malformed inputs, adheres to pure immutable state transitions with full audit lineage, and passes all 339 tests and TypeScript checks.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify this evaluation:
+Independent reproduction commands:
 
-1. **Type Check**:
+1. **TypeScript Typecheck**:
+
    ```bash
    npx tsc --noEmit
    ```
-   Expect exit code 0 and 0 errors.
 
-2. **Core Unit Test Suite**:
+   _Expected result_: Exit code 0, no errors.
+
+2. **Adversarial Stress Test Suite**:
+
+   ```bash
+   npx vitest run src/components/panels/pot-weight-dryback.adversarial.test.tsx
+   ```
+
+   _Expected result_: 16/16 tests passing, including 1,000-run Monte Carlo fuzz test.
+
+3. **Full Project Test Suite**:
    ```bash
    npx vitest run
    ```
-   Expect all 112 core unit tests in `src/**/*.test.ts` to pass.
-
-3. **Routing & Fallback Inspection**:
-   - Inspect `src/App.tsx`: lines 110-287 (`NAV`), lines 448-451 (`readRoute`), lines 1174-1264 (`RouteContent`).
+   _Expected result_: 26/26 test files passing, 339/339 tests passing.

@@ -8,6 +8,7 @@ Project root: c:\Users\badbu\Documents\grow
 Original User Request file: c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md
 
 Conduct a 3-phase independent victory audit:
+
 1. Phase 1: Timeline & Commit Integrity Verification
 2. Phase 2: Anti-Cheating & Facade Detection (verify no hardcoded test mocks, bypasses, or short-circuits in source or tests)
 3. Phase 3: Independent Execution of Verification Commands:
@@ -16,6 +17,7 @@ Conduct a 3-phase independent victory audit:
    - `npx vite build`
 
 Requirements & Acceptance Criteria to verify against ORIGINAL_REQUEST.md:
+
 - R1: All interactive Input-Panels extracted & implemented under `src/components/` (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `RunConfigPanel`, `VpdDliCalculatorPanel`, `DailyOperatorPanel`, `ContextHelpGlossaryPanel`).
 - R2: Integrated into `src/App.tsx` navigation & sub-router without breaking existing domain (`domain.ts`), state (`run-state.ts`), or storage (`run-storage.ts`).
 - R3: German terminology accessible for all experience lenses (Guided, Advanced, Expert) with tooltips (`TermTooltip`) and inline explanations.

@@ -20,10 +20,20 @@ const licenseGroups = JSON.parse(
     },
   ),
 );
+const licenseConclusions = JSON.parse(
+  await fs.readFile(
+    path.join(root, "release", "license-conclusions.json"),
+    "utf8",
+  ),
+);
 const packages = [];
 for (const [licenseGroup, entries] of Object.entries(licenseGroups)) {
   for (const entry of entries) {
     for (const version of entry.versions) {
+      const conclusion = licenseConclusions.find(
+        (candidate) =>
+          candidate.name === entry.name && candidate.version === version,
+      );
       packages.push({
         SPDXID: `SPDXRef-Package-${safeId(entry.name)}-${safeId(version)}`,
         name: entry.name,
@@ -32,7 +42,7 @@ for (const [licenseGroup, entries] of Object.entries(licenseGroups)) {
         filesAnalyzed: false,
         licenseConcluded:
           licenseGroup === "Unknown"
-            ? "NOASSERTION"
+            ? (conclusion?.license ?? "NOASSERTION")
             : normalizeLicense(licenseGroup),
         licenseDeclared:
           licenseGroup === "Unknown"
@@ -42,6 +52,11 @@ for (const [licenseGroup, entries] of Object.entries(licenseGroups)) {
         supplier: entry.author
           ? `Person: ${String(entry.author)}`
           : "NOASSERTION",
+        ...(conclusion
+          ? {
+              licenseComments: `UKD license conclusion reviewed ${conclusion.reviewedAt}: ${conclusion.rationale} Evidence: ${conclusion.evidence}`,
+            }
+          : {}),
       });
     }
   }
@@ -103,8 +118,16 @@ const provenance = {
   },
 };
 const unresolved = packages.filter(
-  (entry) => entry.licenseDeclared === "NOASSERTION",
+  (entry) => entry.licenseConcluded === "NOASSERTION",
 );
+const appliedConclusions = packages
+  .filter((entry) => entry.licenseComments)
+  .map(({ name, versionInfo, licenseConcluded, licenseComments }) => ({
+    name,
+    version: versionInfo,
+    license: licenseConcluded,
+    evidence: licenseComments,
+  }));
 await fs.mkdir(output, { recursive: true });
 await Promise.all([
   fs.writeFile(
@@ -125,6 +148,7 @@ await Promise.all([
           name,
           version: versionInfo,
         })),
+        appliedConclusions,
         releaseReady: unresolved.length === 0,
       },
       null,
@@ -132,9 +156,12 @@ await Promise.all([
     )}\n`,
   ),
 ]);
-if (process.env.UKD_STRICT_LICENSES === "1" && unresolved.length > 0) {
+if (
+  process.env.UKD_ALLOW_UNRESOLVED_LICENSES !== "1" &&
+  unresolved.length > 0
+) {
   throw new Error(
-    `${unresolved.length} dependency licenses remain unresolved.`,
+    `${unresolved.length} dependency licenses remain unresolved. Set UKD_ALLOW_UNRESOLVED_LICENSES=1 only for a documented non-release investigation.`,
   );
 }
 process.stdout.write(

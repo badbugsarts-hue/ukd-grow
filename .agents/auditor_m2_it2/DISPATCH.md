@@ -7,6 +7,7 @@ Working directory: c:\Users\badbu\Documents\grow\.agents\auditor_m2_it2
 MANDATORY INTEGRITY AUDIT INSTRUCTIONS:
 Perform systematic integrity audit on `src/components/panels/NutrientMixPanel.tsx`, `panels.test.ts`, and all panel components.
 Verify:
+
 - Authentic TypeScript/React implementation.
 - Authentic unit test assertions in `panels.test.ts` testing `applyMixSafetyRules`.
 - `npx tsc --noEmit` passes (0 errors).

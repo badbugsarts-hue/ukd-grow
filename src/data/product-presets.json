@@ -1,0 +1,240 @@
+{
+  "nutrients": [
+    {
+      "id": "biobizz-indoor",
+      "name": "BioBizz Indoor Pack",
+      "brand": "BioBizz",
+      "type": "organic",
+      "compatibility": {
+        "recommendedSubstrates": ["soil", "soil_organic"],
+        "notRecommendedSubstrates": ["rockwool", "hydroton"],
+        "irrigationWarning": "drip",
+        "phBehavior": "drifting"
+      },
+      "description": "Thick organic nutrients. Clogs drip lines. Needs soil microbes to buffer pH."
+    },
+    {
+      "id": "athena-pro",
+      "name": "Athena Pro Line",
+      "brand": "Athena",
+      "type": "mineral",
+      "compatibility": {
+        "recommendedSubstrates": ["coco", "rockwool", "hydroton"],
+        "notRecommendedSubstrates": ["soil_organic"],
+        "irrigationWarning": "none",
+        "phBehavior": "stable"
+      },
+      "description": "Clean mineral salts. Perfect for drip systems and sterile environments."
+    },
+    {
+      "id": "canna-coco",
+      "name": "Canna Coco A+B",
+      "brand": "Canna",
+      "type": "mineral",
+      "compatibility": {
+        "recommendedSubstrates": ["coco"],
+        "notRecommendedSubstrates": ["soil", "rockwool"],
+        "irrigationWarning": "none",
+        "phBehavior": "stable"
+      },
+      "description": "Tailored specifically for Coco coir. Includes pH stabilizers."
+    },
+    {
+      "id": "plagron-terra",
+      "name": "Plagron Terra (Grow/Bloom)",
+      "brand": "Plagron",
+      "type": "mineral",
+      "compatibility": {
+        "recommendedSubstrates": ["soil"],
+        "notRecommendedSubstrates": ["rockwool", "hydroton"],
+        "irrigationWarning": "none",
+        "phBehavior": "stable"
+      },
+      "description": "Mineral fertilizer designed for soil (Terra) mediums."
+    },
+    {
+      "id": "plagron-alga",
+      "name": "Plagron Alga (Grow/Bloom)",
+      "brand": "Plagron",
+      "type": "organic",
+      "compatibility": {
+        "recommendedSubstrates": ["soil_organic", "soil"],
+        "notRecommendedSubstrates": ["rockwool", "hydroton", "coco"],
+        "irrigationWarning": "drip",
+        "phBehavior": "drifting"
+      },
+      "description": "Algae-based organic fertilizer. Not suitable for capillary irrigation systems."
+    },
+    {
+      "id": "hesi-soil",
+      "name": "Hesi Soil Complex",
+      "brand": "Hesi",
+      "type": "hybrid",
+      "compatibility": {
+        "recommendedSubstrates": ["soil"],
+        "notRecommendedSubstrates": ["rockwool"],
+        "irrigationWarning": "drip",
+        "phBehavior": "drifting"
+      },
+      "description": "Partially organic, partially mineral. Can cause build-up in fine emitters."
+    },
+    {
+      "id": "hesi-hydro",
+      "name": "Hesi Hydro",
+      "brand": "Hesi",
+      "type": "mineral",
+      "compatibility": {
+        "recommendedSubstrates": ["rockwool", "hydroton"],
+        "notRecommendedSubstrates": ["soil"],
+        "irrigationWarning": "none",
+        "phBehavior": "stable"
+      },
+      "description": "Formulated for hydroponic systems like DWC or Rockwool."
+    },
+    {
+      "id": "advanced-nutrients-ph-perfect",
+      "name": "AN pH Perfect Sensi",
+      "brand": "Advanced Nutrients",
+      "type": "mineral",
+      "compatibility": {
+        "recommendedSubstrates": ["coco", "rockwool", "hydroton"],
+        "notRecommendedSubstrates": ["soil_organic"],
+        "irrigationWarning": "none",
+        "phBehavior": "stable"
+      },
+      "description": "Self-adjusting pH mineral fertilizer."
+    },
+    {
+      "id": "terra-aquatica-tripart",
+      "name": "T.A. TriPart (Flora Series)",
+      "brand": "Terra Aquatica",
+      "type": "mineral",
+      "compatibility": {
+        "recommendedSubstrates": ["coco", "rockwool", "hydroton", "soil"],
+        "notRecommendedSubstrates": [],
+        "irrigationWarning": "none",
+        "phBehavior": "stable"
+      },
+      "description": "Classic 3-part mineral system, highly versatile across all mediums."
+    },
+    {
+      "id": "greenhouse-feeding-bio",
+      "name": "Green House Feeding Bio",
+      "brand": "Green House Feeding",
+      "type": "organic",
+      "compatibility": {
+        "recommendedSubstrates": ["soil_organic", "soil", "coco"],
+        "notRecommendedSubstrates": ["rockwool", "hydroton"],
+        "irrigationWarning": "drip",
+        "phBehavior": "drifting"
+      },
+      "description": "Powdered organic fertilizer meant to be mixed into the substrate (top dressing)."
+    }
+  ],
+  "substrates": [
+    {
+      "id": "biobizz-lightmix",
+      "name": "BioBizz Light-Mix",
+      "brand": "BioBizz",
+      "category": "soil",
+      "bufferCapacity": "high",
+      "preFertilized": true,
+      "description": "Peat-based organic soil with low EC. Great for seedlings."
+    },
+    {
+      "id": "biobizz-allmix",
+      "name": "BioBizz All-Mix",
+      "brand": "BioBizz",
+      "category": "soil_organic",
+      "bufferCapacity": "high",
+      "preFertilized": true,
+      "description": "Heavily pre-fertilized organic soil. Can burn young seedlings."
+    },
+    {
+      "id": "plagron-growmix",
+      "name": "Plagron Growmix",
+      "brand": "Plagron",
+      "category": "soil",
+      "bufferCapacity": "high",
+      "preFertilized": true,
+      "description": "Mineral-fertilized peat substrate. Fertilized for 3 weeks."
+    },
+    {
+      "id": "plagron-batmix",
+      "name": "Plagron Batmix",
+      "brand": "Plagron",
+      "category": "soil_organic",
+      "bufferCapacity": "high",
+      "preFertilized": true,
+      "description": "Contains bat guano. Extremely rich in phosphorus and potassium. Too hot for seedlings."
+    },
+    {
+      "id": "canna-coco-professional",
+      "name": "Canna Coco Professional Plus",
+      "brand": "Canna",
+      "category": "coco",
+      "bufferCapacity": "low",
+      "preFertilized": false,
+      "description": "Buffered and washed pure coco coir. Requires CalMag."
+    },
+    {
+      "id": "ugro-rhiza-coco",
+      "name": "UGro Rhiza Coco",
+      "brand": "UGro",
+      "category": "coco",
+      "bufferCapacity": "low",
+      "preFertilized": false,
+      "description": "Premium coconut coir mixed with Rhizophagus irregularis (Mycorrhizae). Requires CalMag."
+    },
+    {
+      "id": "grodan-rockwool",
+      "name": "Grodan Rockwool",
+      "brand": "Grodan",
+      "category": "rockwool",
+      "bufferCapacity": "none",
+      "preFertilized": false,
+      "description": "Inert sterile medium. Requires exact pH/EC control."
+    },
+    {
+      "id": "floragard-growmix",
+      "name": "Floragard Professional Growmix",
+      "brand": "Floragard",
+      "category": "soil",
+      "bufferCapacity": "high",
+      "preFertilized": true,
+      "description": "High-quality peat substitute mix with perlite and Trichoderma."
+    }
+  ],
+  "irrigation": [
+    {
+      "id": "hand-watering",
+      "name": "Hand Watering",
+      "type": "manual"
+    },
+    {
+      "id": "blumat-drip",
+      "name": "Tropf Blumat",
+      "type": "drip"
+    },
+    {
+      "id": "netafim-drip",
+      "name": "Netafim Drip Emitters",
+      "type": "drip"
+    },
+    {
+      "id": "ebb-flow",
+      "name": "Ebb & Flow / Flood",
+      "type": "flood"
+    },
+    {
+      "id": "autopot",
+      "name": "AutoPot System (AquaValve)",
+      "type": "flood"
+    },
+    {
+      "id": "floraflex",
+      "name": "FloraFlex Matrix / Micro Drip",
+      "type": "drip"
+    }
+  ]
+}

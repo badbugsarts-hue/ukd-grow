@@ -1,9 +1,12 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+	calculateBiologicalPlantAge,
 	calculateDli,
 	calculateLeafVpd,
 	calculateMix,
+	calculatePpfdMapSummary,
+	calculateSubstrateHydration,
 	excelSerialToDate,
 	formatExcelDate,
 	getDailySheet,
@@ -12,7 +15,7 @@ import {
 	numberAt,
 	textAt,
 } from "./domain";
-import type { Workbook, WorkbookSheet } from "./types";
+import type { GrowthEvent, PotProfile, PpfdMapPoint, Workbook, WorkbookSheet } from "./types";
 
 const workbook = JSON.parse(
 	readFileSync(
@@ -95,5 +98,135 @@ describe("canonical domain calculations", () => {
 			formulas: [[], [], []],
 		};
 		expect(normalizedRows(sheet)).toEqual(["A · 1", "B · true · 0"]);
+	});
+
+	describe("M1 Domain Engine Extensions", () => {
+		describe("calculatePpfdMapSummary", () => {
+			it("calculates correct statistics for a uniform grid", () => {
+				const points: PpfdMapPoint[] = [
+					{ position: "NW", ppfd: 500 },
+					{ position: "N", ppfd: 500 },
+					{ position: "NE", ppfd: 500 },
+					{ position: "W", ppfd: 500 },
+					{ position: "C", ppfd: 500 },
+					{ position: "E", ppfd: 500 },
+					{ position: "SW", ppfd: 500 },
+					{ position: "S", ppfd: 500 },
+					{ position: "SE", ppfd: 500 },
+				];
+				const summary = calculatePpfdMapSummary(points, 45, 100);
+				expect(summary.mean).toBe(500);
+				expect(summary.min).toBe(500);
+				expect(summary.max).toBe(500);
+				expect(summary.uniformity).toBe(1.0);
+			});
+
+			it("scales PPFD statistics when dimmer is applied", () => {
+				const points: PpfdMapPoint[] = [
+					{ position: "NW", ppfd: 400 },
+					{ position: "C", ppfd: 800 },
+					{ position: "SE", ppfd: 600 },
+				];
+				const summary = calculatePpfdMapSummary(points, 40, 50);
+				expect(summary.mean).toBe(300); // (200 + 400 + 300) / 3
+				expect(summary.min).toBe(200);
+				expect(summary.max).toBe(400);
+				expect(summary.uniformity).toBeCloseTo(0.667, 3);
+			});
+
+			it("handles empty grid gracefully", () => {
+				const summary = calculatePpfdMapSummary([], 40, 100);
+				expect(summary).toEqual({ mean: 0, min: 0, max: 0, uniformity: 0 });
+			});
+		});
+
+		describe("calculateBiologicalPlantAge", () => {
+			it("calculates age based on emergence anchor date", () => {
+				const events: GrowthEvent[] = [
+					{
+						id: "e1",
+						plantId: "p1",
+						kind: "run-operational-start",
+						occurredAt: "2026-08-01T00:00:00Z",
+						day: 0,
+						observedBy: "user",
+						confidence: "confirmed",
+						notes: "",
+						photoIds: [],
+					},
+					{
+						id: "e2",
+						plantId: "p1",
+						kind: "emergence",
+						occurredAt: "2026-08-04T00:00:00Z",
+						day: 3,
+						observedBy: "user",
+						confidence: "confirmed",
+						notes: "",
+						photoIds: [],
+					},
+				];
+				const now = new Date("2026-08-14T00:00:00Z");
+				const age = calculateBiologicalPlantAge("emergence", events, now);
+				expect(age.biologicalAgeDays).toBe(10);
+				expect(age.operationalAgeDays).toBe(13);
+				expect(age.anchorDateString).toBe("2026-08-04T00:00:00Z");
+			});
+
+			it("falls back to operational start when requested anchor event is absent", () => {
+				const events: GrowthEvent[] = [
+					{
+						id: "e1",
+						plantId: "p1",
+						kind: "seed-started",
+						occurredAt: "2026-08-01T00:00:00Z",
+						day: 0,
+						observedBy: "user",
+						confidence: "confirmed",
+						notes: "",
+						photoIds: [],
+					},
+				];
+				const now = new Date("2026-08-11T00:00:00Z");
+				const age = calculateBiologicalPlantAge("emergence", events, now);
+				expect(age.biologicalAgeDays).toBe(10);
+				expect(age.operationalAgeDays).toBe(10);
+			});
+		});
+
+		describe("calculateSubstrateHydration", () => {
+			const potProfile: PotProfile = {
+				type: "fabric",
+				nominalVolumeLiters: 11,
+				actualFillLiters: 10,
+				diameterCm: 25,
+				heightCm: 25,
+				emptyMassGrams: 1000,
+				saturatedMassGrams: 5000,
+			};
+
+			it("calculates medium hydration accurately", () => {
+				const hydration = calculateSubstrateHydration(3000, potProfile);
+				expect(hydration.hydrationPercent).toBe(50);
+				expect(hydration.depletionPercent).toBe(50);
+				expect(hydration.availableWaterGrams).toBe(2000);
+				expect(hydration.category).toBe("medium");
+			});
+
+			it("categorizes dry and saturated extremes", () => {
+				expect(calculateSubstrateHydration(1000, potProfile).category).toBe("dry");
+				expect(calculateSubstrateHydration(5000, potProfile).category).toBe("saturated");
+			});
+
+			it("uses volumetric fallback when saturatedMassGrams is missing", () => {
+				const partialPot: PotProfile = {
+					...potProfile,
+					saturatedMassGrams: null,
+				};
+				const hydration = calculateSubstrateHydration(4750, partialPot);
+				expect(hydration.state).toBe("INSUFFICIENT_DATA");
+				expect(hydration.reason).toBe("SATURATION_REFERENCE_MISSING");
+			});
+		});
 	});
 });

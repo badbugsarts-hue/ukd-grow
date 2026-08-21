@@ -1,7 +1,7 @@
 {
   "name": "ukd-grow-masterplan-2026",
   "private": true,
-  "version": "6.1.0",
+  "version": "8.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,18 +9,22 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
+    "typecheck:workspaces": "pnpm --filter @ukd/contracts typecheck && pnpm --filter @ukd/api typecheck",
     "lint": "biome lint src tests",
     "test": "vitest run",
+    "test:workspaces": "pnpm --filter @ukd/api test",
     "test:content": "node scripts/validate-content.mjs",
+    "test:ui-contracts": "node scripts/check-ui-contracts.mjs",
     "test:budget": "node scripts/check-build-budget.mjs",
     "test:e2e": "playwright test",
     "security": "pnpm audit --prod && node scripts/scan-secrets.mjs",
     "release:metadata": "node scripts/generate-release-metadata.mjs",
     "test:watch": "vitest",
     "format": "prettier --write .",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:content && pnpm security && pnpm build && pnpm test:budget && pnpm release:metadata && pnpm test:e2e"
+    "check": "pnpm lint && pnpm typecheck && pnpm typecheck:workspaces && pnpm test && pnpm test:workspaces && pnpm test:content && pnpm test:ui-contracts && pnpm security && pnpm build && pnpm test:budget && pnpm release:metadata && pnpm test:e2e"
   },
   "dependencies": {
+    "@ukd/contracts": "workspace:*",
     "exceljs": "^4.4.0",
     "jspdf": "^4.2.1",
     "react": "19.2.8",

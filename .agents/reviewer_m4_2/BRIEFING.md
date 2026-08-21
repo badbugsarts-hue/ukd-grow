@@ -1,55 +1,73 @@
-# BRIEFING — 2026-08-11T05:16:15Z
+# BRIEFING — 2026-08-14T05:26:00Z
 
 ## Mission
-Review src/App.tsx state flow, prop bindings, and domain immutability for Milestone 4; verify domain logic files remain untouched/unmutated; run verification commands; issue verdict.
+
+Review Milestone 4 implementation focusing on state immutability, audit logging, gravimetric math accuracy, and edge case resilience, and issue a rigorous verdict.
 
 ## 🔒 My Identity
-- Archetype: reviewer_critic
+
+- Archetype: reviewer_and_adversarial_critic
 - Roles: reviewer, critic
 - Working directory: c:\Users\badbu\Documents\grow\.agents\reviewer_m4_2
-- Original parent: 6783987b-1cde-4c0a-8087-df980caf57b6
-- Milestone: Milestone 4
+- Original parent: e71f4c70-c33c-4944-8204-ba5556cd9da7
+- Milestone: Milestone 4 (Gravimetric Dryback & Pot Weight Domain / UI)
 - Instance: 2 of 2
 
 ## 🔒 Key Constraints
+
 - Review-only — do NOT modify implementation code
-- Check for integrity violations (hardcoded tests, facade implementations, shortcuts, fabricated outputs, self-certifying work)
-- Output handoff report to c:\Users\badbu\Documents\grow\.agents\reviewer_m4_2\handoff.md
-- Send message to Parent (6783987b-1cde-4c0a-8087-df980caf57b6) with report summary and verdict
+- Integrity check: actively check for hardcoded test results, facade implementations, bypassed tasks, fabricated artifacts
+- Verification method must run actual tests/typecheck commands
+- Zero mutation of run.configurationSnapshot and run state immutability enforcement
 
 ## Current Parent
-- Conversation ID: 6783987b-1cde-4c0a-8087-df980caf57b6
-- Updated: 2026-08-11T05:16:15Z
+
+- Conversation ID: e71f4c70-c33c-4944-8204-ba5556cd9da7
+- Updated: 2026-08-14T05:26:00Z
 
 ## Review Scope
-- **Files to review**: `src/App.tsx`, `src/domain.ts`, `src/run-state.ts`, `src/run-storage.ts`, `src/scientific-core.ts`
-- **Interface contracts**: AGENTS.md
-- **Review criteria**: State flow (`setRun`, `saveActiveRun`), prop bindings (`onUpdateRun`, `navigate`), domain immutability, domain files untouched/unmutated, test pass rate, absence of integrity violations.
 
-## Key Decisions Made
-- Reviewed `src/App.tsx` state management: `setRun`, `saveActiveRun` autosave debouncing, route navigation handlers.
-- Verified domain immutability across `domain.ts`, `run-state.ts`, `run-storage.ts`, and `scientific-core.ts`.
-- Verified type safety via `npx tsc --noEmit` (passed with code 0).
-- Verified test suite via `npx vitest run` (9 test files, 112 tests passed, 0 failures).
-- Confirmed zero integrity violations or unauthorized mutations.
-- Issued verdict: `APPROVE`.
-
-## Artifact Index
-- `.agents/reviewer_m4_2/DISPATCH.md` — Incoming dispatch log
-- `.agents/reviewer_m4_2/BRIEFING.md` — Agent briefing & working memory
-- `.agents/reviewer_m4_2/progress.md` — Liveness heartbeat & progress log
-- `.agents/reviewer_m4_2/handoff.md` — Final handoff report & verdict
+- **Files to review**:
+  - `c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md`
+  - `c:\Users\badbu\Documents\grow\AGENTS.md`
+  - `c:\Users\badbu\Documents\grow\.agents\worker_m4\handoff.md`
+  - `c:\Users\badbu\Documents\grow\src\run-state.ts`
+  - `c:\Users\badbu\Documents\grow\src\domain.ts`
+  - `c:\Users\badbu\Documents\grow\src\components\panels\DailyOperatorPanel.tsx`
+  - `c:\Users\badbu\Documents\grow\src\components\panels\pot-weight-dryback.test.tsx`
+- **Interface contracts**: `PROJECT.md`, `AGENTS.md`
+- **Review criteria**: State immutability, audit event creation, gravimetric math accuracy, moisture categories coverage, zero mutation of configurationSnapshot, test pass & typecheck pass.
 
 ## Review Checklist
-- **Items reviewed**: `src/App.tsx`, `src/domain.ts`, `src/run-state.ts`, `src/run-storage.ts`, `src/scientific-core.ts`
+
+- **Items reviewed**:
+  - `src/run-state.ts` (`updatePotProfile` state transition helper, `touch`, immutable updates, audit & domain events)
+  - `src/domain.ts` (`calculateSubstrateHydration`, gravimetric math, fallbacks, category mapping)
+  - `src/components/panels/DailyOperatorPanel.tsx` (Topfgewicht & Substrat-Hydratation widget, dynamic German recommendations across guided/advanced/expert lenses, accessibility attributes, 44px touch targets)
+  - `src/components/panels/pot-weight-dryback.test.tsx` (21 unit tests covering all 5 categories, zero mutation, edge case clamping)
+  - `src/AppRoutingStress.test.tsx` & `src/m4-empirical-challenge.test.ts` (App shell routing & navigation)
 - **Verdict**: APPROVE
-- **Unverified claims**: None
+- **Unverified claims**: None (all claims verified via independent command execution)
 
 ## Attack Surface
+
 - **Hypotheses tested**:
-  - Unintended mutation of `RunPackage` state -> Verified immutable state flow with pure helpers.
-  - Interrupted autosave or hydration race condition -> Verified `runHydrated` gate prevents overwriting loaded run.
-  - Broken prop bindings for navigation/updates -> Verified clean prop wiring for `onUpdateRun`, `onChange`, `navigate`.
-  - Modification of core domain logic files -> Verified 100% untouched domain layer.
-- **Vulnerabilities found**: None.
-- **Untested angles**: None within scope.
+  - Potential mutation of `run.configurationSnapshot` upon pot profile updates -> PASSED (Snapshot preserved, tested in unit tests)
+  - Division by zero in `calculateSubstrateHydration` when `saturatedMassGrams === emptyMassGrams` -> PASSED (guarded by `Math.max(1, satMass - emptyMass)`)
+  - Out of bounds inputs (current mass < empty mass or current mass > saturated mass) -> PASSED (safely clamped to [0, 100]% and [0, capacity]g)
+  - All 5 hydration categories covered with lens-specific German advice -> PASSED (`dry`, `light`, `medium`, `heavy`, `saturated`)
+  - Production build and typecheck -> PASSED (310/310 vitest tests, 0 tsc errors, 0 vite build errors)
+- **Vulnerabilities found**: None
+- **Untested angles**: None
+
+## Key Decisions Made
+
+- Confirmed full compliance with `AGENTS.md` and `ORIGINAL_REQUEST.md`.
+- Final verdict: APPROVE.
+
+## Artifact Index
+
+- `c:\Users\badbu\Documents\grow\.agents\reviewer_m4_2\DISPATCH.md` — Received task dispatch
+- `c:\Users\badbu\Documents\grow\.agents\reviewer_m4_2\BRIEFING.md` — Situational awareness
+- `c:\Users\badbu\Documents\grow\.agents\reviewer_m4_2\progress.md` — Heartbeat log
+- `c:\Users\badbu\Documents\grow\.agents\reviewer_m4_2\handoff.md` — Reviewer 2 Handoff Report

@@ -18,6 +18,9 @@ export interface DiagnosticSnapshot {
 		usageMiB: number | null;
 		quotaMiB: number | null;
 		utilizationPercent: number | null;
+		state: RunPackage["storageState"]["state"];
+		failureKind: RunPackage["storageState"]["failureKind"];
+		unsavedChanges: boolean;
 	};
 	runShape: {
 		status: RunPackage["status"];
@@ -66,6 +69,9 @@ export async function createDiagnosticSnapshot(
 				usageMiB !== null && quotaMiB
 					? Math.round((usageMiB / quotaMiB) * 10_000) / 100
 					: null,
+			state: run.storageState.state,
+			failureKind: run.storageState.failureKind,
+			unsavedChanges: run.storageState.unsavedChanges,
 		},
 		runShape: {
 			status: run.status,

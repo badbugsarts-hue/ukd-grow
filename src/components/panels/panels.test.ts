@@ -179,7 +179,7 @@ describe("Milestone 2 - Panel Component Logic & Calculation Test Suite", () => {
 			expect(updatedRun.mixBatches[0]!.finalEc).toBe(1.4);
 		});
 
-		it("zeros out all positive dose amounts and displays '⛔ Gesperrt: Wasserprofil fehlt' when water profile is incomplete", () => {
+		it("blocks only chemistry-dependent components when the water profile is incomplete", () => {
 			const mockPlan = {
 				day: 20,
 				raw: [
@@ -234,12 +234,17 @@ describe("Milestone 2 - Panel Component Logic & Calculation Test Suite", () => {
 			const safeItems = applyMixSafetyRules(rawItems, true, false);
 
 			expect(safeItems.length).toBeGreaterThan(0);
-			for (const item of safeItems) {
+			const blocked = safeItems.filter((item) => item.isBlocked);
+			const visiblePlan = safeItems.filter((item) => !item.isBlocked);
+			expect(blocked.map((item) => item.name)).toEqual(
+				expect.arrayContaining(["Athena Balance", "CalMag", "pH Down"]),
+			);
+			for (const item of blocked) {
 				expect(item.dose).toBe(0.0);
 				expect(item.amount).toBe(0.0);
-				expect(item.statusText).toBe("⛔ Gesperrt: Wasserprofil fehlt");
-				expect(item.isBlocked).toBe(true);
+				expect(item.statusText).toBe("⛔ Gesperrt: Wasserchemie fehlt");
 			}
+			expect(visiblePlan.some((item) => item.dose > 0)).toBe(true);
 		});
 
 		it("zeros out PK 13/14 dose amount and displays '⛔ GESPERRT: Stacking-Konflikt' when booster conflict is active", () => {

@@ -4,6 +4,7 @@ You are Explorer 3 (CSS Tokens & Test Suite Explorer).
 Working directory: c:\Users\badbu\Documents\grow\.agents\explorer_3
 
 Your task:
+
 1. Create your working directory `c:\Users\badbu\Documents\grow\.agents\explorer_3`.
 2. Read `c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md` and `c:\Users\badbu\Documents\grow\AGENTS.md`.
 3. Inspect `src/styles.css`, `package.json`, `tsconfig.json`, `vite.config.ts`, and all existing unit tests in `src/` (e.g. `*.test.ts`, `*.test.tsx`).

@@ -23,7 +23,12 @@
   },
   "overrides": [
     {
-      "includes": ["src/domain.ts", "src/run-state.ts", "src/**/*.test.ts", "src/**/*.test.tsx"],
+      "includes": [
+        "src/domain.ts",
+        "src/run-state.ts",
+        "src/**/*.test.ts",
+        "src/**/*.test.tsx"
+      ],
       "linter": {
         "rules": {
           "suspicious": {

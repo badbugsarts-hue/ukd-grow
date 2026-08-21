@@ -1,6 +1,7 @@
 # Milestone 2: Core Interactive Input Panels Specification & Analysis Report
 
 ## Summary
+
 This report presents the architectural specification, component contracts, domain calculations mapping, fail-closed safety gates, and co-located unit test plans for **Milestone 2 (Core Interactive Input Panels)** of the UKD Grow Masterplan 2026.
 
 The 4 interactive input panels (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `RunConfigPanel`, `VpdDliCalculatorPanel`) and their co-located test suite (`panels.test.ts`) are fully specified according to the scientific domain models in `src/domain.ts`, state manager in `src/run-state.ts`, UI primitives in `src/components/common/`, and strictly compliant with `AGENTS.md` invariants.
@@ -10,6 +11,7 @@ The 4 interactive input panels (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `
 ## 1. Observation
 
 ### 1.1 Existing Common Primitives & Domain Infrastructure
+
 - **`src/components/common/TermTooltip.tsx`**: Accepts `term: string`, `lens?: ExperienceLens`, `showIcon?: boolean`, `customText?: string`. Uses `getTermDefinition` and `getTermDescription` from `termDictionary.ts`.
 - **`src/components/common/MetricGauge.tsx`**: Accepts `value`, `min`, `max`, `unit`, `optimalMin`, `optimalMax`, `warnMin`, `warnMax`, `label`, `lens`, `showMarker`. Exports `calculateGaugeStatus()` returning `{ status, colorVar, dimColorVar, icon, labelGerman, percentage }`.
 - **`src/components/common/LensBadge.tsx`**: Renders `guided` (GEFÜHRT), `advanced` (STANDARD), or `expert` (EXPERTE) badges with theme CSS variables (`var(--blue)`, `var(--green)`, `var(--purple)`).
@@ -27,6 +29,7 @@ The 4 interactive input panels (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `
   - `deriveRunAlerts(run, plan, now)`: flags `water-baseline-missing` if `water.sourcePh === null` or `water.sourceEc === null`.
 
 ### 1.2 Invariant Constraints from `AGENTS.md`
+
 - **Invariant 1**: Measurement and plant reaction override calendar target values.
 - **Invariant 2**: Experience lenses (`guided`, `advanced`, `expert`) alter display density and explanations, never calculated values or domain rules.
 - **Invariant 4**: Missing or unknown water chemistry MUST NOT be replaced by fake CalMag or Athena dosages. Fail-closed alert required.
@@ -39,10 +42,16 @@ The 4 interactive input panels (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `
 ## 2. Logic Chain & Component Specifications
 
 ### 2.1 Specification: `EnvironmentTargetsPanel.tsx`
+
 - **File Location**: `src/components/panels/EnvironmentTargetsPanel.tsx`
 - **Props Interface**:
   ```typescript
-  import type { RunPackage, DayPlan, ExperienceLens, RouteId } from "../../types";
+  import type {
+    RunPackage,
+    DayPlan,
+    ExperienceLens,
+    RouteId,
+  } from "../../types";
 
   export interface EnvironmentTargetsPanelProps {
     run: RunPackage;
@@ -83,10 +92,16 @@ The 4 interactive input panels (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `
 ---
 
 ### 2.2 Specification: `NutrientMixPanel.tsx`
+
 - **File Location**: `src/components/panels/NutrientMixPanel.tsx`
 - **Props Interface**:
   ```typescript
-  import type { RunPackage, DayPlan, ExperienceLens, RouteId } from "../../types";
+  import type {
+    RunPackage,
+    DayPlan,
+    ExperienceLens,
+    RouteId,
+  } from "../../types";
 
   export interface NutrientMixPanelProps {
     run: RunPackage;
@@ -129,6 +144,7 @@ The 4 interactive input panels (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `
 ---
 
 ### 2.3 Specification: `RunConfigPanel.tsx`
+
 - **File Location**: `src/components/panels/RunConfigPanel.tsx`
 - **Props Interface**:
   ```typescript
@@ -166,6 +182,7 @@ The 4 interactive input panels (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `
 ---
 
 ### 2.4 Specification: `VpdDliCalculatorPanel.tsx`
+
 - **File Location**: `src/components/panels/VpdDliCalculatorPanel.tsx`
 - **Props Interface**:
   ```typescript
@@ -195,6 +212,7 @@ The 4 interactive input panels (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `
 ---
 
 ### 2.5 Specification: `panels.test.ts` (Co-located Vitest Suite)
+
 - **File Location**: `src/components/panels/panels.test.ts`
 - **Test Scenarios**:
   1. `EnvironmentTargetsPanel` test suite:
@@ -215,6 +233,7 @@ The 4 interactive input panels (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `
 ---
 
 ## 3. Caveats
+
 - **Scope Boundary**: Milestone 2 focuses exclusively on panel component design, interfaces, calculation mapping, fail-closed logic, and unit tests under `src/components/panels/`. Integration into `src/App.tsx` navigation shell is scheduled for Milestone 4.
 - **Daily Operator Panel & Glossary Panel**: Scheduled for Milestone 3 per `PROJECT.md`.
 - **Water Chemistry Defaulting**: In accordance with `AGENTS.md` Invariant 4, unknown water profile parameters (`calciumMgL`, `magnesiumMgL`, `sourceEc`, `sourcePh`) must NEVER be filled with fake/assumed numbers. They must remain `null` until entered by the user, triggering the fail-closed warning in `NutrientMixPanel` and `RunConfigPanel`.
@@ -222,6 +241,7 @@ The 4 interactive input panels (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `
 ---
 
 ## 4. Conclusion
+
 The specification for Milestone 2 provides an exhaustive, mathematically sound, fail-closed, and UI-consistent blueprint for all four interactive input panels and their co-located test suite. The design preserves all existing 29 unit tests while establishing robust contracts for the upcoming implementation phase.
 
 ---
@@ -229,22 +249,29 @@ The specification for Milestone 2 provides an exhaustive, mathematically sound, 
 ## 5. Verification Method
 
 ### 5.1 Verification Commands (for Implementer)
+
 1. **TypeScript Type Check**:
+
    ```bash
    npx tsc --noEmit
    ```
+
    Must pass with zero type errors.
 
 2. **Unit Test Execution**:
+
    ```bash
    npx vitest run
    ```
+
    Must execute and pass all existing 29 unit tests plus new panel tests in `src/components/panels/panels.test.ts`.
 
 3. **Vite Production Build**:
+
    ```bash
    npx vite build
    ```
+
    Must compile cleanly without build errors or missing module resolutions.
 
 4. **Full Gate Validation**:

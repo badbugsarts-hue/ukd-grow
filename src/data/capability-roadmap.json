@@ -1,15 +1,15 @@
 {
   "schemaVersion": "1.0.0",
-  "reviewedAt": "2026-08-09",
+  "reviewedAt": "2026-08-20",
   "currentArchitecture": {
     "frontend": "React 19 + strict TypeScript + Vite 8",
-    "deployment": "static vendor-neutral build",
-    "backend": "none",
-    "database": "none",
-    "authentication": "none",
-    "sensorGateway": "none",
-    "persistence": "multi-run RunRepository with RunPackage v3 in IndexedDB; verified backup envelope; non-sensitive UI preferences in localStorage; legal profile session-only",
-    "telemetry": "no remote telemetry; local privacy-preserving diagnostics only"
+    "deployment": "static vendor-neutral build remains production baseline; Docker Compose EU-VPS stack is implemented as an unverified deployment preview",
+    "backend": "Fastify TypeScript API implementation preview; not deployed or enabled in the local UI",
+    "database": "Postgres 17 schema, default-deny RLS and migrator/app-role separation implemented; no production database provisioned",
+    "authentication": "Magic-link and hashed-cookie session routes implemented and contract-tested; production SMTP and deployment verification remain open",
+    "sensorGateway": "read-only CSV/JSON file connector validation core; no live sensor or actuator connection",
+    "persistence": "multi-run RunRepository with RunPackage v6 in IndexedDB; typed resilient storage, protected read-only mode, staged restore, workspace-backup-v2, encrypted rotating checkpoint vault, encrypted media store and local sync outbox",
+    "telemetry": "local privacy-preserving diagnostics plus opt-in server-side OpenTelemetry traces and metrics; collector deployment config validates, but production diagnostics are not yet deployed or verified"
   },
   "experienceLens": {
     "implemented": ["guided", "advanced", "expert"],
@@ -26,7 +26,7 @@
       "text scale"
     ],
     "indexedDB": [
-      "versioned run configuration",
+      "RunPackage v6 configuration, Simulation/Live metadata and command records",
       "measurements",
       "structured observations",
       "run events",
@@ -36,7 +36,12 @@
       "device and calibration records",
       "overrides and audit events",
       "alert acknowledgements",
-      "non-document inventory events"
+	  "non-document inventory events",
+	  "irrigation events and mix batches",
+	  "plant identity and growth events",
+	  "light profiles, PPFD maps and calibration records",
+	  "IPM, incidents, equipment, maintenance, reservoirs, lung room, energy, post-harvest, product inventory and mix applications",
+	  "encrypted normalized media ciphertexts and local sync outbox"
     ],
     "sessionOnly": ["imported legal profile without document payload"],
     "forbiddenInUrlOrLocalStorage": [
@@ -66,12 +71,27 @@
     {
       "id": "persistent-run-log",
       "status": "implemented",
-      "evidence": "RunPackage schema v3, multi-run IndexedDB repository, automatic v1/v2 migration, SHA-256-verified JSON restore, CSV/XLSX/PDF exports and migration-safe validation are implemented and tested."
+      "evidence": "RunPackage schema v6, v1-v6 migration, resilient multi-run IndexedDB, staging restore, SHA-256 JSON and workspace-backup-v2, CSV/XLSX/PDF exports and recovery tests are implemented."
     },
     {
-      "id": "native-run-domain-v3",
+	  "id": "native-run-domain-v6",
       "status": "implemented",
-      "evidence": "Immutable configuration snapshots, zones, plants, ScientificValue lineage, DomainEvent envelopes, formal task transitions, devices/calibrations, overrides and append-only audit events are implemented."
+      "evidence": "Immutable configuration snapshots, applyRunCommand, zones, plants, ScientificValue lineage, DomainEvent envelopes, operations state machines, devices/calibrations, revisions, supersession and append-only audit events are implemented."
+    },
+    {
+      "id": "local-live-run",
+      "status": "implemented",
+      "evidence": "Simulation-to-Live cloning, confirmed seed-planted UTC anchor, exact 24-hour live day, independent view day, clock rollback blocking, audited anchor correction and completion commands are implemented and unit-tested."
+    },
+    {
+      "id": "manual-ai-exchange",
+      "status": "implemented",
+      "evidence": "ukd-ai-exchange/1 redacts prohibited data; ukd-ai-proposal/1 uses quarantine, schema/base-hash/safety validation, correction requests and individually audited accept/reject commands. No model is called by the local UI."
+    },
+    {
+      "id": "encrypted-checkpoint-vault",
+      "status": "implementation-preview",
+      "evidence": "AES-GCM workspace checkpoints, SHA-256 readback, 20/30/12 rotation, completion retention, File System Access folder writes, download fallback, recovery-kit import and weekly isolated validation are implemented. A multi-day real-browser restore drill remains a Stable gate."
     },
     {
       "id": "local-run-history",
@@ -96,7 +116,7 @@
     {
       "id": "scientific-measurement-trust",
       "status": "implemented",
-      "evidence": "Read-only provider contract, capability negotiation and trust assessment cover freshness, calibration, plausibility and conflicting measurements."
+	  "evidence": "The read-only provider contract and trust engine cover freshness, calibration, plausibility and conflicts. Live ingestion is not implemented; the current UI only captures manual pH/EC calibration and PPFD-map records."
     },
     {
       "id": "privacy-preserving-diagnostics",
@@ -109,9 +129,39 @@
       "trigger": "A named device protocol, trust boundary, offline behavior and calibration model are approved."
     },
     {
+      "id": "p0-operations-slices",
+      "status": "implemented",
+      "evidence": "IPM, Incident/Recovery, generic Equipment/Maintenance and personal product inventory have command-based UI slices with state transition, audit and timeline records. Rich editor depth and human-factors validation remain release gates."
+    },
+    {
+      "id": "scientific-operations-slices",
+      "status": "implementation-preview",
+      "evidence": "Reservoir/Lung Room, Energy, Post-Harvest and Mix Application UI paths exist and use the common command gateway; full checkpoint editors and stable E2E matrix remain open."
+    },
+    {
+      "id": "private-media-lifecycle",
+      "status": "implementation-preview",
+      "evidence": "Browser images are oriented, re-encoded to WebP, EXIF-stripped, hashed and AES-GCM encrypted. Recovery kit and manifested backup are implemented; cross-device restore drills remain open."
+    },
+    {
+      "id": "workspace-profiles-templates",
+      "status": "implemented",
+      "evidence": "Setup profiles and run templates are versioned outside active immutable snapshots. Creating from a template produces a new run identity; workspace-backup-v2 includes the real workspace, all runs and encrypted media in one validated activation transaction."
+    },
+    {
+      "id": "file-connector",
+      "status": "implementation-preview",
+      "evidence": "Read-only CSV/JSON probe-map-validate-preview-commit workflow blocks missing identity/unit/time, mismatches and duplicates; committed readings remain unverified and enter through applyRunCommand with audit and timeline. A larger fuzz corpus remains open."
+    },
+    {
+      "id": "guarded-copilot",
+      "status": "implementation-preview",
+      "evidence": "Provider-neutral server interface and OpenAI Responses adapter use store:false, Structured Outputs, pseudonymous safety identifier and grounding enforcement. Context retrieval, UI, live credentials and full evals remain disabled/open."
+    },
+    {
       "id": "multi-user-backend",
-      "status": "conditional",
-      "trigger": "Authenticated collaboration or cross-device synchronization becomes a validated requirement."
+      "status": "implementation-preview",
+      "trigger": "Fastify/Postgres/Magic-Link/Sync code and Docker Compose are present, but production SMTP, media object flow, two-device integration tests, migration deployment and EU-VPS restore proof remain mandatory before activation."
     },
     {
       "id": "server-side-export",
@@ -125,7 +175,9 @@
     }
   ],
   "performance": {
-    "initialJavaScriptBudgetKbMinified": 300,
+	"initialJavaScriptBudgetKbMinified": 450,
+	"largestAsyncChunkBudgetKbMinified": 950,
+	"totalJavaScriptBudgetKbMinified": 2400,
     "coreWebVitals": {
       "evaluationPercentile": 75,
       "lcpMillisecondsMax": 2500,

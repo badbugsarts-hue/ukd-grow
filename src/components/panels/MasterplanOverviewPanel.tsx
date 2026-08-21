@@ -1,13 +1,26 @@
-import type { RouteId } from "../../types";
+import { DAILY_COLUMNS, numberAt, textAt, type DayPlan } from "../../domain";
+import type { RouteId, RunPackage } from "../../types";
 
-export function MasterplanOverviewPanel({ navigate }: { navigate: (route: RouteId) => void }) {
+export function MasterplanOverviewPanel({
+	navigate,
+	run,
+	plan,
+}: {
+	navigate: (route: RouteId) => void;
+	run: RunPackage;
+	plan: DayPlan;
+}) {
+	const lightIdentity = run.config.light
+		? [run.config.light.manufacturer, run.config.light.model].filter(Boolean).join(" ")
+		: "Hersteller/Modell nicht erfasst";
+	const medium = run.config.mediumProduct || run.config.medium || "Nicht erfasst";
 
 	return (
 		<div className="panel-container">
 			{/* Page Header */}
 			<div className="panel-header">
-				<h2>🌱 UKD GROW MASTERPLAN v9</h2>
-				<p>Dein kompletter Leitfaden für erfolgreichen und gesunden Anbau</p>
+				<h2>🌱 UKD GROW MASTERPLAN v11 Variante B</h2>
+				<p>Evidenzgeschützte Orientierung auf Basis des aktiven Runs und des kanonischen Tagesplans</p>
 			</div>
 
 			<div
@@ -81,13 +94,13 @@ export function MasterplanOverviewPanel({ navigate }: { navigate: (route: RouteI
 							background: "var(--surface-1)",
 							borderRadius: "var(--radius-md)",
 							padding: "20px",
-							borderTop: "4px solid #ef4444",
+							borderTop: "4px solid var(--red)",
 						}}
 					>
 						<h3
 							style={{
 								margin: "0 0 16px 0",
-								color: "#ef4444",
+								color: "var(--red)",
 								fontSize: "15px",
 							}}
 						>
@@ -169,7 +182,7 @@ export function MasterplanOverviewPanel({ navigate }: { navigate: (route: RouteI
 							<div>
 								<strong>⚖️ Maximaler Ertrag</strong>
 								<div style={{ color: "var(--muted)" }}>
-									Diätetische Versorgung in jeder Wachstumsphase.
+									Nachvollziehbare Versorgung in jeder Wachstumsphase.
 								</div>
 							</div>
 							<div>
@@ -258,21 +271,23 @@ export function MasterplanOverviewPanel({ navigate }: { navigate: (route: RouteI
 							<div>
 								<h4 style={{ margin: "0 0 8px 0", fontSize: "12px", color: "var(--muted)" }}>Ausstattung</h4>
 								<ul style={{ margin: 0, paddingLeft: "16px", display: "flex", flexDirection: "column", gap: "6px" }}>
-									<li><strong>Zelt:</strong> 60x60x180 cm</li>
-									<li><strong>Licht:</strong> 150W LED</li>
-									<li><strong>Abluft:</strong> AC Infinity T4 + AKF</li>
-									<li><strong>Umluft:</strong> 1x NF-A20 + 2x P14</li>
-									<li><strong>Medium:</strong> UGro Rhiza Coco</li>
+									<li><strong>Zelt:</strong> {run.config.tentWidthCm} × {run.config.tentDepthCm} × {run.config.tentHeightCm} cm</li>
+									<li><strong>Licht:</strong> {run.config.ledMaxW} W max. · {lightIdentity}</li>
+									<li><strong>Bewässerung:</strong> {run.config.irrigationSystem || "Nicht erfasst"}</li>
+									<li><strong>Topf:</strong> {run.config.pot.nominalVolumeLiters} L · Typ {run.config.pot.type}</li>
+									<li><strong>Medium:</strong> {medium}</li>
+									<li><strong>Genetik:</strong> <span style={{ color: "var(--green)", fontWeight: "bold" }}>{run.config.genetics || "Keine ausgewählt"}</span></li>
+									<li><strong>Pflanzenanzahl:</strong> {run.config.plantCount}</li>
 								</ul>
 							</div>
 							<div>
-								<h4 style={{ margin: "0 0 8px 0", fontSize: "12px", color: "var(--muted)" }}>Wichtige Ziele</h4>
+								<h4 style={{ margin: "0 0 8px 0", fontSize: "12px", color: "var(--muted)" }}>Kanonische Ziele · Tag {plan.day}</h4>
 								<ul style={{ margin: 0, paddingLeft: "16px", display: "flex", flexDirection: "column", gap: "6px" }}>
-									<li><strong>Temperatur:</strong> 24 – 26 °C</li>
-									<li><strong>Luftfeuchte:</strong> 45 – 60 %</li>
-									<li><strong>pH-Wert:</strong> 5.8 – 6.2</li>
-									<li><strong>EC in Blüte:</strong> 1.6 – 2.2 mS/cm</li>
-									<li><strong>Lichtzyklus:</strong> 18/6 & 12/12</li>
+									<li><strong>Phase:</strong> {textAt(plan, DAILY_COLUMNS.phase)}</li>
+									<li><strong>Temperatur Licht:</strong> {numberAt(plan, DAILY_COLUMNS.tempLight)} °C</li>
+									<li><strong>Luftfeuchte:</strong> {numberAt(plan, DAILY_COLUMNS.humidity)} %</li>
+									<li><strong>pH / EC:</strong> {numberAt(plan, DAILY_COLUMNS.ph).toFixed(1)} / {numberAt(plan, DAILY_COLUMNS.ec).toFixed(2)} mS/cm</li>
+									<li><strong>Photoperiode:</strong> {numberAt(plan, DAILY_COLUMNS.lightHours)} h</li>
 								</ul>
 							</div>
 						</div>
@@ -287,13 +302,13 @@ export function MasterplanOverviewPanel({ navigate }: { navigate: (route: RouteI
 							background: "var(--surface-1)",
 							borderRadius: "var(--radius-md)",
 							padding: "20px",
-							borderTop: "4px solid #a855f7",
+							borderTop: "4px solid var(--purple)",
 						}}
 					>
 						<h3
 							style={{
 								margin: "0 0 16px 0",
-								color: "#a855f7",
+								color: "var(--purple)",
 								fontSize: "15px",
 							}}
 						>
@@ -310,27 +325,27 @@ export function MasterplanOverviewPanel({ navigate }: { navigate: (route: RouteI
 							<div>
 								<strong>EC (Leitwert)</strong>
 								<div style={{ color: "var(--muted)", marginBottom: "2px" }}>Zeigt, wie viele Nährstoffe im Wasser sind.</div>
-								<div style={{ fontSize: "11px", color: "#a855f7" }}>Einheit: mS/cm</div>
+								<div style={{ fontSize: "11px", color: "var(--purple)" }}>Einheit: mS/cm</div>
 							</div>
 							<div>
 								<strong>pH-Wert</strong>
 								<div style={{ color: "var(--muted)", marginBottom: "2px" }}>Zeigt, wie sauer oder basisch das Wasser ist.</div>
-								<div style={{ fontSize: "11px", color: "#a855f7" }}>Ideal: 5.8 – 6.2 in Erde/Coco</div>
+								<div style={{ fontSize: "11px", color: "var(--purple)" }}>Zielwerte kommen aus dem kanonischen Tagesplan.</div>
 							</div>
 							<div>
 								<strong>VPD (Luft-Druckdefizit)</strong>
 								<div style={{ color: "var(--muted)", marginBottom: "2px" }}>Zeigt, wie viel Feuchtigkeit die Luft aufnehmen kann.</div>
-								<div style={{ fontSize: "11px", color: "#a855f7" }}>Ideal: 0.8 – 1.2 kPa in der Blüte</div>
+								<div style={{ fontSize: "11px", color: "var(--purple)" }}>Ziel ist phasen- und datenabhängig.</div>
 							</div>
 							<div>
 								<strong>DLI (Tageslichtmenge)</strong>
 								<div style={{ color: "var(--muted)", marginBottom: "2px" }}>Gesamtmenge an Licht pro Tag.</div>
-								<div style={{ fontSize: "11px", color: "#a855f7" }}>Einheit: mol/m²/Tag</div>
+								<div style={{ fontSize: "11px", color: "var(--purple)" }}>Einheit: mol/m²/Tag</div>
 							</div>
 							<div>
 								<strong>PPFD (Lichtstärke)</strong>
 								<div style={{ color: "var(--muted)", marginBottom: "2px" }}>Wie viel Licht auf deine Pflanzen trifft.</div>
-								<div style={{ fontSize: "11px", color: "#a855f7" }}>Einheit: µmol/m²/s</div>
+								<div style={{ fontSize: "11px", color: "var(--purple)" }}>Einheit: µmol/m²/s</div>
 							</div>
 						</div>
 					</div>
@@ -377,8 +392,8 @@ export function MasterplanOverviewPanel({ navigate }: { navigate: (route: RouteI
 							<div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
 								<div style={{ background: "var(--green)", color: "var(--on-green)", padding: "8px", borderRadius: "var(--radius-sm)", fontWeight: 700 }}>3</div>
 								<div>
-									<strong>UGro Rhiza Coco</strong>
-									<div style={{ color: "var(--muted)", fontSize: "12px" }}>Endgültiger Topf (pH 5.5 - 6.5)</div>
+									<strong>Pot9 Rhiza</strong>
+									<div style={{ color: "var(--muted)", fontSize: "12px" }}>Endgültiger Topf (pH 5.5 - 6.5) + LST</div>
 								</div>
 							</div>
 						</div>

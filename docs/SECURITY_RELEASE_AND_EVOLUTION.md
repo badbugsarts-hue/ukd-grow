@@ -13,7 +13,8 @@
 Jeder CI-Lauf erzeugt:
 
 - `ukd-sbom.spdx.json` als SPDX-2.3-SBOM;
-- `license-audit.json` mit expliziten `NOASSERTION`-Fällen;
+- `license-audit.json` mit expliziten `NOASSERTION`-Fällen und geprüften Conclusions;
+- `release/license-conclusions.json` als reviewpflichtige, versionierte Ausnahmequelle; deklarierte und geschlussfolgerte Lizenz bleiben im SPDX getrennt;
 - `ukd-provenance.json` mit Source Commit, Node/pnpm, Lockfile-, Content- und Build-Artefakt-Hashes.
 
 Diese Dateien sind Belege, aber noch keine kryptografisch signierte SLSA-Attestation. Ein Stable-Release bleibt blockiert, solange ungeklärte Lizenzen, fehlende Signatur oder ein erforderliches Security-Gate offen sind.
@@ -26,7 +27,7 @@ Diese Dateien sind Belege, aber noch keine kryptografisch signierte SLSA-Attesta
 
 ## Kompatibilität
 
-- RunPackage v1 und v2 werden nach v3 migriert.
+- RunPackage v1, v2 und v3 werden nach v4 migriert.
 - Eine Migration ist append-only nachvollziehbar und mutiert den aktiven Run erst nach vollständiger Validierung.
 - Downgrades sind nicht implizit garantiert. Vor inkompatiblen Änderungen wird ein verifiziertes Backup verlangt.
 - Ein Schema wird mindestens einen stabilen Release-Zyklus nach der Ablösung lesbar gehalten.

@@ -1,103 +1,117 @@
-# Milestone 3 (M3) Independent Code Review & Adversarial Critic Report
+# Handoff Report: Milestone 3 Review & Adversarial Challenge
 
-**Reviewer ID**: `reviewer_m3_2`  
-**Date**: 2026-08-11  
-**Target Files**:
-- `src/components/panels/DailyOperatorPanel.tsx`
-- `src/components/panels/ContextHelpGlossaryPanel.tsx`
-- `src/components/panels/daily-operator-glossary.test.ts`
+**Reviewer**: Reviewer 2 (`reviewer_critic`)  
+**Target**: Milestone 3 — Plant Identity Modal & Biology Engine Integration  
+**Date**: 2026-08-14  
+**Verdict**: **APPROVE**
 
 ---
 
 ## 1. Observation
 
-### Verified Tool Output & Commands
-- **TypeScript Compilation Check**:
-  - Command: `npx tsc --noEmit`
-  - Result: Exit Code 0, 0 errors.
-- **Vitest Unit Test Suite Execution**:
-  - Command: `npx vitest run`
-  - Result: Exit Code 0. 9/9 Test Files Passed, 112/112 Total Unit Tests Passed.
-  - M3 Test File: `src/components/panels/daily-operator-glossary.test.ts` (17/17 tests passed in 117ms).
+### Codebase & Implementation Audit
 
-### Direct Code Inspection Findings
-- **`src/components/panels/DailyOperatorPanel.tsx`**:
-  - Line 36-42: `DailyOperatorPanelProps` properly typed with `RunPackage`, optional `DayPlan`, `ExperienceLens`, `onUpdateRun`, and `navigate`.
-  - Line 71-215: `getTargetsForDay(day, plan)` extracts day targets dynamically from `DayPlan` via `DAILY_COLUMNS` or falls back to a 4-phase matrix. Clamping is handled via `Math.max(0, Math.min(80, day))`.
-  - Line 320-333: Dynamic real-time calculation of Leaf-VPD offset, calculated Leaf-VPD (`calculateLeafVpd`), calculated DLI (`calculateDli`), and Drain percentage (`calculatedDrainPercent`).
-  - Line 360-410: `handleSaveObservation` invokes `createObservation(selectedDay)`, populates values, calls `addObservation(run, obs)`, adds structured observation via `addStructuredObservation`, and calls `onUpdateRun(updatedRun)`. No direct mutations on `run` exist.
-  - Line 427-449: Checklist task management calls `setTaskCompleted` and `transitionTaskState` with audit logging intact.
-  - Line 451-460: Alert acknowledgment calls `acknowledgeAlert(run, alertId)` immutably.
-  - Line 515-1504: Clean layout structure with 80-day carousel strip, phase quick-tabs (Keimung, Veg, Hauptblüte, Spätblüte), 3-step action tabs, `MetricGauge` integration, forms, and safety alerts.
-- **`src/components/panels/ContextHelpGlossaryPanel.tsx`**:
-  - Line 75-481: Master canonical dataset `UNIFIED_GLOSSARY_ITEMS` covering VPD, DLI, EC, pH, PPFD, rF, KCanG §9 (Eigenanbau - max 3 Pflanzen), KCanG §3 (Besitz - 50g Trockengewicht), MedCanG §4 (Apothekenbezug / BfArM), Athena Balance, HESI Coco, Tropf-Blumat, Post-Harvest a_w, Preharvest Flushing (Saloner et al. 2024), Autoflower PRR Genomik, BT, VT.
-  - Line 497-537: Search & multi-filter pipeline handling category tabs, evidence grade filters (Grade A, B, C), and case-insensitive query string searching.
-  - Line 608-667: Lens switcher (GEFÜHRT, STANDARD, EXPERTE) dynamically adjusting card content (`item.beginner`, `item.advanced`, `item.expert`).
-  - Line 808-900: Collapsible 4-Phase Target Matrix Quick Reference table for VPD, DLI, EC, pH, rF across all growth phases.
-- **`src/components/panels/daily-operator-glossary.test.ts`**:
-  - 17 unit tests covering day navigation, target calculations, form pre-filling, observation immutability, structured observations, checklist state transitions, nutrient mix preview, alert acknowledgment, dictionary term lookup, search filters, category filters, multi-lens descriptions, target range validation, XSS input safety, and zero regression calculations.
+1. **`src/run-state.ts` (`updatePlantIdentity`, lines 319–412)**:
+   - Implements immutable state update helper `updatePlantIdentity(run: RunPackage, genetics: string, identity: PlantIdentity, dayZeroAnchor: DayZeroAnchor, anchorDate: string): RunPackage`.
+   - Copies `run.plants` array immutably, merging existing identity fields with provided new identity (`breeder`, `seedType`, `seedLot`, `packBatch`, `sourceDate`, `phenotypeNotes`). If `run.plants` is empty, generates an initial planned plant entity.
+   - Dedupes and manages anchor growth events by filtering existing growth events with `e.kind !== dayZeroAnchor` and prepending a new confirmed `GrowthEvent` (`kind: dayZeroAnchor`, `occurredAt: anchorOccurredAt`, `day: 0`).
+   - Updates `run.config.genetics` and `run.config.dayZeroAnchor`.
+   - Immutably prepends an `AuditEvent` (`action: "configuration-changed"`, `entityType: "plant-identity"`, `entityId: plantId`) and a `DomainEvent` (`aggregateId: run.id`, `type: "configuration.changed"`, payload with genetics, breeder, seedLot, dayZeroAnchor, anchorDate).
+   - Preserves `run.configurationSnapshot` intact without in-place mutation, upholding the `AGENTS.md` invariant: _"Aktive Run-Snapshots nicht mutieren; Korrekturen und Overrides ausschließlich append-only mit Grund und AuditEvent speichern."_
+
+2. **`src/components/modals/PlantIdentityModal.tsx`**:
+   - Master Class overlay modal with `role="dialog"`, `aria-modal="true"`, `aria-labelledby="plant-identity-modal-title"`, and keyboard Escape listener.
+   - Form inputs with explicit `<label htmlFor="...">` bindings for Genetics, Breeder, Seed Type (dropdown), Seed Lot, Pack Batch, Day Zero Anchor (dropdown), Anchor Date (date picker), and Phenotype Notes.
+   - Inline `<TermTooltip>` components for specialized terminology (_Breeder_, _Saatgut-Lot_, _Day Zero Anchor_, _Phänotyp_).
+   - Live computation card integrating `calculateBiologicalPlantAge` to display Biological Age, Operational Age, Age Delta, and German anchor info.
+   - Accessible touch targets adhering to minimum 44px height (`minHeight: "44px"`), and semantic CSS tokens (`var(--surface-0)`, `var(--surface-1)`, `var(--surface-2)`, `var(--green)`, `var(--line)`).
+
+3. **`src/components/modals/plant-identity.test.tsx`**:
+   - 7 test cases covering:
+     1. Initial render with values from `RunPackage`.
+     2. `DAY_ZERO_ANCHOR_OPTIONS` validation (5 anchor options: `emergence`, `seed-started`, `seed-planted`, `first-true-leaves`, `run-operational-start`).
+     3. Immutability, `growthEvents`, `auditEvents`, and `domainEvents` verification on `updatePlantIdentity`.
+     4. Biological plant age calculation preview across all 5 anchor types.
+     5. Master Class accessibility standards.
+     6. `RunConfigPanel` integration.
+     7. `DailyOperatorPanel` header age cockpit integration.
+
+4. **Independent Verification Execution**:
+   - `npx vitest run`:
+     ```text
+     Test Files  21 passed (21)
+          Tests  259 passed (259)
+       Duration  50.12s
+     ```
+   - `npx tsc --noEmit`:
+     ```text
+     Exit code 0 (0 errors)
+     ```
+   - `npx vite build`:
+     ```text
+     ✓ 252 modules transformed.
+     dist/index.html ...
+     ✓ built in 14.02s
+     ```
 
 ---
 
 ## 2. Logic Chain
 
-1. **Static Analysis & Type Verification**:
-   - Verification with `npx tsc --noEmit` returned exit code 0 without any type mismatches or missing imports.
-2. **Domain Immutability Verification**:
-   - `grep_search` confirmed zero direct assignments (`run.xxx = ...`) in the component panels.
-   - All state updates in `DailyOperatorPanel` create new immutable copies using domain functions (`addObservation`, `addStructuredObservation`, `setTaskCompleted`, `transitionTaskState`, `acknowledgeAlert`) from `src/run-state.ts`, preserving audit event logs.
-3. **German Technical Accuracy & Invariant Compliance**:
-   - Terminology across both panels conforms strictly to German horticultural science standards (Dampfdruckdefizit, Tägliches Lichtintegral, Photosynthetische Photonenflussdichte, Elektrische Leitfähigkeit, Säuregrad).
-   - Invariants from `AGENTS.md` (e.g. KCanG max 3 plants / 50g possession limits separated from MedCanG §4, Tropf-Blumat outdoor scope, non-additive HESI PK booster rule) are strictly respected.
-4. **Usability, Accessibility & Lens Responsiveness**:
-   - UI uses design tokens from `styles.css` (`--surface-1`, `--surface-2`, `--surface-3`, `--green`, `--blue`, `--amber`, `--purple`, `--red`, `--line`, `--radius`).
-   - Touch targets meet or exceed 44px height guidelines through generous padding.
-   - Lens responsiveness tested across `guided`, `advanced`, and `expert` lenses.
-5. **Adversarial Integrity & Stress Testing**:
-   - No hardcoded test outputs or dummy facade logic detected. Calculations are executed dynamically. Edge cases (undefined plan, out-of-bound days, blank search queries, special characters) are handled gracefully.
+1. **State Immutability & Audit Trails**:
+   - `updatePlantIdentity` creates new objects via spread operators and `touch()`, ensuring no references in `run` or `run.configurationSnapshot` are mutated in-place.
+   - The inclusion of append-only `AuditEvent` with `action: "configuration-changed"` and structured `DomainEvent` with `type: "configuration.changed"` guarantees complete data lineage and traceability for legal and scientific compliance.
+2. **Anchor Deduplication & Biology Engine**:
+   - The anchor replacement filter `(run.growthEvents || []).filter((e) => e.kind !== dayZeroAnchor)` prevents duplicate anchor records while allowing non-anchor growth events to remain undisturbed.
+   - `calculateBiologicalPlantAge` accurately determines biological age and displays real-time delta against operational days.
+3. **Integrity & Quality**:
+   - No mock facades, hardcoded answers, or shortcut bypasses were detected.
+   - All 5 Day Zero anchor options are functionally hooked up to the state engine and verified in tests.
+   - Accessibility requirements (44px min touch targets, ARIA dialog roles, focus management, German localization) are met throughout.
 
 ---
 
 ## 3. Caveats
 
-- **Browser DOM E2E Testing**: E2E user interaction (e.g. manual mouse clicks in browser DOM) was evaluated via unit test component rendering and static code inspection; actual E2E browser automation takes place in M5.
-- **Data Persistence**: Local storage and IndexedDB persistence contracts are governed by `src/run-storage.ts` and tested via `src/backup.test.ts` and `src/run-state.test.ts`.
+- **No Caveats**: The implementation was verified across unit test suites, type checking, production build packaging, and adversarial boundary checks.
 
 ---
 
 ## 4. Conclusion
 
-**Verdict**: **APPROVE**
+**Verdict: APPROVE**
 
-Milestone 3 (Daily Operator & Knowledge Glossary Panels) satisfies all functional, architectural, domain immutability, accessibility, German technical terminology, and quality requirements. Both components and their test suite are production-ready.
+The Milestone 3 implementation satisfies all requirements:
+
+- `updatePlantIdentity` in `src/run-state.ts` is fully immutable and logs audit and domain events.
+- Active run configuration snapshots are preserved without mutation.
+- All 5 Day Zero anchor types are supported and tested.
+- Production build and all 259 unit tests pass cleanly.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify this assessment, execute the following commands in the workspace root:
+To independently reproduce this verification:
 
-1. **TypeScript Typecheck**:
-   ```bash
-   npx tsc --noEmit
-   ```
-   *Expected output*: Exit code 0, 0 errors.
+1. **Unit Tests**:
 
-2. **Vitest Unit Test Suite**:
    ```bash
    npx vitest run
    ```
-   *Expected output*: 9 test files passed, 112 total tests passed.
 
----
+   _Expected_: `21 passed (21)` test files, `259 passed (259)` tests.
 
-## Review Summary & Findings Table
+2. **TypeScript Compilation**:
 
-| Dimension | Assessment | Notes |
-|---|---|---|
-| **Correctness** | PASS | Form inputs, state handlers, target matrix calculations operate correctly. |
-| **Domain Immutability** | PASS | All state transitions pass through `src/run-state.ts` immutably. |
-| **Accessibility & UI** | PASS | Touch targets >= 44px, CSS tokens used, contrast & labels clear. |
-| **German Technical Accuracy** | PASS | VPD, DLI, PPFD, EC, pH, rF, legal terms accurate. |
-| **Lens Responsiveness** | PASS | Guided / Advanced / Expert levels adapt dynamically. |
-| **Adversarial Integrity** | PASS | No hardcoded test hacks, no facade implementations. |
+   ```bash
+   npx tsc --noEmit
+   ```
+
+   _Expected_: Exit code 0, 0 type errors.
+
+3. **Vite Production Build**:
+   ```bash
+   npx vite build
+   ```
+   _Expected_: Successful bundle output in `dist/`.

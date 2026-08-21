@@ -87,15 +87,19 @@ The work product delivered across Milestones 1 through 5 fully satisfies all fun
 To independently verify this verdict:
 
 1. **Typecheck**:
+
    ```bash
    npx tsc --noEmit
    ```
+
    (Expect exit code 0, no errors)
 
 2. **Unit & Integration Tests**:
+
    ```bash
    npx vitest run
    ```
+
    (Expect 161 tests passing across 14 test files)
 
 3. **Production Bundle Build**:
@@ -109,12 +113,15 @@ To independently verify this verdict:
 ## Review & Challenge Summary
 
 ### Review Summary
+
 **Verdict**: **APPROVE**
 
 ### Findings
+
 - **Critical / Major / Minor Findings**: None.
 
 ### Verified Claims
+
 - `npx tsc --noEmit` passes with 0 type errors → verified via execution → PASS
 - `npx vitest run` passes 161/161 tests across 14 co-located test files → verified via execution → PASS
 - `npx vite build` builds client bundle successfully → verified via execution → PASS
@@ -123,12 +130,15 @@ To independently verify this verdict:
 - Backup SHA-256 envelope verification prevents tampered imports → verified via `backup.test.ts` & execution → PASS
 
 ### Coverage Gaps
+
 - None.
 
 ### Unverified Items
+
 - None.
 
 ### Adversarial Stress Test Results
+
 - **Scenario 1 (Hardcoded Test Results / Facade Logic)**: Inspected source files for hardcoded expected returns. Outcome: Pure logic verified, zero cheating detected. PASS.
 - **Scenario 2 (Backup Tampering)**: Mutated envelope payload in `backup.test.ts`. Outcome: Restore gate correctly rejected payload with SHA-256 mismatch. PASS.
 - **Scenario 3 (Lens Formula Interference)**: Switched between `guided`, `advanced`, and `expert` lenses. Outcome: Formulas remain identical; only UI presentation adapts. PASS.

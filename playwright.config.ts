@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  timeout: 60_000,
   fullyParallel: true,
   reporter: "line",
   use: {
@@ -20,6 +21,20 @@ export default defineConfig({
     {
       name: "mobile",
       use: { ...devices["iPhone 13"], browserName: "chromium" },
+    },
+    {
+      name: "firefox",
+      use: {
+        ...devices["Desktop Firefox"],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
+    {
+      name: "webkit",
+      use: {
+        ...devices["Desktop Safari"],
+        viewport: { width: 1440, height: 900 },
+      },
     },
   ],
   webServer: {

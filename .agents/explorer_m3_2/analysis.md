@@ -3,19 +3,21 @@
 **Module Location**: `src/components/panels/ContextHelpGlossaryPanel.tsx`  
 **Milestone**: M3 (Context Help & Knowledge Glossary Panel)  
 **Author**: Explorer Agent (`explorer_m3_2`)  
-**Date**: 2026-08-11  
+**Date**: 2026-08-11
 
 ---
 
 ## 1. Executive Summary & Mission Overview
 
-The objective of Milestone 3 (F7: Context Help & Knowledge Glossary Panel) is to provide an elite, searchable, and filterable German Knowledge Glossary and Context Help Panel for the UKD Grow Masterplan 2026 application. 
+The objective of Milestone 3 (F7: Context Help & Knowledge Glossary Panel) is to provide an elite, searchable, and filterable German Knowledge Glossary and Context Help Panel for the UKD Grow Masterplan 2026 application.
 
 This panel serves as the canonical knowledge reference hub within the application. It synthesizes two primary data sources:
+
 1. **`termDictionary.ts`**: Core technical growth and environmental metrics (`VPD`, `DLI`, `EC`, `pH`, `PPFD`, `rF`, `Leaf-VPD`, `BT`, `BW`, `VT`, `VW`, `Drain-EC`, `Drain-pH`, `Substrat-EC`).
 2. **`knowledge-base.json`**: Verified scientific, legal, and operational claims (e.g., KCanG §3/§9 Eigenanbau & Besitzgrenzen, MedCanG §4 Medizinalcannabis-Erlaubnisse, Athena Balance Wasseraufbereitung, HESI Coco herstellerspezifische Dosen, Tropf-Blumat Indoor-Scope, Post-Harvest Trocknung/Wasseraktivität $a_w$, Preharvest Flushing Evidenz, Autoflower PRR-Genomik).
 
 ### Key Architectural Requirements & Principles:
+
 - **`PanelProps` Interface Compliance**: Strictly adheres to `PanelProps` (`run`, `plan`, `lens`, `onUpdateRun`, `navigate`) defined in `PROJECT.md`.
 - **Experience Lenses Integration**: Seamless integration of `guided` (Anfänger/Geführt), `advanced` (Standard/Fortgeschritten), and `expert` (Experte/Wissenschaftlich) lenses using `LensBadge` and dynamic text density adjustments without altering underlying scientific facts.
 - **Evidence Scale Visibility**: Direct display of Evidence Grades (Grade A to E) as defined in `AGENTS.md` and `knowledge-base.json` to ensure high scientific transparency and legal compliance.
@@ -31,7 +33,7 @@ This panel serves as the canonical knowledge reference hub within the applicatio
 ### 2.1 Panel Component Contract (`PROJECT.md`)
 
 ```typescript
-import { RunPackage, DayPlan, ExperienceLens, RouteId } from '../../types';
+import { RunPackage, DayPlan, ExperienceLens, RouteId } from "../../types";
 
 export interface PanelProps {
   run: RunPackage;
@@ -57,6 +59,7 @@ export interface ContextHelpGlossaryPanelProps {
 ```
 
 ### 2.2 Integration with Existing UI Primitives
+
 - **`TermTooltip`**: Used inside definition texts and operator tips to allow nested term lookups (e.g. hovering over `PPFD` inside the `DLI` definition).
 - **`LensBadge`**: Rendered in the panel header, filter controls, and on individual term cards to indicate the active experience lens.
 - **`MetricGauge`**: Integrated into the 4-Phase Target Matrix Quick Reference to visually communicate target ranges for climate and nutrient metrics.
@@ -90,17 +93,17 @@ export interface TargetRangeItem {
 
 export interface UnifiedGlossaryItem {
   id: string;
-  key: string;               // Acronym or short ID (e.g. "VPD", "KCanG §3")
-  acronym: string;           // Short symbol displayed in card header
-  germanName: string;        // Full German designation
+  key: string; // Acronym or short ID (e.g. "VPD", "KCanG §3")
+  acronym: string; // Short symbol displayed in card header
+  germanName: string; // Full German designation
   category: GlossaryCategory;
-  categoryLabel: string;     // German display title (e.g. "Klima & Transpiration")
-  
+  categoryLabel: string; // German display title (e.g. "Klima & Transpiration")
+
   // Lens-dependent definitions
-  beginner: string;          // Geführt mode: accessible explanation with metaphors
-  advanced: string;          // Standard mode: technical description with parameters
-  expert: string;            // Experte mode: scientific mechanisms & formulas
-  
+  beginner: string; // Geführt mode: accessible explanation with metaphors
+  advanced: string; // Standard mode: technical description with parameters
+  expert: string; // Experte mode: scientific mechanisms & formulas
+
   // Scientific & legal metadata
   unit?: string;
   importance: ImportanceLevel;
@@ -109,26 +112,26 @@ export interface UnifiedGlossaryItem {
   scope?: string;
   uncertainty?: string;
   sourceIds?: string[];
-  
+
   // Operational details
   optimalRanges?: TargetRangeItem[];
   formula?: string;
   formulaDescription?: string;
-  operatorTips?: string[];   // Concrete actionable steps for growers
+  operatorTips?: string[]; // Concrete actionable steps for growers
   tags: string[];
 }
 ```
 
 ### 3.2 Category Taxonomy & Item Mapping
 
-| Category ID | German Label | Included Terms & Claims |
-| :--- | :--- | :--- |
-| `klima` | 🌡️ Klima & Transpiration | `VPD`, `Leaf-VPD`, `rF`, `Leaf-Temperature-Offset`, `Extreme-RH-Boundary` |
-| `naehrstoffe` | 🧪 Nährstoffe & Salze | `EC`, `pH`, `Drain-EC`, `Drain-pH`, `HESI-Coco-Label`, `Athena-Balance`, `Preharvest-Flushing`, `NPK-Wechselwirkungen`, `Phosphor-Overfeeding` |
-| `substrat` | 🪴 Substrat & Bewässerung | `Substrat-EC`, `Coco-Coir`, `Erde`, `Tropf-Blumat-Scope`, `Irrigation-Observation-Bands` |
-| `ertrag` | 💡 Ertrag & Beleuchtung | `DLI`, `PPFD`, `Light-Response-Curve`, `Autoflower-Photoperiode`, `Post-Harvest-Aw` |
-| `recht` | ⚖️ Recht & Compliance | `KCanG-Eigenanbau-§9`, `KCanG-Besitz-§3`, `MedCanG-§4-Erlaubnis`, `Yield-Inventory-Separation`, `GACP-GMP-Scope` |
-| `allgemein` | ⚙️ Allgemeines & Phasen | `BT`, `BW`, `VT`, `VW`, `Evidence-Scale-A-E`, `Core-Web-Vitals-2026`, `SSDF-ASVS-Governance` |
+| Category ID   | German Label              | Included Terms & Claims                                                                                                                        |
+| :------------ | :------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| `klima`       | 🌡️ Klima & Transpiration  | `VPD`, `Leaf-VPD`, `rF`, `Leaf-Temperature-Offset`, `Extreme-RH-Boundary`                                                                      |
+| `naehrstoffe` | 🧪 Nährstoffe & Salze     | `EC`, `pH`, `Drain-EC`, `Drain-pH`, `HESI-Coco-Label`, `Athena-Balance`, `Preharvest-Flushing`, `NPK-Wechselwirkungen`, `Phosphor-Overfeeding` |
+| `substrat`    | 🪴 Substrat & Bewässerung | `Substrat-EC`, `Coco-Coir`, `Erde`, `Tropf-Blumat-Scope`, `Irrigation-Observation-Bands`                                                       |
+| `ertrag`      | 💡 Ertrag & Beleuchtung   | `DLI`, `PPFD`, `Light-Response-Curve`, `Autoflower-Photoperiode`, `Post-Harvest-Aw`                                                            |
+| `recht`       | ⚖️ Recht & Compliance     | `KCanG-Eigenanbau-§9`, `KCanG-Besitz-§3`, `MedCanG-§4-Erlaubnis`, `Yield-Inventory-Separation`, `GACP-GMP-Scope`                               |
+| `allgemein`   | ⚙️ Allgemeines & Phasen   | `BT`, `BW`, `VT`, `VW`, `Evidence-Scale-A-E`, `Core-Web-Vitals-2026`, `SSDF-ASVS-Governance`                                                   |
 
 ---
 
@@ -247,15 +250,16 @@ export interface ContextHelpGlossaryPanelProps {
 
 // ── Category Configuration ──
 
-const CATEGORIES: Array<{ id: GlossaryCategory; label: string; icon: string }> = [
-  { id: "all", label: "Alle", icon: "🌐" },
-  { id: "klima", label: "Klima", icon: "🌡️" },
-  { id: "naehrstoffe", label: "Nährstoffe", icon: "🧪" },
-  { id: "substrat", label: "Substrat", icon: "🪴" },
-  { id: "ertrag", label: "Ertrag & Licht", icon: "💡" },
-  { id: "recht", label: "Recht & Schutz", icon: "⚖️" },
-  { id: "allgemein", label: "Allgemein", icon: "⚙️" },
-];
+const CATEGORIES: Array<{ id: GlossaryCategory; label: string; icon: string }> =
+  [
+    { id: "all", label: "Alle", icon: "🌐" },
+    { id: "klima", label: "Klima", icon: "🌡️" },
+    { id: "naehrstoffe", label: "Nährstoffe", icon: "🧪" },
+    { id: "substrat", label: "Substrat", icon: "🪴" },
+    { id: "ertrag", label: "Ertrag & Licht", icon: "💡" },
+    { id: "recht", label: "Recht & Schutz", icon: "⚖️" },
+    { id: "allgemein", label: "Allgemein", icon: "⚙️" },
+  ];
 
 // ── Canonical Data Population ──
 
@@ -347,7 +351,8 @@ const UNIFIED_GLOSSARY_ITEMS: UnifiedGlossaryItem[] = [
       { phase: "Blüte Peak", min: 1.8, max: 2.2, unit: "mS/cm" },
     ],
     formula: "EC_total = EC_wasser + EC_duenger",
-    formulaDescription: "Summe aus Leitungswasser-Grund-EC und hinzugefügter Düngersalz-Konzentration.",
+    formulaDescription:
+      "Summe aus Leitungswasser-Grund-EC und hinzugefügter Düngersalz-Konzentration.",
     operatorTips: [
       "EC-Messung immer temperaturkompensiert bei 25 °C durchführen.",
       "Liegt der Ausgangs-EC des Leitungswassers über 0.4 mS/cm, mit Osmosewasser verschneiden.",
@@ -376,7 +381,8 @@ const UNIFIED_GLOSSARY_ITEMS: UnifiedGlossaryItem[] = [
       { phase: "Erde", min: 6.2, max: 6.8, unit: "pH" },
     ],
     formula: "pH = -log10[H+]",
-    formulaDescription: "Logarithmische Skala der Wasserstoffionenkonzentration.",
+    formulaDescription:
+      "Logarithmische Skala der Wasserstoffionenkonzentration.",
     operatorTips: [
       "pH-Wert erst ganz zum Schluss NACH der Beigabe aller Düngerkomponenten einstellen.",
       "pH-Messgerät mindestens alle 2 bis 4 Wochen mit Pufferlösungen (pH 4.01 / 7.01) kalibrieren.",
@@ -457,7 +463,8 @@ const UNIFIED_GLOSSARY_ITEMS: UnifiedGlossaryItem[] = [
     expert:
       "Rechtsbasis KCanG § 9 & § 10. Eigenanbau ist strikt personen- und wohnsitzgebunden. Pflanzennummerierung und Zugriffsschutz erforderlich.",
     scope: "Deutschland; privater Wohnsitz",
-    uncertainty: "Rechtslage vor Releasing und Ernte stets erneut auf Gesetzesänderungen prüfen.",
+    uncertainty:
+      "Rechtslage vor Releasing und Ernte stets erneut auf Gesetzesänderungen prüfen.",
     operatorTips: [
       "Maximal 3 lebende Pflanzen gleichzeitig pro volljähriger Person am Wohnsitz halten.",
       "Anbaufläche / Zelt vor dem Zugriff von Kindern und Dritten sichern (Abschließbarer Raum oder Schloss).",
@@ -639,17 +646,21 @@ const UNIFIED_GLOSSARY_ITEMS: UnifiedGlossaryItem[] = [
 
 // ── Component Definition ──
 
-export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> = ({
+export const ContextHelpGlossaryPanel: React.FC<
+  ContextHelpGlossaryPanelProps
+> = ({
   lens = "guided",
   navigate,
   initialCategory = "all",
   initialSearchQuery = "",
 }) => {
   // State Management
-  const [activeCategory, setActiveCategory] = useState<GlossaryCategory>(initialCategory);
+  const [activeCategory, setActiveCategory] =
+    useState<GlossaryCategory>(initialCategory);
   const [searchQuery, setSearchQuery] = useState<string>(initialSearchQuery);
   const [activeLens, setActiveLens] = useState<ExperienceLens>(lens);
-  const [selectedEvidenceFilter, setSelectedEvidenceFilter] = useState<string>("all");
+  const [selectedEvidenceFilter, setSelectedEvidenceFilter] =
+    useState<string>("all");
   const [showMatrixQuickRef, setShowMatrixQuickRef] = useState<boolean>(true);
 
   // Search & Filter Pipeline
@@ -661,7 +672,10 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
       }
 
       // 2. Evidence Grade Filter
-      if (selectedEvidenceFilter !== "all" && item.evidenceGrade !== selectedEvidenceFilter) {
+      if (
+        selectedEvidenceFilter !== "all" &&
+        item.evidenceGrade !== selectedEvidenceFilter
+      ) {
         return false;
       }
 
@@ -675,8 +689,12 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
         const matchesBeginner = item.beginner.toLowerCase().includes(q);
         const matchesAdvanced = item.advanced.toLowerCase().includes(q);
         const matchesExpert = item.expert.toLowerCase().includes(q);
-        const matchesTags = item.tags.some((tag) => tag.toLowerCase().includes(q));
-        const matchesFormula = item.formula ? item.formula.toLowerCase().includes(q) : false;
+        const matchesTags = item.tags.some((tag) =>
+          tag.toLowerCase().includes(q),
+        );
+        const matchesFormula = item.formula
+          ? item.formula.toLowerCase().includes(q)
+          : false;
 
         return (
           matchesKey ||
@@ -705,16 +723,36 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
   const getEvidenceGradeStyle = (grade?: "A" | "B" | "C" | "D" | "E") => {
     switch (grade) {
       case "A":
-        return { bg: "var(--green-dim)", color: "var(--green)", border: "var(--green)" };
+        return {
+          bg: "var(--green-dim)",
+          color: "var(--green)",
+          border: "var(--green)",
+        };
       case "B":
-        return { bg: "var(--blue-dim)", color: "var(--blue)", border: "var(--blue)" };
+        return {
+          bg: "var(--blue-dim)",
+          color: "var(--blue)",
+          border: "var(--blue)",
+        };
       case "C":
-        return { bg: "var(--amber-dim)", color: "var(--amber)", border: "var(--amber)" };
+        return {
+          bg: "var(--amber-dim)",
+          color: "var(--amber)",
+          border: "var(--amber)",
+        };
       case "D":
-        return { bg: "var(--purple-dim)", color: "var(--purple)", border: "var(--purple)" };
+        return {
+          bg: "var(--purple-dim)",
+          color: "var(--purple)",
+          border: "var(--purple)",
+        };
       case "E":
       default:
-        return { bg: "var(--red-dim)", color: "var(--red)", border: "var(--red)" };
+        return {
+          bg: "var(--red-dim)",
+          color: "var(--red)",
+          border: "var(--red)",
+        };
     }
   };
 
@@ -757,8 +795,15 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
           >
             📚 Kontext-Hilfe & Knowledge-Glossar
           </h2>
-          <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "var(--muted)" }}>
-            Interaktiver 2026 Master Class Katalog für Fachbegriffe, Evidenz-Regeln, Formeln & Praxis-Tipps
+          <p
+            style={{
+              margin: "4px 0 0 0",
+              fontSize: "13px",
+              color: "var(--muted)",
+            }}
+          >
+            Interaktiver 2026 Master Class Katalog für Fachbegriffe,
+            Evidenz-Regeln, Formeln & Praxis-Tipps
           </p>
         </div>
 
@@ -784,7 +829,8 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
                 fontWeight: 700,
                 border: 0,
                 borderRadius: "var(--radius-sm)",
-                background: activeLens === "guided" ? "var(--blue-dim)" : "transparent",
+                background:
+                  activeLens === "guided" ? "var(--blue-dim)" : "transparent",
                 color: activeLens === "guided" ? "var(--blue)" : "var(--muted)",
                 cursor: "pointer",
               }}
@@ -801,8 +847,12 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
                 fontWeight: 700,
                 border: 0,
                 borderRadius: "var(--radius-sm)",
-                background: activeLens === "advanced" ? "var(--green-dim)" : "transparent",
-                color: activeLens === "advanced" ? "var(--green)" : "var(--muted)",
+                background:
+                  activeLens === "advanced"
+                    ? "var(--green-dim)"
+                    : "transparent",
+                color:
+                  activeLens === "advanced" ? "var(--green)" : "var(--muted)",
                 cursor: "pointer",
               }}
             >
@@ -818,8 +868,10 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
                 fontWeight: 700,
                 border: 0,
                 borderRadius: "var(--radius-sm)",
-                background: activeLens === "expert" ? "var(--purple-dim)" : "transparent",
-                color: activeLens === "expert" ? "var(--purple)" : "var(--muted)",
+                background:
+                  activeLens === "expert" ? "var(--purple-dim)" : "transparent",
+                color:
+                  activeLens === "expert" ? "var(--purple)" : "var(--muted)",
                 cursor: "pointer",
               }}
             >
@@ -904,7 +956,10 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
 
         {/* Evidence Grade Filter */}
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <label htmlFor="evidence-select" style={{ fontSize: "12px", color: "var(--muted)" }}>
+          <label
+            htmlFor="evidence-select"
+            style={{ fontSize: "12px", color: "var(--muted)" }}
+          >
             Evidenzstufe:
           </label>
           <select
@@ -928,11 +983,23 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
         </div>
 
         {/* Match Counter & Reset */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginLeft: "auto" }}>
-          <span style={{ fontSize: "12px", color: "var(--green)", fontWeight: 700 }}>
-            {filteredItems.length} {filteredItems.length === 1 ? "Eintrag" : "Einträge"} gefunden
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            marginLeft: "auto",
+          }}
+        >
+          <span
+            style={{ fontSize: "12px", color: "var(--green)", fontWeight: 700 }}
+          >
+            {filteredItems.length}{" "}
+            {filteredItems.length === 1 ? "Eintrag" : "Einträge"} gefunden
           </span>
-          {(searchQuery || activeCategory !== "all" || selectedEvidenceFilter !== "all") && (
+          {(searchQuery ||
+            activeCategory !== "all" ||
+            selectedEvidenceFilter !== "all") && (
             <button
               type="button"
               onClick={handleResetFilters}
@@ -1014,7 +1081,15 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
           }}
           onClick={() => setShowMatrixQuickRef((prev) => !prev)}
         >
-          <strong style={{ fontSize: "14px", color: "var(--text)", display: "flex", alignItems: "center", gap: "8px" }}>
+          <strong
+            style={{
+              fontSize: "14px",
+              color: "var(--text)",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
             📊 4-Phasen Zielwerte-Schnellübersicht (VPD, DLI, EC, pH, rF)
           </strong>
           <span style={{ fontSize: "12px", color: "var(--muted)" }}>
@@ -1038,7 +1113,12 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
               }}
             >
               <thead>
-                <tr style={{ borderBottom: "1px solid var(--line)", color: "var(--muted)" }}>
+                <tr
+                  style={{
+                    borderBottom: "1px solid var(--line)",
+                    color: "var(--muted)",
+                  }}
+                >
                   <th style={{ padding: "8px" }}>Wachstumsphase</th>
                   <th style={{ padding: "8px" }}>VPD (kPa)</th>
                   <th style={{ padding: "8px" }}>DLI (mol/m²/d)</th>
@@ -1050,40 +1130,160 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
               </thead>
               <tbody>
                 <tr style={{ borderBottom: "1px solid var(--line)" }}>
-                  <td style={{ padding: "8px", fontWeight: 700 }}>🌱 Sämling (Tag 0–7)</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)", color: "var(--green)" }}>0.4 – 0.8</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>10 – 15</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>150 – 300</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>0.6 – 0.9</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>5.8 – 6.0</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>65 – 75%</td>
+                  <td style={{ padding: "8px", fontWeight: 700 }}>
+                    🌱 Sämling (Tag 0–7)
+                  </td>
+                  <td
+                    style={{
+                      padding: "8px",
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--green)",
+                    }}
+                  >
+                    0.4 – 0.8
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    10 – 15
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    150 – 300
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    0.6 – 0.9
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    5.8 – 6.0
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    65 – 75%
+                  </td>
                 </tr>
                 <tr style={{ borderBottom: "1px solid var(--line)" }}>
-                  <td style={{ padding: "8px", fontWeight: 700 }}>🌿 Vegetation (Tag 8–28)</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)", color: "var(--green)" }}>0.8 – 1.1</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>20 – 30</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>400 – 600</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>1.2 – 1.6</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>5.8 – 6.2</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>55 – 70%</td>
+                  <td style={{ padding: "8px", fontWeight: 700 }}>
+                    🌿 Vegetation (Tag 8–28)
+                  </td>
+                  <td
+                    style={{
+                      padding: "8px",
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--green)",
+                    }}
+                  >
+                    0.8 – 1.1
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    20 – 30
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    400 – 600
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    1.2 – 1.6
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    5.8 – 6.2
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    55 – 70%
+                  </td>
                 </tr>
                 <tr style={{ borderBottom: "1px solid var(--line)" }}>
-                  <td style={{ padding: "8px", fontWeight: 700 }}>🌸 Hauptblüte (Tag 29–63)</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)", color: "var(--green)" }}>1.1 – 1.5</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>35 – 45</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>700 – 1000</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>1.8 – 2.2</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>5.8 – 6.2</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>40 – 55%</td>
+                  <td style={{ padding: "8px", fontWeight: 700 }}>
+                    🌸 Hauptblüte (Tag 29–63)
+                  </td>
+                  <td
+                    style={{
+                      padding: "8px",
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--green)",
+                    }}
+                  >
+                    1.1 – 1.5
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    35 – 45
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    700 – 1000
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    1.8 – 2.2
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    5.8 – 6.2
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    40 – 55%
+                  </td>
                 </tr>
                 <tr>
-                  <td style={{ padding: "8px", fontWeight: 700 }}>🍂 Spätblüte (Tag 64–80)</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)", color: "var(--green)" }}>1.3 – 1.6</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>30 – 40</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>600 – 900</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>1.2 – 1.6</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>6.0 – 6.3</td>
-                  <td style={{ padding: "8px", fontFamily: "var(--font-mono)" }}>38 – 48%</td>
+                  <td style={{ padding: "8px", fontWeight: 700 }}>
+                    🍂 Spätblüte (Tag 64–80)
+                  </td>
+                  <td
+                    style={{
+                      padding: "8px",
+                      fontFamily: "var(--font-mono)",
+                      color: "var(--green)",
+                    }}
+                  >
+                    1.3 – 1.6
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    30 – 40
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    600 – 900
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    1.2 – 1.6
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    6.0 – 6.3
+                  </td>
+                  <td
+                    style={{ padding: "8px", fontFamily: "var(--font-mono)" }}
+                  >
+                    38 – 48%
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -1103,9 +1303,18 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
           }}
         >
           <div style={{ fontSize: "28px", marginBottom: "8px" }}>🔍</div>
-          <strong style={{ fontSize: "16px", color: "var(--text)" }}>Keine Treffer gefunden</strong>
-          <p style={{ margin: "4px 0 16px 0", fontSize: "13px", color: "var(--muted)" }}>
-            Es gibt keinen Fachbegriff, der der aktuellen Filterkombination entspricht.
+          <strong style={{ fontSize: "16px", color: "var(--text)" }}>
+            Keine Treffer gefunden
+          </strong>
+          <p
+            style={{
+              margin: "4px 0 16px 0",
+              fontSize: "13px",
+              color: "var(--muted)",
+            }}
+          >
+            Es gibt keinen Fachbegriff, der der aktuellen Filterkombination
+            entspricht.
           </p>
           <button
             type="button"
@@ -1138,8 +1347,8 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
               activeLens === "expert"
                 ? item.expert
                 : activeLens === "advanced"
-                ? item.advanced
-                : item.beginner;
+                  ? item.advanced
+                  : item.beginner;
 
             return (
               <article
@@ -1155,7 +1364,14 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
                 }}
               >
                 {/* Card Header */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    gap: "8px",
+                  }}
+                >
                   <div>
                     <span
                       style={{
@@ -1168,12 +1384,29 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
                     >
                       {item.categoryLabel}
                     </span>
-                    <h3 style={{ margin: "2px 0 0 0", fontSize: "17px", fontWeight: 800, color: "var(--text)" }}>
-                      {item.acronym} <small style={{ fontWeight: 400, color: "var(--muted)" }}>({item.germanName})</small>
+                    <h3
+                      style={{
+                        margin: "2px 0 0 0",
+                        fontSize: "17px",
+                        fontWeight: 800,
+                        color: "var(--text)",
+                      }}
+                    >
+                      {item.acronym}{" "}
+                      <small style={{ fontWeight: 400, color: "var(--muted)" }}>
+                        ({item.germanName})
+                      </small>
                     </h3>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "4px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-end",
+                      gap: "4px",
+                    }}
+                  >
                     <LensBadge lens={activeLens} size="sm" />
                     {item.evidenceGrade && (
                       <span
@@ -1205,7 +1438,11 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
                     border: "1px solid var(--line)",
                   }}
                 >
-                  <TermTooltip term={item.key} lens={activeLens} customText={explanation}>
+                  <TermTooltip
+                    term={item.key}
+                    lens={activeLens}
+                    customText={explanation}
+                  >
                     {explanation}
                   </TermTooltip>
                 </div>
@@ -1220,14 +1457,39 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
                       padding: "10px 12px",
                     }}
                   >
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", marginBottom: "6px" }}>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        color: "var(--muted)",
+                        marginBottom: "6px",
+                      }}
+                    >
                       🎯 ZIELKORRIDORE NACH PHASEN
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                      }}
+                    >
                       {item.optimalRanges.map((range, idx) => (
-                        <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                        <div
+                          key={idx}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            fontSize: "12px",
+                          }}
+                        >
                           <span>{range.phase}:</span>
-                          <strong style={{ fontFamily: "var(--font-mono)", color: "var(--green)" }}>
+                          <strong
+                            style={{
+                              fontFamily: "var(--font-mono)",
+                              color: "var(--green)",
+                            }}
+                          >
                             {range.min} – {range.max} {range.unit}
                           </strong>
                         </div>
@@ -1246,7 +1508,14 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
                       padding: "10px 12px",
                     }}
                   >
-                    <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", marginBottom: "4px" }}>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        color: "var(--muted)",
+                        marginBottom: "4px",
+                      }}
+                    >
                       📐 FORMEL & BERECHNUNG
                     </div>
                     <code
@@ -1264,7 +1533,11 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
                       {item.formula}
                     </code>
                     {item.formulaDescription && (
-                      <small style={{ fontSize: "11px", color: "var(--muted)" }}>{item.formulaDescription}</small>
+                      <small
+                        style={{ fontSize: "11px", color: "var(--muted)" }}
+                      >
+                        {item.formulaDescription}
+                      </small>
                     )}
                   </div>
                 )}
@@ -1272,10 +1545,23 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
                 {/* Operator Tips */}
                 {item.operatorTips && item.operatorTips.length > 0 && (
                   <div style={{ fontSize: "12px" }}>
-                    <div style={{ fontWeight: 700, color: "var(--amber)", marginBottom: "4px" }}>
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        color: "var(--amber)",
+                        marginBottom: "4px",
+                      }}
+                    >
                       💡 PRAXIS-TIPPS FÜR GROWER:
                     </div>
-                    <ul style={{ margin: 0, paddingLeft: "18px", color: "var(--text-2)", lineHeight: "1.4" }}>
+                    <ul
+                      style={{
+                        margin: 0,
+                        paddingLeft: "18px",
+                        color: "var(--text-2)",
+                        lineHeight: "1.4",
+                      }}
+                    >
                       {item.operatorTips.map((tip, idx) => (
                         <li key={idx} style={{ marginBottom: "2px" }}>
                           {tip}
@@ -1319,7 +1605,9 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
           lineHeight: "1.5",
         }}
       >
-        <strong style={{ color: "var(--text)" }}>🛡️ UKD Evidenzskala (Rules of Evidence):</strong>
+        <strong style={{ color: "var(--text)" }}>
+          🛡️ UKD Evidenzskala (Rules of Evidence):
+        </strong>
         <div
           style={{
             display: "grid",
@@ -1329,16 +1617,20 @@ export const ContextHelpGlossaryPanel: React.FC<ContextHelpGlossaryPanelProps> =
           }}
         >
           <div>
-            <strong style={{ color: "var(--green)" }}>Grade A:</strong> Gesetzestext, Primärforschung, peer-reviewed Standard.
+            <strong style={{ color: "var(--green)" }}>Grade A:</strong>{" "}
+            Gesetzestext, Primärforschung, peer-reviewed Standard.
           </div>
           <div>
-            <strong style={{ color: "var(--blue)" }}>Grade B:</strong> Systematisches Review, offizielle Extension.
+            <strong style={{ color: "var(--blue)" }}>Grade B:</strong>{" "}
+            Systematisches Review, offizielle Extension.
           </div>
           <div>
-            <strong style={{ color: "var(--amber)" }}>Grade C:</strong> Herstellerangabe oder UKD Engineering-Inferenz.
+            <strong style={{ color: "var(--amber)" }}>Grade C:</strong>{" "}
+            Herstellerangabe oder UKD Engineering-Inferenz.
           </div>
           <div>
-            <strong style={{ color: "var(--purple)" }}>Grade D:</strong> Community-Beobachtung / Anekdote.
+            <strong style={{ color: "var(--purple)" }}>Grade D:</strong>{" "}
+            Community-Beobachtung / Anekdote.
           </div>
         </div>
       </footer>
@@ -1354,6 +1646,7 @@ export default ContextHelpGlossaryPanel;
 ## 6. CSS & Styling Compliance (`styles.css`)
 
 The blueprint adheres to all styling invariants specified in `AGENTS.md` and `PROJECT.md`:
+
 1. **Design Tokens**: Exclusively uses semantic tokens defined in `styles.css` (`var(--bg)`, `var(--surface-1)`, `var(--surface-2)`, `var(--surface-3)`, `var(--line)`, `var(--text)`, `var(--text-2)`, `var(--muted)`, `var(--green)`, `var(--green-dim)`, `var(--blue)`, `var(--amber)`, `var(--purple)`, `var(--red)`, `var(--font-ui)`, `var(--font-mono)`).
 2. **Responsive Grid**: Flexbox and CSS Grid layouts with `repeat(auto-fit, minmax(320px, 1fr))` ensuring smooth transitions on smartphones, tablets, and 4K displays.
 3. **High Contrast**: Full contrast compliance under `[data-contrast="high"]` mode.
@@ -1377,6 +1670,7 @@ The blueprint adheres to all styling invariants specified in `AGENTS.md` and `PR
 ## 8. Verification & Testing Strategy
 
 ### 8.1 Verification Commands
+
 1. **Typecheck**:
    ```bash
    npx tsc --noEmit
@@ -1391,7 +1685,9 @@ The blueprint adheres to all styling invariants specified in `AGENTS.md` and `PR
    ```
 
 ### 8.2 Unit Test Integration (`src/components/panels/panels.test.ts`)
+
 Add co-located unit tests verifying:
+
 - Rendering of `ContextHelpGlossaryPanel` without crashing.
 - Live search filtering by key, German name, and tags.
 - Category tab switching (`klima`, `naehrstoffe`, `substrat`, `ertrag`, `recht`, `allgemein`).

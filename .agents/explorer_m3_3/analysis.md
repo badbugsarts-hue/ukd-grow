@@ -3,7 +3,7 @@
 **Target Location**: `src/components/panels/daily-operator-glossary.test.ts`  
 **Milestone**: M3 — Co-located Unit Tests for Daily Operator & Context Help Glossary Panels  
 **Author**: Explorer Agent (M3-3)  
-**Date**: 2026-08-11  
+**Date**: 2026-08-11
 
 ---
 
@@ -35,11 +35,13 @@ This specification designs the co-located unit test suite `src/components/panels
 ## 1. Test Architecture & Design Principles
 
 ### 1.1 Compatibility with Vitest Test Environment
+
 - Tests are executed via Vitest (`pnpm test` / `npx vitest run`).
 - Utilizes pure React element creation (`React.createElement(...)`) and direct panel component invocations to inspect props, handler functions, and DOM element structures without external DOM dependencies.
 - Integrates Vitest's `describe`, `it`, `expect`, and `vi.fn()` for state callback spying.
 
 ### 1.2 Isolation & State Immutability
+
 - Tests execute with isolated `RunPackage` snapshots created via `createDefaultRunPackage()`.
 - State updates are verified to be strictly immutable: `onUpdateRun` callbacks must receive a new `RunPackage` object reference with incremented `auditEvents` and updated state collections without mutating the initial `RunPackage`.
 
@@ -47,19 +49,19 @@ This specification designs the co-located unit test suite `src/components/panels
 
 ## 2. Test Suite Structure & Coverage Matrix
 
-| Suite / Area | Sub-test | Targeted Functionality / Invariant | Expected Outcome |
-|---|---|---|---|
-| **DailyOperatorPanel** | `1. Navigation & Day Selection` | Day clamping (0 to 80), prev/next day increment, jump to active day, phase group tabs (Keimung, Veg, Hauptblüte, Spätblüte) | Clamps day within [0, 80], correct phase group active |
-| **DailyOperatorPanel** | `2. Target Corridors (Step 1)` | `getTargetsForDay` calculation from `DayPlan` or phase matrix fallback for PPFD, DLI, VPD, Temp, RH, EC, pH, Water | Target values match domain rules for seedling, veg, bloom, late bloom |
-| **DailyOperatorPanel** | `3. Observation Form (Step 2)` | Pre-fills previous day observation, computes Leaf VPD & Drain %, invokes `addObservation` and `addStructuredObservation` | `onUpdateRun` called with new observation & audit event |
-| **DailyOperatorPanel** | `4. Checklist & Tasks (Step 3)` | Task completion toggle (`setTaskCompleted`), state transition (`transitionTaskState`), nutrient mix quick view (`calculateMix`), alert acknowledgment (`acknowledgeAlert`) | Correct task state set in `RunPackage`, mix calculated, alerts acknowledged |
-| **DailyOperatorPanel** | `5. Multi-Lens Adaptations` | Lens rendering for `guided`, `advanced`, `expert` | Tooltips, detail levels, evidence & formulas adapt per lens |
-| **DailyOperatorPanel** | `6. Edge Cases & Safety` | Out-of-bounds days (-5, 100), undefined `plan`, null observation values, missing water profile | No crash, safe fallback targets & status messages |
-| **ContextHelpGlossaryPanel** | `1. Term Dictionary & Search` | Search terms query (`searchTerms`), case insensitivity, whitespace trimming, empty query | Returns correct term list, handles empty/space/XSS inputs |
-| **ContextHelpGlossaryPanel** | `2. Category Filtering` | Category filter (`all`, `climate`, `light`, `nutrients`, `phase`, `plant`) | Returns matching category subsets |
-| **ContextHelpGlossaryPanel** | `3. Multi-Lens Explanations` | Renders beginner, advanced, and expert descriptions for `VPD`, `DLI`, `EC`, `pH` | Descriptions match lens definition in `termDictionary` |
-| **ContextHelpGlossaryPanel** | `4. Optimal Phase Ranges` | Term detail inspection for `VPD`, `DLI`, `EC`, `pH`, `PPFD`, `rF`, `Leaf-VPD` | Renders optimal ranges for Sämling, Vegetation, Blüte |
-| **ContextHelpGlossaryPanel** | `5. Edge Cases & Fallbacks` | Unknown term lookup, invalid lens string, empty dictionary query | Safe string fallback, defaults to guided lens text |
+| Suite / Area                 | Sub-test                        | Targeted Functionality / Invariant                                                                                                                                         | Expected Outcome                                                            |
+| ---------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **DailyOperatorPanel**       | `1. Navigation & Day Selection` | Day clamping (0 to 80), prev/next day increment, jump to active day, phase group tabs (Keimung, Veg, Hauptblüte, Spätblüte)                                                | Clamps day within [0, 80], correct phase group active                       |
+| **DailyOperatorPanel**       | `2. Target Corridors (Step 1)`  | `getTargetsForDay` calculation from `DayPlan` or phase matrix fallback for PPFD, DLI, VPD, Temp, RH, EC, pH, Water                                                         | Target values match domain rules for seedling, veg, bloom, late bloom       |
+| **DailyOperatorPanel**       | `3. Observation Form (Step 2)`  | Pre-fills previous day observation, computes Leaf VPD & Drain %, invokes `addObservation` and `addStructuredObservation`                                                   | `onUpdateRun` called with new observation & audit event                     |
+| **DailyOperatorPanel**       | `4. Checklist & Tasks (Step 3)` | Task completion toggle (`setTaskCompleted`), state transition (`transitionTaskState`), nutrient mix quick view (`calculateMix`), alert acknowledgment (`acknowledgeAlert`) | Correct task state set in `RunPackage`, mix calculated, alerts acknowledged |
+| **DailyOperatorPanel**       | `5. Multi-Lens Adaptations`     | Lens rendering for `guided`, `advanced`, `expert`                                                                                                                          | Tooltips, detail levels, evidence & formulas adapt per lens                 |
+| **DailyOperatorPanel**       | `6. Edge Cases & Safety`        | Out-of-bounds days (-5, 100), undefined `plan`, null observation values, missing water profile                                                                             | No crash, safe fallback targets & status messages                           |
+| **ContextHelpGlossaryPanel** | `1. Term Dictionary & Search`   | Search terms query (`searchTerms`), case insensitivity, whitespace trimming, empty query                                                                                   | Returns correct term list, handles empty/space/XSS inputs                   |
+| **ContextHelpGlossaryPanel** | `2. Category Filtering`         | Category filter (`all`, `climate`, `light`, `nutrients`, `phase`, `plant`)                                                                                                 | Returns matching category subsets                                           |
+| **ContextHelpGlossaryPanel** | `3. Multi-Lens Explanations`    | Renders beginner, advanced, and expert descriptions for `VPD`, `DLI`, `EC`, `pH`                                                                                           | Descriptions match lens definition in `termDictionary`                      |
+| **ContextHelpGlossaryPanel** | `4. Optimal Phase Ranges`       | Term detail inspection for `VPD`, `DLI`, `EC`, `pH`, `PPFD`, `rF`, `Leaf-VPD`                                                                                              | Renders optimal ranges for Sämling, Vegetation, Blüte                       |
+| **ContextHelpGlossaryPanel** | `5. Edge Cases & Fallbacks`     | Unknown term lookup, invalid lens string, empty dictionary query                                                                                                           | Safe string fallback, defaults to guided lens text                          |
 
 ---
 
@@ -68,8 +70,21 @@ This specification designs the co-located unit test suite `src/components/panels
 ```typescript
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
-import type { DayPlan, ExperienceLens, RunPackage, StructuredObservationCategory, ObservationSeverity } from "../../types";
-import { DAILY_COLUMNS, calculateDli, calculateLeafVpd, calculateMix, numberAt, textAt } from "../../domain";
+import type {
+  DayPlan,
+  ExperienceLens,
+  RunPackage,
+  StructuredObservationCategory,
+  ObservationSeverity,
+} from "../../types";
+import {
+  DAILY_COLUMNS,
+  calculateDli,
+  calculateLeafVpd,
+  calculateMix,
+  numberAt,
+  textAt,
+} from "../../domain";
 import {
   acknowledgeAlert,
   addObservation,
@@ -96,7 +111,13 @@ function createMockDayPlan(day: number): DayPlan {
   const isSeedling = day <= 7;
   const isVeg = day > 7 && day <= 28;
   const isBloom = day > 28 && day <= 63;
-  const phase = isSeedling ? "Sämling" : isVeg ? "Veg" : isBloom ? "Hauptblüte" : "Spätblüte";
+  const phase = isSeedling
+    ? "Sämling"
+    : isVeg
+      ? "Veg"
+      : isBloom
+        ? "Hauptblüte"
+        : "Spätblüte";
   const lightHours = isBloom || day > 63 ? 12 : 18;
   const ppfd = isSeedling ? 200 : isVeg ? 500 : 900;
   const dli = calculateDli(ppfd, lightHours);
@@ -229,7 +250,9 @@ describe("Milestone 3 - Daily Operator & Knowledge Glossary Panel Unit Test Suit
       expect(updatedRun.observations[0].day).toBe(14);
       expect(updatedRun.observations[0].values.tempMax).toBe(25.5);
       expect(updatedRun.observations[0].values.ppfd).toBe(550);
-      expect(updatedRun.auditEvents.length).toBeGreaterThan(run.auditEvents.length);
+      expect(updatedRun.auditEvents.length).toBeGreaterThan(
+        run.auditEvents.length,
+      );
 
       // Verify latest observation lookup helper
       const latest = latestObservation(updatedRun, 14);
@@ -260,8 +283,12 @@ describe("Milestone 3 - Daily Operator & Knowledge Glossary Panel Unit Test Suit
       expect(updatedRun.structuredObservations.length).toBe(1);
       expect(updatedRun.structuredObservations[0].category).toBe("foliage");
       expect(updatedRun.structuredObservations[0].severity).toBe("mild");
-      expect(updatedRun.structuredObservations[0].tags).toContain("#gelbe_blaetter");
-      expect(updatedRun.auditEvents.length).toBeGreaterThan(run.auditEvents.length);
+      expect(updatedRun.structuredObservations[0].tags).toContain(
+        "#gelbe_blaetter",
+      );
+      expect(updatedRun.auditEvents.length).toBeGreaterThan(
+        run.auditEvents.length,
+      );
     });
 
     it("1.5 Toggles checklist task completion and state transitions via setTaskCompleted & transitionTaskState", () => {
@@ -276,7 +303,12 @@ describe("Milestone 3 - Daily Operator & Knowledge Glossary Panel Unit Test Suit
 
       // Transition task state to blocked with reason
       const taskId = `task-${day}-1`;
-      const runTaskBlocked = transitionTaskState(runTaskDone, taskId, "blocked", "Sensor nicht kalibriert");
+      const runTaskBlocked = transitionTaskState(
+        runTaskDone,
+        taskId,
+        "blocked",
+        "Sensor nicht kalibriert",
+      );
       expect(runTaskBlocked.tasks.length).toBeGreaterThan(0);
       const matchedTask = runTaskBlocked.tasks.find((t) => t.id === taskId);
       expect(matchedTask?.state).toBe("blocked");
@@ -288,12 +320,18 @@ describe("Milestone 3 - Daily Operator & Knowledge Glossary Panel Unit Test Suit
       const mixRecipe = calculateMix(mockPlan, 10);
 
       expect(mixRecipe.length).toBeGreaterThan(0);
-      expect(mixRecipe.some((item) => item.name === "HESI TNT Complex" || item.role === "Basis")).toBe(true);
+      expect(
+        mixRecipe.some(
+          (item) => item.name === "HESI TNT Complex" || item.role === "Basis",
+        ),
+      ).toBe(true);
 
       // Alert acknowledgment check
       const run = createDefaultRunPackage();
       const updatedRunAlert = acknowledgeAlert(run, "alert-water-missing");
-      expect(updatedRunAlert.acknowledgedAlertIds).toContain("alert-water-missing");
+      expect(updatedRunAlert.acknowledgedAlertIds).toContain(
+        "alert-water-missing",
+      );
     });
 
     it("1.7 Renders DailyOperatorPanel component with experience lenses (guided, advanced, expert)", () => {
@@ -523,16 +561,20 @@ describe("Milestone 3 - Daily Operator & Knowledge Glossary Panel Unit Test Suit
 To independently verify this test suite when implemented:
 
 1. **Vitest Execution Command**:
+
    ```bash
    npx vitest run src/components/panels/daily-operator-glossary.test.ts
    ```
-   *Expected Output*: Passes all 17 new test cases cleanly in under 500ms.
+
+   _Expected Output_: Passes all 17 new test cases cleanly in under 500ms.
 
 2. **Full Project Gate Command**:
+
    ```bash
    pnpm check
    ```
-   *Expected Output*:
+
+   _Expected Output_:
    - `npx tsc --noEmit` succeeds with 0 type errors.
    - `npx vitest run` succeeds with all 46/46 unit tests passing (29 original + 17 M3 co-located tests).
    - `npx vite build` succeeds cleanly.

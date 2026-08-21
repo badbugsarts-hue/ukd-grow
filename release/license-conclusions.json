@@ -1,0 +1,10 @@
+[
+  {
+    "name": "buffers",
+    "version": "0.1.1",
+    "license": "MIT",
+    "reviewedAt": "2026-08-16",
+    "evidence": "https://sources.debian.org/copyright/license/node-buffers/0.1.1-2/",
+    "rationale": "The published npm tarball omits a declared license. Debian's archived copyright record for this exact upstream package and version identifies the upstream license as MIT and links the historical upstream commit. Therefore SPDX licenseDeclared remains NOASSERTION while licenseConcluded is MIT."
+  }
+]

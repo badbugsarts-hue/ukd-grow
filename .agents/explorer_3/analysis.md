@@ -9,9 +9,10 @@
 
 ## Executive Summary
 
-This report provides a detailed catalog of the design tokens, visual styling mechanisms, accessibility invariants, and unit testing infrastructure in the UKD Grow Masterplan 2026 codebase (`src/styles.css`, `package.json`, `vite.config.ts`, `tsconfig.app.json`, and existing test files). 
+This report provides a detailed catalog of the design tokens, visual styling mechanisms, accessibility invariants, and unit testing infrastructure in the UKD Grow Masterplan 2026 codebase (`src/styles.css`, `package.json`, `vite.config.ts`, `tsconfig.app.json`, and existing test files).
 
 Key findings include:
+
 1. **CSS Token System**: `styles.css` features CSS variable layers (`@layer reset, tokens, base, components, responsive;`) supporting default Dark mode, explicit Light mode (`data-theme="light"`), High Contrast mode (`data-contrast="high"`), scalable font sizes (`data-text-scale`), and specialized domain tokens (v7 irrigation, equipment, incident, IPM, post-harvest, nav groups).
 2. **2026 World Elite Styling & Glassmorphism**: Utilizes modern CSS capabilities including `color-mix(in srgb, ...)`, `backdrop-filter: blur(14px)`, custom `clip-path` geometry (polygon brand mark), linear gradients (`135deg`), glowing status indicators, and multi-lens interface elements.
 3. **Accessibility Invariants**: Strict compliance with AGENTS.md rules—44px minimum touch targets, high contrast contrast-ratio fallbacks, mandatory 2px green focus rings, `@media (prefers-reduced-motion: reduce)` overrides, screen reader classes (`.sr-only`), skip links, and non-color-exclusive status indicators.
@@ -24,47 +25,51 @@ Key findings include:
 ### 1.1 Color & Surface Tokens
 
 #### Default Dark Theme (`:root`)
-| Token Name | Hex / Value | Purpose / Usage |
-|---|---|---|
-| `--bg` | `#07110f` | Main application backdrop background |
-| `--surface-0` | `#0b1715` | Sidebar & modal background base layer |
-| `--surface-1` | `#101e1b` | Primary panel, card, topbar & console container background |
-| `--surface-2` | `#152521` | Secondary nested container, tab & input background |
-| `--surface-3` | `#1c2d29` | Table header, tooltip & active selection background |
-| `--line` | `#29403a` | Standard container borders & dividers |
-| `--line-strong` | `#3b5850` | Emphasized borders, active bounds & kbd borders |
-| `--text` | `#eef6f2` | Primary high-contrast typography color |
-| `--text-2` | `#b6c7c1` | Secondary text, label & description typography |
-| `--muted` | `#82958e` | Subtle captions, timestamps, icons & inactive labels |
+
+| Token Name      | Hex / Value | Purpose / Usage                                            |
+| --------------- | ----------- | ---------------------------------------------------------- |
+| `--bg`          | `#07110f`   | Main application backdrop background                       |
+| `--surface-0`   | `#0b1715`   | Sidebar & modal background base layer                      |
+| `--surface-1`   | `#101e1b`   | Primary panel, card, topbar & console container background |
+| `--surface-2`   | `#152521`   | Secondary nested container, tab & input background         |
+| `--surface-3`   | `#1c2d29`   | Table header, tooltip & active selection background        |
+| `--line`        | `#29403a`   | Standard container borders & dividers                      |
+| `--line-strong` | `#3b5850`   | Emphasized borders, active bounds & kbd borders            |
+| `--text`        | `#eef6f2`   | Primary high-contrast typography color                     |
+| `--text-2`      | `#b6c7c1`   | Secondary text, label & description typography             |
+| `--muted`       | `#82958e`   | Subtle captions, timestamps, icons & inactive labels       |
 
 #### Accent & Semantic Color Palette
-| Token Name | Base Hex | Dim Hex (`-dim`) | Text/Foreground | Semantic Usage |
-|---|---|---|---|---|
-| `--green` | `#67d6ae` | `#174d3f` | `--on-green` (`#062018`) | Active operator state, optimal values, success, primary CTA |
-| `--blue` | `#62a8ff` | `#163958` | — | Light, VPD/DLI metrics, knowledge evidence, info banners |
-| `--amber` | `#e5a44b` | `#4a3417` | — | Climate metrics, measurement requirements, warnings, limits |
-| `--red` | `#ef705c` | `#4f211b` | — | Emergency stop rules, critical hazards, audit issues, danger |
-| `--purple` | `#b898ec` | `#34284b` | — | Biostimulants, nutrient mix calculations, experimental modules |
+
+| Token Name | Base Hex  | Dim Hex (`-dim`) | Text/Foreground          | Semantic Usage                                                 |
+| ---------- | --------- | ---------------- | ------------------------ | -------------------------------------------------------------- |
+| `--green`  | `#67d6ae` | `#174d3f`        | `--on-green` (`#062018`) | Active operator state, optimal values, success, primary CTA    |
+| `--blue`   | `#62a8ff` | `#163958`        | —                        | Light, VPD/DLI metrics, knowledge evidence, info banners       |
+| `--amber`  | `#e5a44b` | `#4a3417`        | —                        | Climate metrics, measurement requirements, warnings, limits    |
+| `--red`    | `#ef705c` | `#4f211b`        | —                        | Emergency stop rules, critical hazards, audit issues, danger   |
+| `--purple` | `#b898ec` | `#34284b`        | —                        | Biostimulants, nutrient mix calculations, experimental modules |
 
 #### Light Mode Theme (`:root[data-theme="light"]`)
-| Token Name | Value | Purpose |
-|---|---|---|
-| `--bg` | `#eef3f0` | Light main backdrop |
-| `--surface-0` | `#f8fbf9` | Light sidebar background |
-| `--surface-1` | `#ffffff` | Light card & panel background |
-| `--surface-2` | `#f2f6f4` | Light input & hover background |
-| `--surface-3` | `#e8efeb` | Light header & selection background |
-| `--line` | `#d3dfd9` | Light border line |
-| `--line-strong` | `#b9cbc2` | Light strong border line |
-| `--text` | `#14231f` | Light primary text |
-| `--text-2` | `#40564f` | Light secondary text |
-| `--muted` | `#566a63` | Light muted text |
-| `--green` | `#006b4d` | Darker green for AA contrast on light background |
-| `--green-dim` | `#d8efe6` | Light green surface tint |
-| `--on-green` | `#ffffff` | Text on green CTA |
-| `--shadow` | `0 18px 40px rgb(33 56 49 / 12%)` | Soft light shadow |
+
+| Token Name      | Value                             | Purpose                                          |
+| --------------- | --------------------------------- | ------------------------------------------------ |
+| `--bg`          | `#eef3f0`                         | Light main backdrop                              |
+| `--surface-0`   | `#f8fbf9`                         | Light sidebar background                         |
+| `--surface-1`   | `#ffffff`                         | Light card & panel background                    |
+| `--surface-2`   | `#f2f6f4`                         | Light input & hover background                   |
+| `--surface-3`   | `#e8efeb`                         | Light header & selection background              |
+| `--line`        | `#d3dfd9`                         | Light border line                                |
+| `--line-strong` | `#b9cbc2`                         | Light strong border line                         |
+| `--text`        | `#14231f`                         | Light primary text                               |
+| `--text-2`      | `#40564f`                         | Light secondary text                             |
+| `--muted`       | `#566a63`                         | Light muted text                                 |
+| `--green`       | `#006b4d`                         | Darker green for AA contrast on light background |
+| `--green-dim`   | `#d8efe6`                         | Light green surface tint                         |
+| `--on-green`    | `#ffffff`                         | Text on green CTA                                |
+| `--shadow`      | `0 18px 40px rgb(33 56 49 / 12%)` | Soft light shadow                                |
 
 #### High Contrast Theme (`:root[data-contrast="high"]`)
+
 - **Dark High-Contrast**: Adjusts `--line` (`#78958c`), `--line-strong` (`#b1d1c7`), `--muted` (`#b8cbc5`), `--text-2` (`#d9e7e2`), `--green` (`#85f0c9`), `--blue` (`#8cc4ff`), `--amber` (`#ffd083`), `--red` (`#ff9484`).
 - **Light High-Contrast**: Adjusts `--line` (`#516a62`), `--line-strong` (`#263d36`), `--muted` (`#30453e`), `--text-2` (`#243a33`), `--green` (`#00573e`), `--blue` (`#004f96`), `--amber` (`#673800`), `--red` (`#8c211a`).
 
@@ -72,14 +77,14 @@ Key findings include:
 
 ### 1.2 Layout, Dimensions & Geometry Tokens
 
-| Token | Value | Responsive Adjustments | Description |
-|---|---|---|---|
-| `--sidebar` | `260px` | `224px` @ ≤1180px, slide-in drawer @ ≤900px | Width of sidebar navigation |
-| `--topbar` | `64px` | `56px` @ ≤680px | Height of sticky header topbar |
-| `--radius-sm` | `6px` | — | Buttons, inputs, small cards, tooltips |
-| `--radius` | `10px` | — | Modals, command palette, welcome card |
-| `--radius-lg` | `14px` | — | Outer modal or container overlays |
-| `--shadow` | `0 18px 50px rgb(0 0 0 / 24%)` | Light mode variant available | Elevation shadow |
+| Token         | Value                          | Responsive Adjustments                      | Description                            |
+| ------------- | ------------------------------ | ------------------------------------------- | -------------------------------------- |
+| `--sidebar`   | `260px`                        | `224px` @ ≤1180px, slide-in drawer @ ≤900px | Width of sidebar navigation            |
+| `--topbar`    | `64px`                         | `56px` @ ≤680px                             | Height of sticky header topbar         |
+| `--radius-sm` | `6px`                          | —                                           | Buttons, inputs, small cards, tooltips |
+| `--radius`    | `10px`                         | —                                           | Modals, command palette, welcome card  |
+| `--radius-lg` | `14px`                         | —                                           | Outer modal or container overlays      |
+| `--shadow`    | `0 18px 50px rgb(0 0 0 / 24%)` | Light mode variant available                | Elevation shadow                       |
 
 ---
 
@@ -148,7 +153,16 @@ Key findings include:
    ```
 2. **Octagonal Polygon Brand Mark**:
    ```css
-   clip-path: polygon(20% 0, 80% 0, 100% 24%, 100% 76%, 80% 100%, 20% 100%, 0 76%, 0 24%);
+   clip-path: polygon(
+     20% 0,
+     80% 0,
+     100% 24%,
+     100% 76%,
+     80% 100%,
+     20% 100%,
+     0 76%,
+     0 24%
+   );
    ```
 3. **Glowing Status Pulse Effect**:
    ```css
@@ -170,16 +184,16 @@ Key findings include:
 
 ### 2.1 AGENTS.md Invariants & Guidelines
 
-| Requirement / Rule | CSS / Code Implementation | Compliance Status |
-|---|---|---|
-| **Token Usage** | All colors, spacing, and radii MUST use existing CSS variables (`var(--green)`, `var(--surface-1)`, etc.) | Mandatory for all new panels |
-| **No Color-Only Information** | Color indicators are ALWAYS paired with text labels, icons, or status badges (e.g. `.status-dot`, `.action-status`, `.evidence-badge`) | Verified |
-| **44px Touch Targets on Mobile** | Interactive elements (`.btn-dismiss`, `.page-context-toggle`, `.failure-banner button`, mobile bar buttons) have `min-height: 44px` or `44px` touch bounding boxes | Verified |
-| **Visible Focus Rings** | `:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }` | Verified |
-| **Skip Link Keyboard Access** | `.skip-link { position: fixed; top: -60px; }` -> `.skip-link:focus { top: 12px; }` targeting `#main-content` | Verified |
-| **Reduced Motion Support** | `@media (prefers-reduced-motion: reduce)` disables all animations and transitions (`animation: none !important; transition: none !important;`) | Verified |
-| **Screen Reader Utilities** | `.sr-only` utility class for invisible accessibility labels | Verified |
-| **Experience Lenses** | Guided / Advanced / Expert change density and detail without altering data or formulas | Verified |
+| Requirement / Rule               | CSS / Code Implementation                                                                                                                                          | Compliance Status            |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
+| **Token Usage**                  | All colors, spacing, and radii MUST use existing CSS variables (`var(--green)`, `var(--surface-1)`, etc.)                                                          | Mandatory for all new panels |
+| **No Color-Only Information**    | Color indicators are ALWAYS paired with text labels, icons, or status badges (e.g. `.status-dot`, `.action-status`, `.evidence-badge`)                             | Verified                     |
+| **44px Touch Targets on Mobile** | Interactive elements (`.btn-dismiss`, `.page-context-toggle`, `.failure-banner button`, mobile bar buttons) have `min-height: 44px` or `44px` touch bounding boxes | Verified                     |
+| **Visible Focus Rings**          | `:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }`                                                                                         | Verified                     |
+| **Skip Link Keyboard Access**    | `.skip-link { position: fixed; top: -60px; }` -> `.skip-link:focus { top: 12px; }` targeting `#main-content`                                                       | Verified                     |
+| **Reduced Motion Support**       | `@media (prefers-reduced-motion: reduce)` disables all animations and transitions (`animation: none !important; transition: none !important;`)                     | Verified                     |
+| **Screen Reader Utilities**      | `.sr-only` utility class for invisible accessibility labels                                                                                                        | Verified                     |
+| **Experience Lenses**            | Guided / Advanced / Expert change density and detail without altering data or formulas                                                                             | Verified                     |
 
 ---
 
@@ -206,17 +220,18 @@ export default defineConfig({
 
 ### 3.2 Existing Test Suite Catalog (29 Tests)
 
-| Test File Path | Suite Name | Test Count | Key Areas Covered |
-|---|---|---|---|
-| `src/domain.test.ts` | `canonical domain calculations` | **10** | DLI formula, Leaf VPD calculation, DayPlan resolution, day clamping, workbook missing sheet error, numeric/text fallbacks, Excel date serials, nutrient mix scaling, volume clamping, row normalization |
-| `src/scientific-core.test.ts` | `scientific measurement trust` | **3** | Conflict tolerance in parallel measurements, stale & calibration-due statuses, device capability negotiation |
-| `src/run-state.test.ts` | `versioned run state` | **13** | RunPackage creation (v4.0.0), import validation, observation persistence, baseline/critical alert derivation, checklist state, inventory balance, CSV export, active snapshot freezing, v1/v2 schema migration, task transitions, measurement superseding audit log, structured observations & expert overrides |
-| `src/backup.test.ts` | `verified backup and recovery` | **3** | SHA-256 backup envelope round-trip, tampered payload detection & rejection, raw v2 legacy backup import & migration |
-| **TOTAL** | | **29 / 29** | **All 29 tests pass synchronously** |
+| Test File Path                | Suite Name                      | Test Count  | Key Areas Covered                                                                                                                                                                                                                                                                                               |
+| ----------------------------- | ------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/domain.test.ts`          | `canonical domain calculations` | **10**      | DLI formula, Leaf VPD calculation, DayPlan resolution, day clamping, workbook missing sheet error, numeric/text fallbacks, Excel date serials, nutrient mix scaling, volume clamping, row normalization                                                                                                         |
+| `src/scientific-core.test.ts` | `scientific measurement trust`  | **3**       | Conflict tolerance in parallel measurements, stale & calibration-due statuses, device capability negotiation                                                                                                                                                                                                    |
+| `src/run-state.test.ts`       | `versioned run state`           | **13**      | RunPackage creation (v4.0.0), import validation, observation persistence, baseline/critical alert derivation, checklist state, inventory balance, CSV export, active snapshot freezing, v1/v2 schema migration, task transitions, measurement superseding audit log, structured observations & expert overrides |
+| `src/backup.test.ts`          | `verified backup and recovery`  | **3**       | SHA-256 backup envelope round-trip, tampered payload detection & rejection, raw v2 legacy backup import & migration                                                                                                                                                                                             |
+| **TOTAL**                     |                                 | **29 / 29** | **All 29 tests pass synchronously**                                                                                                                                                                                                                                                                             |
 
 ### 3.3 How to Write New Component Unit Tests
 
 When implementing new Master Class UI panels under `src/components/`:
+
 1. **Helper / Calculation Logic Unit Tests (`.test.ts`)**:
    - Extract state management, calculations, input transformations, and validation logic into pure functions in helper or domain modules (or co-located `.ts` files).
    - Co-locate tests alongside code in `src/components/` (e.g. `src/components/MyPanel.test.ts` or `src/components/panel-helpers.test.ts`).

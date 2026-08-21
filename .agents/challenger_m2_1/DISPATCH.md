@@ -1,8 +1,10 @@
 ## 2026-08-11T01:28:06Z
+
 You are Challenger 1 for Milestone 2.
 Working directory: c:\Users\badbu\Documents\grow\.agents\challenger_m2_1
 
 Your task:
+
 1. Create directory `c:\Users\badbu\Documents\grow\.agents\challenger_m2_1`.
 2. Stress test calculation logic in `NutrientMixPanel.tsx` and `RunConfigPanel.tsx` (e.g. 0L batch size, 1000L batch size, zero Ca/Mg, missing water profile, partial config readiness scores, invalid stage transitions).
 3. Run verification commands (`npx tsc --noEmit`, `npx vitest run`).

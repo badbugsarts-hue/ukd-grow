@@ -124,7 +124,7 @@ export const MetricGauge: React.FC<MetricGaugeProps> = ({
 	warnMin,
 	warnMax,
 	label,
-	lens = "guided",
+	lens: _lens = "guided",
 	showMarker = true,
 	className = "",
 }) => {
@@ -151,11 +151,11 @@ export const MetricGauge: React.FC<MetricGaugeProps> = ({
 
 	const displayVal =
 		value !== null && value !== undefined && !Number.isNaN(value)
-			? `${value} ${unit}`.trim()
+			? `${formatGaugeNumber(value)} ${unit}`.trim()
 			: "—";
 
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: Custom styled gauge
+		// biome-ignore lint/a11y/useAriaPropsSupportedByRole: Dynamic role meter or group with accessible label
 		<div
 			className={`metric-gauge ${className}`.trim()}
 			role={value !== null && value !== undefined && !Number.isNaN(value) ? "meter" : "group"}
@@ -263,17 +263,21 @@ export const MetricGauge: React.FC<MetricGaugeProps> = ({
 				}}
 			>
 				<span>
-					{min} {unit}
+					{formatGaugeNumber(min)} {unit}
 				</span>
 				<span>
-					Ziel: {optimalMin}–{optimalMax} {unit}
+					Ziel: {formatGaugeNumber(optimalMin)}–{formatGaugeNumber(optimalMax)} {unit}
 				</span>
 				<span>
-					{max} {unit}
+					{formatGaugeNumber(max)} {unit}
 				</span>
 			</div>
 		</div>
 	);
 };
+
+function formatGaugeNumber(value: number): string {
+	return new Intl.NumberFormat("de-DE", { maximumFractionDigits: 3 }).format(value);
+}
 
 export default MetricGauge;

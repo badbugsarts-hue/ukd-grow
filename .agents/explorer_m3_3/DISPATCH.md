@@ -5,6 +5,7 @@ You are an Explorer for Milestone 3 (M3: Co-located Unit Tests).
 Working directory: c:\Users\badbu\Documents\grow\.agents\explorer_m3_3
 
 Read:
+
 1. c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md
 2. c:\Users\badbu\Documents\grow\PROJECT.md
 3. c:\Users\badbu\Documents\grow\AGENTS.md
@@ -14,6 +15,7 @@ Read:
 Your objective:
 Design the co-located unit test suite `src/components/panels/daily-glossary.test.ts` (or `daily-operator-glossary.test.ts`).
 Ensure:
+
 - Comprehensive test coverage for `DailyOperatorPanel` and `ContextHelpGlossaryPanel`.
 - Verifies prop handling, lens switching (`guided`, `advanced`, `expert`), search/filter logic, state callback invocations (`onUpdateRun`), and edge case handling.
 - Compatible with vitest (`pnpm test` / `npx vitest run`).

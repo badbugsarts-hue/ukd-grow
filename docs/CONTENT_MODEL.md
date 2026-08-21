@@ -15,11 +15,11 @@ type Workbook = Record<
 
 `02_Daily_Master` ist die operative Tagesquelle. Spalten werden ausschließlich über `DAILY_COLUMNS` in `src/domain.ts` adressiert.
 
-## RunPackage v3
+## RunPackage v4
 
-Persönliche Run-Daten liegen außerhalb des EvidenceStore. Ein Run enthält einen unveränderlichen `RunConfigurationSnapshot`, Zonen, Pflanzen, typisierte `ScientificValue`-Messungen, vollständige Lineage, Geräte, Kalibrierungen, strukturierte Beobachtungen, semantische Tasks, Overrides, Domain Events und append-only AuditEvents. Korrekturen superseden einen Messwert mit Referenz und Grund; das Original bleibt erhalten.
+Persönliche Run-Daten liegen außerhalb des EvidenceStore. Ein Run enthält einen unveränderlichen `RunConfigurationSnapshot`, Zonen, Pflanzen, typisierte `ScientificValue`-Messungen, Lineage, Geräte, Kalibrierungen, strukturierte Beobachtungen, Tasks, Overrides, Domain Events und append-only AuditEvents. v4 ergänzt Pflanzen-/Wachstumsereignisse, Bewässerung, Mix-Chargen, Reservoir, Equipment/Wartung, Lung Room, IPM, Incidents, Post-Harvest, Energie, Cultivar-Profile, Produktinventar und Nährstoffsystemprofile. Nicht alle v4-Typen besitzen bereits eine operative UI; der Status steht im App-Audit.
 
-`RunRepository` abstrahiert Speicherung, Auflistung und Auswahl mehrerer Runs. Die aktuelle Implementierung nutzt IndexedDB v3. JSON v1/v2 wird beim Lesen kontrolliert nach v3 migriert. Das materialisierte RunPackage dient dem schnellen Offlinebetrieb; das Domain-Event-Log macht Zustandsänderungen reproduzierbar.
+`RunRepository` abstrahiert Speicherung, Auflistung und Auswahl mehrerer Runs. Die aktuelle Implementierung nutzt IndexedDB-Schema 4. Unterstützte Altschemata werden beim Lesen kontrolliert nach v4 migriert. Das materialisierte RunPackage dient dem schnellen Offlinebetrieb; das Domain-Event-Log macht Zustandsänderungen reproduzierbar.
 
 ## Knowledge claim
 

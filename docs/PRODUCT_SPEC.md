@@ -1,4 +1,6 @@
-# Product Spec · UKD Operator Workspace v6
+# Product Spec · UKD Operator Workspace v8
+
+Der verifizierte Ist-/Lückenstand steht in [COMPLETE_APP_AUDIT_2026-08-16.md](COMPLETE_APP_AUDIT_2026-08-16.md). Diese Spec beschreibt das Produktziel; ein vorhandener Datentyp ist nicht automatisch eine fertige UI-Capability.
 
 ## Ziel
 
@@ -41,6 +43,6 @@ Jeder operative Wert muss als `target`, `measured`, `simulated`, `missing` oder 
 - WCAG 2.2 AA als Release-Kriterium.
 - statischer, vendor-neutraler Produktionsbuild.
 - keine Tracking- oder Telemetrieabhängigkeit.
-- Initial-JavaScript unter 300 kB minifiziert; große Fachdaten separat cachebar.
+- Initial-JavaScript unter 450 kB, jeder Lazy Chunk unter 950 kB und gesamtes JavaScript unter 2.400 kB minifiziert; große Fachdaten separat cachebar.
 - Core Web Vitals als LCP ≤2,5 s, INP ≤200 ms und CLS ≤0,1 am p75 bewerten, sobald datenschutzgerechte Felddaten vorliegen.
 - keine stillen fachlichen Fallbackdaten.

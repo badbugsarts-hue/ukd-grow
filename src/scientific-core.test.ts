@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
 	assessMeasurementTrust,
+	getSensorCalibrationStatus,
 	negotiatedCapabilities,
 } from "./scientific-core";
-import type { Measurement, MeasurementDevice } from "./types";
+import type { CalibrationRecord, Measurement, MeasurementDevice } from "./types";
 
 const device: MeasurementDevice = {
 	id: "sensor-a",
@@ -103,5 +104,87 @@ describe("scientific measurement trust", () => {
 		expect(negotiatedCapabilities([{ ...device, health: "offline" }])).toEqual(
 			[],
 		);
+	});
+});
+
+describe("getSensorCalibrationStatus", () => {
+	it("returns valid status within 30 days for pH sensor", () => {
+		const calibrations: CalibrationRecord[] = [
+			{
+				id: "c1",
+				deviceId: "ph-meter-1",
+				metric: "water.ph",
+				performedAt: "2026-08-01T10:00:00Z",
+				method: "2-point",
+				result: "passed",
+			},
+		];
+		const status = getSensorCalibrationStatus(
+			"ph-meter-1",
+			"water.ph",
+			calibrations,
+			new Date("2026-08-14T10:00:00Z"),
+		);
+		expect(status).toBe("VALID");
+	});
+
+	it("returns expired status after 30 days for pH sensor", () => {
+		const calibrations: CalibrationRecord[] = [
+			{
+				id: "c1",
+				deviceId: "ph-meter-1",
+				metric: "water.ph",
+				performedAt: "2026-06-01T10:00:00Z",
+				method: "2-point",
+				result: "passed",
+			},
+		];
+		const status = getSensorCalibrationStatus(
+			"ph-meter-1",
+			"water.ph",
+			calibrations,
+			new Date("2026-08-14T10:00:00Z"),
+		);
+		expect(status).toBe("CALIBRATION_DUE");
+	});
+
+	it("returns valid status within 60 days for EC sensor", () => {
+		const calibrations: CalibrationRecord[] = [
+			{
+				id: "c2",
+				deviceId: "ec-meter-1",
+				metric: "water.ec",
+				performedAt: "2026-07-01T10:00:00Z",
+				method: "1-point",
+				result: "passed",
+			},
+		];
+		const status = getSensorCalibrationStatus(
+			"ec-meter-1",
+			"water.ec",
+			calibrations,
+			new Date("2026-08-14T10:00:00Z"),
+		);
+		expect(status).toBe("VALID");
+	});
+
+	it("returns failed status when latest calibration failed", () => {
+		const calibrations: CalibrationRecord[] = [
+			{
+				id: "c3",
+				deviceId: "ph-meter-1",
+				metric: "water.ph",
+				performedAt: "2026-08-10T10:00:00Z",
+				method: "2-point",
+				result: "failed",
+			},
+		];
+		const status = getSensorCalibrationStatus(
+			"ph-meter-1",
+			"water.ph",
+			calibrations,
+			new Date("2026-08-14T10:00:00Z"),
+		);
+		expect(status).toBe("FAILED");
 	});
 });

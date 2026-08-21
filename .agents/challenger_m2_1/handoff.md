@@ -21,7 +21,7 @@
       water.sourceEc === null ||
       water.calciumMgL === null;
     ```
-    *Note*: `water.magnesiumMgL === null` is omitted from `NutrientMixPanel.tsx` line 39, while `RunConfigPanel.tsx` line 72 explicitly includes `w.magnesiumMgL === null`.
+    _Note_: `water.magnesiumMgL === null` is omitted from `NutrientMixPanel.tsx` line 39, while `RunConfigPanel.tsx` line 72 explicitly includes `w.magnesiumMgL === null`.
   - **Ca:Mg Ratio Logic**: `RunConfigPanel.tsx` line 116: `const caMgRatio = mg > 0 ? (ca / mg).toFixed(1) : ca > 0 ? `${ca}:0` : "—";`. Gracefully handles zero Ca, zero Mg, and null values (`0:0` -> `" — "`, `60:0` -> `"60:0"`).
   - **Readiness Score Calculation**: `RunConfigPanel.tsx` lines 14-96 (`calculateReadinessScore`): Computes 5 categories (Substrate/Pot, Light, Tent, Water, Equipment/Genetics) at 20% each. Unconfigured `createDefaultRunPackage()` starts at **80% readiness** because `defaultWaterProfile()` initializes `sourcePh`, `sourceEc`, `calciumMgL`, `magnesiumMgL` to `null` (satisfying Invariant 4: Fail-Closed Gate).
   - **Stage Transitions & Activation**: `src/run-state.ts` lines 327-378 (`activateRun`):
@@ -64,16 +64,20 @@ The calculation logic in `NutrientMixPanel.tsx` and `RunConfigPanel.tsx` is robu
 To independently verify these findings:
 
 1. **Run Typecheck**:
+
    ```bash
    npx tsc --noEmit
    ```
-   *Expected result*: Exit code 0, 0 errors.
+
+   _Expected result_: Exit code 0, 0 errors.
 
 2. **Run Vitest Test Suite**:
+
    ```bash
    npx vitest run
    ```
-   *Expected result*: 8/8 test files pass, 93/93 tests pass (including 19 tests in `src/components/panels/nutrient-runconfig-stress.test.ts`).
+
+   _Expected result_: 8/8 test files pass, 93/93 tests pass (including 19 tests in `src/components/panels/nutrient-runconfig-stress.test.ts`).
 
 3. **Inspect Stress Test File**:
    - File: `src/components/panels/nutrient-runconfig-stress.test.ts`

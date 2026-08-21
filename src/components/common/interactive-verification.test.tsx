@@ -13,21 +13,22 @@ describe("TermTooltip Component Verification", () => {
 		const elGuided = <TermTooltip term={term} lens="guided" />;
 		expect(React.isValidElement(elGuided)).toBe(true);
 		expect(elGuided.props.lens).toBe("guided");
-		expect(guidedDesc).toContain("Luft Wasser aus den Blättern zieht");
+		expect(guidedDesc).toContain("Verdunstungsdruck");
 
 		// Advanced lens description
 		const advancedDesc = getTermDescription(term, "advanced");
 		const elAdvanced = <TermTooltip term={term} lens="advanced" />;
 		expect(React.isValidElement(elAdvanced)).toBe(true);
 		expect(elAdvanced.props.lens).toBe("advanced");
-		expect(advancedDesc).toContain("Differenz zwischen");
+		expect(advancedDesc).toContain("Sättigungsdampfdruck");
 
 		// Expert lens description
 		const expertDesc = getTermDescription(term, "expert");
 		const elExpert = <TermTooltip term={term} lens="expert" />;
 		expect(React.isValidElement(elExpert)).toBe(true);
 		expect(elExpert.props.lens).toBe("expert");
-		expect(expertDesc).toContain("Stomata-Leitfähigkeit");
+		expect(expertDesc).toContain("Formelversion");
+		expect(new Set([guidedDesc, advancedDesc, expertDesc]).size).toBe(3);
 
 		// Custom text override
 		const customText = "Custom override explanation";

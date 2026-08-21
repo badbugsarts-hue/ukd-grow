@@ -9,6 +9,7 @@
 ## 1. Observation
 
 ### Source Code & Implementation Analysis
+
 - **`EnvironmentTargetsPanel.tsx`**:
   - Implements authentic React UI with sliders for temperature (15–35°C), humidity (30–90%), PPFD (50–1200), light hours (12–24h), and leaf temp delta (-4..+2°C).
   - Imports and invokes pure domain functions `calculateLeafVpd` and `calculateDli` from `../../domain`.
@@ -31,12 +32,14 @@
   - Performs live calculations for Leaf VPD, Air VPD, and DLI. No hardcoded calculation return values.
 
 ### Unit Tests Analysis
+
 - **`src/components/panels/panels.test.ts`**:
   - Contains 10 unit tests covering `EnvironmentTargetsPanel logic`, `NutrientMixPanel logic`, `RunConfigPanel logic`, and `VpdDliCalculatorPanel logic`.
   - All 10 tests in `panels.test.ts` pass cleanly (10/10 passed).
   - Tests verify authentic calculation matching (e.g. `dli` close to 38.88 for 600 PPFD, 18h; nutrient scaling for 5L, 10L, 20L; fail-closed water profile detection; readiness score transitions 0% -> 100%).
 
 ### Command Execution Results
+
 1. **TypeScript Typecheck (`npx tsc --noEmit`)**:
    - Command: `npx tsc --noEmit`
    - Result: **PASSED** (Exit code: `0`, 0 type errors).
@@ -95,13 +98,15 @@ Refactor lines 167 and 182 in `src/components/panels/climate-stress-test.test.ts
 To independently verify this audit finding:
 
 1. Run TypeScript check:
+
    ```powershell
    npx tsc --noEmit
    ```
-   *(Expected output: Exits cleanly with code 0)*
+
+   _(Expected output: Exits cleanly with code 0)_
 
 2. Run Vitest test suite:
    ```powershell
    npx vitest run
    ```
-   *(Expected output: Exits with code 1; reports 2 failed tests in `src/components/panels/climate-stress-test.test.ts` due to `useState` hook invocation error)*
+   _(Expected output: Exits with code 1; reports 2 failed tests in `src/components/panels/climate-stress-test.test.ts` due to `useState` hook invocation error)_

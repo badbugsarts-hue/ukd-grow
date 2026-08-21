@@ -24,15 +24,17 @@ pnpm check
 ## Was enthalten ist
 
 - Guided-, Advanced- und Expert-Linse ohne Änderung der fachlichen Ergebnisse
-- 27 vollständig migrierte Workbook-Blätter und 55 Audit-Findings
-- 18 Arbeitsbereiche inklusive Run-Setup, Mess-/Ereignislog, Run-Historie, Cockpit, Tagesplan, 81-Tage-Timeline und Batch-Mischlabor
+- 29 kanonische Workbook-Blätter und 55 Audit-Findings
+- 32 Arbeitsbereiche inklusive Run-Setup, Mess-/Ereignislog, P0 Operations, Scientific Operations, Profilen, Medien und Datei-Connector
 - Klima-, Licht-, Nährstoff-, Produkt-, Kompatibilitäts- und Diagnoseflächen
 - globale Suche, kontextuelle Hilfe, Light/Dark, responsive Mobile-Navigation
-- lokales Multi-Run-Repository mit RunPackage v3, Domain Events, immutable Setup-Snapshots, vollständiger ScientificValue-Lineage, formalen Task-Transitions, Overrides und Audit-Protokoll
-- SHA-256-verifiziertes JSON-Backup/Restore mit v1/v2-Migration sowie CSV-, XLSX-, PDF- und Druckexport
+- lokales Multi-Run-Repository mit RunPackage v6, getrennten Simulation-/Live-Aggregaten, UTC-Aussaatanker, gemeinsamem Command-Gateway, Domain Events, unveränderlichen Setup-Snapshots, State Machines, Overrides und Audit-Protokoll
+- globales Command Center, manueller datenschutzbereinigter AI-Austausch mit quarantänisiertem Rückimport sowie zentraler Tooltip-/Guidance-Registry
+- resilienter IndexedDB-Speicher mit Read-only-Degraded-Mode, verschlüsseltem rotierendem Checkpoint-Vault, SHA-256-Readback, externem Backup-Ordner/Download-Fallback und atomarem Restore
 - Geräte-/Kalibrierungsmodelle, read-only Connector-Vertrag, Capability Negotiation und Sensor-Trust-Gate ohne Fake-Live-Daten
 - lokales datensparsames Diagnose-Bundle, Product-Science-Journeys, Hazard Register, Failure UX und lokale SLOs
-- Secure-SDLC-Gates, gepinnte CI-Actions, Dependabot, SPDX-SBOM, Lizenzbericht und Build-Provenienz
+- Secure-SDLC-Gates, gepinnte CI-Actions, Dependabot, CodeQL, Dependency Review, SPDX-SBOM, Lizenzbericht und Build-Provenienz
+- Implementierungsvorschau für Fastify/Postgres/Magic-Link/Sync und guarded Copilot; nicht als deployte Produktfähigkeit aktiviert
 - installierbare Offline-Shell, Manifest-/Hashdiagnose, Hochkontrast und Textskalierung
 - kuratierte Knowledge Base mit Claim-Status, Evidenzklasse, Scope, Unsicherheit und Quellen
 - maschinenlesbare Agenten-Kontexte in `src/data/ai-context.json` und `src/data/skills.json`
@@ -43,7 +45,7 @@ Die Anwendung ist eine Planungs- und Dokumentationshilfe. Kalender- und Dosiswer
 
 ## Kanonische Dateien
 
-- `public/data/evidence-guarded-workbook-v6.json`: vollständiger v6-Workbook-Snapshot
+- `public/data/evidence-guarded-workbook-v8.json`: kanonischer v8-Workbook-Snapshot mit 29 Blättern
 - `public/data/data-manifest.json`: Version, Hashes, Provenienz und Importstatus
 - `src/data/knowledge-base.json`: geprüfte High-impact Claims und Primärquellen
 - `src/data/legacy-audit.json`: 55 forensische Findings
@@ -54,9 +56,12 @@ Die Anwendung ist eine Planungs- und Dokumentationshilfe. Kalender- und Dosiswer
 - `src/data/integration-epics.json`: 28 Epics und verpflichtender Intake-Gate für ungeprüften Fremdcode
 - `src/data/platform-quality.json`: User-Journeys, Hazard Register, Failure UX, SLOs, Recovery und Privacy-Klassen
 - `src/run-state.ts`: versioniertes Run-Modell, Warnlogik, Importvalidierung und Exportabbildung
-- `src/run-storage.ts`: versioniertes lokales Multi-Run-Repository mit v2→v3-Store-Migration
+- `src/run-storage.ts`: resilientes lokales Multi-Run-Repository, v1→v6-Migration, Sync-Outbox, verschlüsselte Medien und atomarer Workspace-Restore
+- `docs/LIVE_AI_RECOVERY.md`: Live-Uhr, AI-Dateiverträge, Backup-Rotation, Recovery und Stable-Gates
+- `src/run-commands.ts`: atomare fachliche Commands mit DomainEvent, AuditEvent und Timeline
+- `apps/api/`: nicht aktivierte Fastify/Postgres-Implementierungsvorschau für Auth, Sync, Copilot und serverseitige OpenTelemetry-Diagnostik
 - `src/scientific-core.ts`: Trust/Calibration/Capability-Vertrag für spätere read-only Sensoradapter
 - `src/backup.ts`: kanonisch gehashte Backup- und Recovery-Gates
 - `src/domain.ts`: geteilte Berechnungs- und Mappinglogik
 
-Die unveränderten v6-Quellen liegen unter `sources/evidence-v6/`. Architektur, Deep-Research-Audit, Evidenzregeln, Faktencheck und Migration sind unter `docs/` dokumentiert. Die geprüfte 2026-Planrevision steht in `docs/MASTERPLAN_2026_REVIEWED.md`; die zweite Architektur-/UX-Prüfung in `docs/PLAN_AUDIT_ROUND2_2026.md`; Rechtsgrundlagen und Bestandskonten beschreibt `docs/LEGAL_PROFILES.md`.
+Die aktuelle operative v8-XLSX und ihre mobile PDF-Lesefassung liegen im Repository-Root. Die unveränderten v6-Quellen bleiben als forensische Vorgänger unter `sources/evidence-v6/` erhalten. Architektur, Deep-Research-Audit, Evidenzregeln, Faktencheck und Migration sind unter `docs/` dokumentiert.

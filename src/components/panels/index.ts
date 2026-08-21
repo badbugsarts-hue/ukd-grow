@@ -7,3 +7,6 @@ export { VpdDliCalculatorPanel } from "./VpdDliCalculatorPanel";
 export { MasterplanOverviewPanel } from "./MasterplanOverviewPanel";
 export { FeedingSchedulePanel } from "./FeedingSchedulePanel";
 export { AutoflowerCockpitPanel } from "./AutoflowerCockpitPanel";
+export { EquipmentManagerPanel } from "./EquipmentManagerPanel";
+export { GlobalPlanEditorPanel } from "./GlobalPlanEditorPanel";
+

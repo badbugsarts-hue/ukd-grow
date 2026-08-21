@@ -2,7 +2,7 @@
 
 ## Entscheidung
 
-React 19.2, TypeScript 7 und Vite 8 bilden eine statisch deploybare Single-Page-Anwendung. Es gibt keinen Serverzwang, keine Authentifizierung und keine Remote-Telemetrie. Operative Einzelplatz-Runs werden als `RunPackage v3` über eine austauschbare `RunRepository`-Schnittstelle lokal in IndexedDB gespeichert; ein expliziter lokaler Diagnoseexport bleibt datensparsam.
+React 19.2, TypeScript 7 und Vite 8 bilden eine statisch deploybare Single-Page-Anwendung. Es gibt keinen Serverzwang, keine Authentifizierung und keine Remote-Telemetrie. Operative Einzelplatz-Runs werden als `RunPackage v4` über eine austauschbare `RunRepository`-Schnittstelle lokal in IndexedDB gespeichert; ein expliziter lokaler Diagnoseexport bleibt datensparsam.
 
 Next.js wurde nicht gewählt: Das Produkt ist ein lokaler/offline-naher Operator- und Referenzworkspace ohne serverseitige Datenmutation, SSR-Anforderung oder Server Actions. Die zusätzliche Server-/Routingkomplexität hätte keinen entsprechenden Produktwert.
 
@@ -13,9 +13,9 @@ Der zweite Architektur-Audit steht in `PLAN_AUDIT_ROUND2_2026.md`; die maschinen
 ## Datenfluss
 
 ```text
-Evidence-Guarded XLSX v6
+Evidence-Guarded XLSX v8
   └─ scripts/extract-web-data.mjs
-      ├─ public/data/evidence-guarded-workbook-v6.json (27 Blätter)
+      ├─ public/data/evidence-guarded-workbook-v8.json (29 Blätter)
       ├─ public/data/data-manifest.json (Hashes/Provenienz)
       └─ src/data/legacy-audit.json (55 Findings)
 
@@ -23,8 +23,8 @@ knowledge-base.json ─┐
 ai-context.json      ├─ React UI → Guided / Advanced / Expert
 skills.json          ┘
 
-RunRepository ↔ IndexedDB v3
-  └─ RunPackage v3
+RunRepository ↔ IndexedDB Schema 4
+  └─ RunPackage v4
       ├─ immutable RunConfigurationSnapshot / Zonen / Pflanzen
       ├─ ScientificValue-Lineage / Geräte / Kalibrierungen
       ├─ Domain Events / formale Task-Transitions / Overrides / AuditEvents
@@ -42,8 +42,8 @@ Der große Workbook-Snapshot wird zur Laufzeit separat geladen. Dadurch bleibt d
 - Persistent preference: Lens, Tag, Theme, Kontrast und Textskalierung in Local Storage.
 - Transient: Drawer, Navigation, Suchdialog, Tabellenfilter.
 - Session-only sensitive context: importiertes Rechtsprofil ohne Dokumentinhalt.
-- Local operational domain: mehrere RunPackage-v3-Objekte in IndexedDB; v1/v2 werden kontrolliert migriert. Restore erfolgt erst nach Hash- und Schema-Gate.
-- Domain snapshot: `evidence-guarded-workbook-v6.json`, unveränderlich im Browser.
+- Local operational domain: mehrere RunPackage-v4-Objekte in IndexedDB; unterstützte Altschemata werden kontrolliert migriert. Restore erfolgt erst nach Hash- und Schema-Gate.
+- Domain snapshot: `evidence-guarded-workbook-v8.json`, unveränderlich im Browser.
 
 ## Domain-Grenzen
 
@@ -53,4 +53,4 @@ Ungeprüfte Fremdanwendungen sind weder Backend noch Domain-Core. `THIRD_PARTY_I
 
 ## Abhängigkeiten
 
-React/ReactDOM bilden die interaktive Runtime. Diagramme sind zugängliche SVGs; UI-Primitives und Designsystem sind projektintern. PDF und XLSX werden erst beim jeweiligen Export dynamisch geladen und gehören nicht zum initialen JavaScript. Evidenz-, Audit- und KI-Kontextdaten liegen ebenfalls in separat cachebaren Chunks. Der initiale Produktions-Chunk liegt bei rund 259 kB minifiziert und damit unter dem 300-kB-Budget.
+React/ReactDOM bilden die interaktive Runtime. Diagramme sind zugängliche SVGs; UI-Primitives und Designsystem sind projektintern. PDF und XLSX werden erst beim jeweiligen Export dynamisch geladen und gehören nicht zum initialen JavaScript. Evidenz-, Audit- und KI-Kontextdaten liegen ebenfalls in separat cachebaren Chunks. Der aktuelle Gate prüft 450 kB initial, 950 kB je Lazy Chunk und 2.400 kB JavaScript gesamt. Aktuelle Messwerte stehen in `COMPLETE_APP_AUDIT_2026-08-16.md`.

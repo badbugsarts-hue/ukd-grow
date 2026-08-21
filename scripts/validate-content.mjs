@@ -130,8 +130,12 @@ assert(
   "Legal profile must keep KCanG, prescription, and permit paths separate",
 );
 assert(
-  capabilityRoadmap.currentArchitecture?.backend === "none" &&
-    capabilityRoadmap.currentArchitecture?.sensorGateway === "none",
+  capabilityRoadmap.currentArchitecture?.backend
+    ?.toLowerCase()
+    .includes("not deployed") &&
+    capabilityRoadmap.currentArchitecture?.sensorGateway
+      ?.toLowerCase()
+      .includes("no live sensor"),
   "Capability roadmap must describe the current backend and sensor state truthfully",
 );
 assert(

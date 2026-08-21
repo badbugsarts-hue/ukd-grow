@@ -1,8 +1,10 @@
 ## 2026-08-11T03:43:27Z
+
 You are an Explorer for Milestone 3 (M3: Daily Operator Panel).
 Working directory: c:\Users\badbu\Documents\grow\.agents\explorer_m3_1
 
 Read:
+
 1. c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md
 2. c:\Users\badbu\Documents\grow\PROJECT.md
 3. c:\Users\badbu\Documents\grow\AGENTS.md
@@ -12,6 +14,7 @@ Read:
 Your objective:
 Investigate and design `src/components/panels/DailyOperatorPanel.tsx`.
 Ensure:
+
 - Adheres to `PanelProps` interface from `PROJECT.md`.
 - Interactive Tageskarten navigation for Days 0-80 (or active run day selection).
 - 3-step daily action flow: (1) Tages-Check & Sollwerte, (2) Messwerte & Beobachtung erfassen, (3) Maßnahmen & Bestätigung.

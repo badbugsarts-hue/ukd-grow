@@ -1,44 +1,48 @@
-# BRIEFING — 2026-08-11T07:00:30Z
+# BRIEFING — 2026-08-14T02:33:16Z
 
 ## Mission
-Analyze App.tsx navigation & state routing and produce an integration blueprint & test spec for Milestone 4 (App Shell Routing & State Integration).
+
+Analyze technical specifications for Milestone 4 (Pot Weight Dryback Tracking Widget & App Shell Routing Integration in App.tsx).
 
 ## 🔒 My Identity
-- Archetype: Teamwork explorer
-- Roles: Explorer for Milestone 4
+
+- Archetype: explorer
+- Roles: investigation, synthesis
 - Working directory: c:\Users\badbu\Documents\grow\.agents\explorer_m4
-- Original parent: 6783987b-1cde-4c0a-8087-df980caf57b6
-- Milestone: Milestone 4 (App Shell Routing & State Integration in App.tsx)
+- Original parent: e71f4c70-c33c-4944-8204-ba5556cd9da7
+- Milestone: Milestone 4
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement code changes to src/App.tsx or components (only write analysis reports, blueprints, and test specifications in .agents/explorer_m4)
-- Follow AGENTS.md invariants (e.g. EvidenceStore and RunPackage never merged into mutable mixed object, active run snapshots append-only, Guided/Advanced/Expert lenses canonical, etc.)
-- Output handoff.md following 5-component handoff report
+
+- Read-only investigation — do NOT implement
+- Do NOT modify any source code files outside of .agents/explorer_m4/
+- Base all analysis on verified facts from the codebase
 
 ## Current Parent
-- Conversation ID: 6783987b-1cde-4c0a-8087-df980caf57b6
-- Updated: 2026-08-11T07:00:30Z
+
+- Conversation ID: e71f4c70-c33c-4944-8204-ba5556cd9da7
+- Updated: 2026-08-14T02:33:16Z
 
 ## Investigation State
-- **Explored paths**:
-  - `src/App.tsx` (navigation structure, active route handlers, experience lens state, save callbacks)
-  - `src/components/common/` (`LensBadge.tsx`, `MetricGauge.tsx`, `TermTooltip.tsx`, `termDictionary.ts`)
-  - `src/components/panels/` (`EnvironmentTargetsPanel.tsx`, `NutrientMixPanel.tsx`, `RunConfigPanel.tsx`, `DailyOperatorPanel.tsx`, `ContextHelpGlossaryPanel.tsx`, `VpdDliCalculatorPanel.tsx`)
-  - `src/components/panels/panels.test.ts`, `src/components/common/interactive-verification.test.tsx`
+
+- **Explored paths**: `src/domain.ts`, `src/types.ts`, `src/run-state.ts`, `src/App.tsx`, `src/components/panels/DailyOperatorPanel.tsx`, `src/components/panels/EquipmentManagerPanel.tsx`, `src/components/panels/RunConfigPanel.tsx`, `src/components/common/termDictionary.ts`, `src/AppRoutingStress.test.tsx`, `src/m4-empirical-challenge.test.ts`.
 - **Key findings**:
-  - `App.tsx` currently routes `RunConfigPanel` (route `setup`), `DailyOperatorPanel` (route `today`), `NutrientMixPanel` (route `mix`), `EnvironmentTargetsPanel` (route `climate`), and `ContextHelpGlossaryPanel` (route `knowledge`).
-  - `VpdDliCalculatorPanel`, `LensBadge`, and `TermTooltip` are not yet imported or rendered in `App.tsx`.
-  - Defined explicit integration blueprint for adding `VpdDliCalculatorPanel` into route `climate` and Cockpit Quick Actions, and adding `LensBadge` and `TermTooltip` into shell header, topbar, sidebar, and PageHeader.
-  - Defined integration test specifications in `src/AppIntegration.test.tsx` to verify component routing, `onUpdateRun` immutable state triggers, lens switching, and fail-closed safety without mutating domain logic.
-- **Unexplored areas**: None. Investigation complete.
+  - `calculateSubstrateHydration` is fully functional with 5 hydration categories (`dry`, `light`, `medium`, `heavy`, `saturated`).
+  - `PotProfile` metadata and `ObservationValues.potMassGrams` are established in `src/types.ts`.
+  - `updatePotProfile` state transition in `src/run-state.ts` is required for immutable pot calibration updates.
+  - `#equipment` route is cleanly routed to `EquipmentManagerPanel.tsx` in `src/App.tsx`.
+  - All 289 unit tests pass; `tsc` and `vite build` complete cleanly.
+- **Unexplored areas**: None. Milestone 4 investigation complete.
 
 ## Key Decisions Made
-- Structured 5-component handoff report in `handoff.md`.
-- Specified `VpdDliCalculatorPanel` as a dual-entry tool: rendered in `climate` route and triggered via Quick Action in `cockpit`.
-- Specified `LensBadge` in shell topbar header and sidebar for continuous lens visibility and interaction.
-- Specified `TermTooltip` in PageHeader descriptions and Cockpit metric cards for instant German term explanations.
+
+- Detailed technical specification for Pot Weight Dryback Tracking Widget in `analysis_m4.md`.
+- Specified `updatePotProfile` with audit and domain events.
+- Produced 5-component handoff report in `handoff.md`.
 
 ## Artifact Index
-- c:\Users\badbu\Documents\grow\.agents\explorer_m4\DISPATCH.md — Incoming dispatch log
-- c:\Users\badbu\Documents\grow\.agents\explorer_m4\BRIEFING.md — Working briefing index
-- c:\Users\badbu\Documents\grow\.agents\explorer_m4\handoff.md — 5-component handoff report for Milestone 4
+
+- DISPATCH.md — Incoming task log
+- progress.md — Liveness & heartbeat
+- analysis_m4.md — In-depth technical analysis
+- handoff.md — Standardized 5-component handoff report

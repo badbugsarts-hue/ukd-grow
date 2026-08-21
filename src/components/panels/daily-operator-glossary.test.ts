@@ -394,30 +394,20 @@ describe("Milestone 3 - Daily Operator & Knowledge Glossary Panel Unit Test Suit
 			const advancedText = getTermDescription(term, "advanced");
 			const expertText = getTermDescription(term, "expert");
 
-			expect(guidedText).toContain("Wasser aus den Blättern");
+			expect(guidedText).toContain("Verdunstungsdruck");
 			expect(advancedText).toContain("Sättigungsdampfdruck");
-			expect(expertText).toContain("Stomata-Leitfähigkeit");
+			expect(expertText).toContain("Formelversion");
 		});
 
-		it("2.5 Verifies optimal phase ranges for VPD, DLI, EC, pH, PPFD, and rF", () => {
+		it("2.5 keeps glossary definitions free of an unreviewed second target matrix", () => {
 			const vpdDef = getTermDefinition("VPD");
-			expect(vpdDef?.optimalRanges).toBeDefined();
-			expect(vpdDef?.optimalRanges?.length).toBe(3);
-			expect(vpdDef?.optimalRanges?.[0]!.phase).toBe("Sämling");
-			expect(vpdDef?.optimalRanges?.[0]!.min).toBe(0.4);
-			expect(vpdDef?.optimalRanges?.[0]!.max).toBe(0.8);
-
+			expect(vpdDef?.optimalRanges).toBeUndefined();
+			expect(vpdDef?.sourceIds).toContain("ashrae-psychrometrics");
 			const dliDef = getTermDefinition("DLI");
-			expect(dliDef?.optimalRanges).toBeDefined();
-			expect(dliDef?.optimalRanges?.[1]!.phase).toBe("Vegetation");
-			expect(dliDef?.optimalRanges?.[1]!.min).toBe(20);
-			expect(dliDef?.optimalRanges?.[1]!.max).toBe(30);
-
+			expect(dliDef?.optimalRanges).toBeUndefined();
+			expect(dliDef?.sourceIds).toContain("daily-light-integral-extension");
 			const ecDef = getTermDefinition("EC");
-			expect(ecDef?.optimalRanges).toBeDefined();
-			expect(ecDef?.optimalRanges?.[2]!.phase).toBe("Blüte");
-			expect(ecDef?.optimalRanges?.[2]!.min).toBe(1.8);
-			expect(ecDef?.optimalRanges?.[2]!.max).toBe(2.2);
+			expect(ecDef?.optimalRanges).toBeUndefined();
 		});
 
 		it("2.6 Renders ContextHelpGlossaryPanel component with experience lenses and search props", () => {

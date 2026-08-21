@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+  GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ukd_app;
+  GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO ukd_app;
+EOSQL

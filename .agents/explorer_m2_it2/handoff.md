@@ -3,6 +3,7 @@
 ## 1. Observation
 
 ### Current Implementation State & Previous Reviews
+
 - **Reviewer 2 Finding (`.agents/reviewer_m2_2/handoff.md`)**:
   - Finding 1 (Critical): In `src/components/panels/NutrientMixPanel.tsx` (lines 36–54 & 403–441), when `isWaterProfileIncomplete` is `true`, a red alert banner is rendered, but `mixItems` continues to calculate and display positive nutrient doses (e.g., 2.5 ml/L, 25.0 ml total) and status `✓ Freigegeben`.
   - Finding 2 (Major): In `src/components/panels/NutrientMixPanel.tsx` (lines 28, 348–367), toggling `stackingBoosterConflict` displays a text warning box but does not modify `mixItems` or zero out the PK 13/14 dose.
@@ -56,9 +57,15 @@ export interface DisplayMixItem {
 }
 
 export function applyMixSafetyRules(
-  items: Array<{ name: string; dose: number; amount: number; role: string; warning?: string }>,
+  items: Array<{
+    name: string;
+    dose: number;
+    amount: number;
+    role: string;
+    warning?: string;
+  }>,
   isWaterProfileIncomplete: boolean,
-  stackingBoosterConflict: boolean
+  stackingBoosterConflict: boolean,
 ): DisplayMixItem[] {
   return items.map((item) => {
     const isPkItem =
@@ -96,25 +103,74 @@ export function applyMixSafetyRules(
 Replace current `mixItems` definition (lines 42–54) with:
 
 ```tsx
-  const rawMixItems = plan
-    ? calculateMix(plan, batchLiters)
-    : [
-        { name: "Athena Balance", dose: 0.5, amount: 0.5 * batchLiters, role: "Wasser zuerst", warning: "Nur nach Wasserchemie titrieren" },
-        { name: run.config.nutrientSystem || "HESI TNT / Blüh Complex", dose: 2.5, amount: 2.5 * batchLiters, role: "Basis" },
-        { name: "CalMag", dose: 0.5, amount: 0.5 * batchLiters, role: "Nur nach Bedarf" },
-        { name: "Wurzel Complex", dose: 1.0, amount: 1.0 * batchLiters, role: "Definierte Frühgabe" },
-        { name: "PowerZyme", dose: 2.0, amount: 2.0 * batchLiters, role: "Support", warning: "Nicht zusätzlich Sensizym im Referenzplan" },
-        { name: "SuperVit", dose: 0.05, amount: 0.05 * batchLiters, role: "Mikrodosis" },
-        { name: "HESI Boost", dose: 2.0, amount: 2.0 * batchLiters, role: "Blüte-Support" },
-        { name: "PK13/14", dose: 1.0, amount: 1.0 * batchLiters, role: "PK-Modul", warning: "Nicht mit Big Bud/Overdrive stapeln" },
-        { name: "pH Down", dose: 0.2, amount: 0.2 * batchLiters, role: "Ganz zum Schluss", warning: "Nur nach finaler Endmix-Messung" },
-      ];
+const rawMixItems = plan
+  ? calculateMix(plan, batchLiters)
+  : [
+      {
+        name: "Athena Balance",
+        dose: 0.5,
+        amount: 0.5 * batchLiters,
+        role: "Wasser zuerst",
+        warning: "Nur nach Wasserchemie titrieren",
+      },
+      {
+        name: run.config.nutrientSystem || "HESI TNT / Blüh Complex",
+        dose: 2.5,
+        amount: 2.5 * batchLiters,
+        role: "Basis",
+      },
+      {
+        name: "CalMag",
+        dose: 0.5,
+        amount: 0.5 * batchLiters,
+        role: "Nur nach Bedarf",
+      },
+      {
+        name: "Wurzel Complex",
+        dose: 1.0,
+        amount: 1.0 * batchLiters,
+        role: "Definierte Frühgabe",
+      },
+      {
+        name: "PowerZyme",
+        dose: 2.0,
+        amount: 2.0 * batchLiters,
+        role: "Support",
+        warning: "Nicht zusätzlich Sensizym im Referenzplan",
+      },
+      {
+        name: "SuperVit",
+        dose: 0.05,
+        amount: 0.05 * batchLiters,
+        role: "Mikrodosis",
+      },
+      {
+        name: "HESI Boost",
+        dose: 2.0,
+        amount: 2.0 * batchLiters,
+        role: "Blüte-Support",
+      },
+      {
+        name: "PK13/14",
+        dose: 1.0,
+        amount: 1.0 * batchLiters,
+        role: "PK-Modul",
+        warning: "Nicht mit Big Bud/Overdrive stapeln",
+      },
+      {
+        name: "pH Down",
+        dose: 0.2,
+        amount: 0.2 * batchLiters,
+        role: "Ganz zum Schluss",
+        warning: "Nur nach finaler Endmix-Messung",
+      },
+    ];
 
-  const mixItems = applyMixSafetyRules(
-    rawMixItems,
-    isWaterProfileIncomplete,
-    stackingBoosterConflict
-  );
+const mixItems = applyMixSafetyRules(
+  rawMixItems,
+  isWaterProfileIncomplete,
+  stackingBoosterConflict,
+);
 ```
 
 3. **Update JSX Table Status rendering** (lines 422–440):
@@ -139,6 +195,7 @@ Replace current `mixItems` definition (lines 42–54) with:
 #### File 2: `src/components/panels/panels.test.ts`
 
 1. **Import `applyMixSafetyRules`**:
+
 ```typescript
 import { applyMixSafetyRules } from "./NutrientMixPanel";
 ```
@@ -146,60 +203,142 @@ import { applyMixSafetyRules } from "./NutrientMixPanel";
 2. **Add unit test cases inside `describe("NutrientMixPanel logic", ...)`**:
 
 ```typescript
-    it("zeros out all positive dose amounts and displays '⛔ Gesperrt: Wasserprofil fehlt' when water profile is incomplete", () => {
-      const mockPlan = {
-        day: 20,
-        raw: [
-          20, "2026-08-11", 3, null, "Veg", "Wachstum", 18, 140, 500, 32.4, 40,
-          25, 20, 60, 0.9, 1.4, 6.0, 500, 1000, "Manuell",
-          "HESI TNT Complex", 2.5, 1.0, 2.0, 0.05, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, "Veg", "", 0, 0, 0.9, 0, 0.5, 0, 0.2,
-        ],
-        formulaRow: [],
-      };
+it("zeros out all positive dose amounts and displays '⛔ Gesperrt: Wasserprofil fehlt' when water profile is incomplete", () => {
+  const mockPlan = {
+    day: 20,
+    raw: [
+      20,
+      "2026-08-11",
+      3,
+      null,
+      "Veg",
+      "Wachstum",
+      18,
+      140,
+      500,
+      32.4,
+      40,
+      25,
+      20,
+      60,
+      0.9,
+      1.4,
+      6.0,
+      500,
+      1000,
+      "Manuell",
+      "HESI TNT Complex",
+      2.5,
+      1.0,
+      2.0,
+      0.05,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      "Veg",
+      "",
+      0,
+      0,
+      0.9,
+      0,
+      0.5,
+      0,
+      0.2,
+    ],
+    formulaRow: [],
+  };
 
-      const rawItems = calculateMix(mockPlan, 10);
-      const safeItems = applyMixSafetyRules(rawItems, true, false);
+  const rawItems = calculateMix(mockPlan, 10);
+  const safeItems = applyMixSafetyRules(rawItems, true, false);
 
-      expect(safeItems.length).toBeGreaterThan(0);
-      for (const item of safeItems) {
-        expect(item.dose).toBe(0.0);
-        expect(item.amount).toBe(0.0);
-        expect(item.statusText).toBe("⛔ Gesperrt: Wasserprofil fehlt");
-        expect(item.isBlocked).toBe(true);
-      }
-    });
+  expect(safeItems.length).toBeGreaterThan(0);
+  for (const item of safeItems) {
+    expect(item.dose).toBe(0.0);
+    expect(item.amount).toBe(0.0);
+    expect(item.statusText).toBe("⛔ Gesperrt: Wasserprofil fehlt");
+    expect(item.isBlocked).toBe(true);
+  }
+});
 
-    it("zeros out PK 13/14 dose amount and displays '⛔ GESPERRT: Stacking-Konflikt' when booster conflict is active", () => {
-      const mockPlan = {
-        day: 20,
-        raw: [
-          20, "2026-08-11", 3, null, "Veg", "Wachstum", 18, 140, 500, 32.4, 40,
-          25, 20, 60, 0.9, 1.4, 6.0, 500, 1000, "Manuell",
-          "HESI TNT Complex", 2.5, 1.0, 2.0, 0.05, 0, 0, 0, 0, 0, 0, 0, 0,
-          0, "Veg", "", 0, 0, 0.9, 0, 0.5, 0, 0.2,
-        ],
-        formulaRow: [],
-      };
+it("zeros out PK 13/14 dose amount and displays '⛔ GESPERRT: Stacking-Konflikt' when booster conflict is active", () => {
+  const mockPlan = {
+    day: 20,
+    raw: [
+      20,
+      "2026-08-11",
+      3,
+      null,
+      "Veg",
+      "Wachstum",
+      18,
+      140,
+      500,
+      32.4,
+      40,
+      25,
+      20,
+      60,
+      0.9,
+      1.4,
+      6.0,
+      500,
+      1000,
+      "Manuell",
+      "HESI TNT Complex",
+      2.5,
+      1.0,
+      2.0,
+      0.05,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      "Veg",
+      "",
+      0,
+      0,
+      0.9,
+      0,
+      0.5,
+      0,
+      0.2,
+    ],
+    formulaRow: [],
+  };
 
-      const rawItems = calculateMix(mockPlan, 10);
-      // Water profile complete (false), booster conflict active (true)
-      const safeItems = applyMixSafetyRules(rawItems, false, true);
+  const rawItems = calculateMix(mockPlan, 10);
+  // Water profile complete (false), booster conflict active (true)
+  const safeItems = applyMixSafetyRules(rawItems, false, true);
 
-      const pkItem = safeItems.find((i) => i.name === "PK13/14" || i.name === "PK 13/14");
-      expect(pkItem).toBeDefined();
-      expect(pkItem?.dose).toBe(0.0);
-      expect(pkItem?.amount).toBe(0.0);
-      expect(pkItem?.statusText).toBe("⛔ GESPERRT: Stacking-Konflikt");
-      expect(pkItem?.isBlocked).toBe(true);
+  const pkItem = safeItems.find(
+    (i) => i.name === "PK13/14" || i.name === "PK 13/14",
+  );
+  expect(pkItem).toBeDefined();
+  expect(pkItem?.dose).toBe(0.0);
+  expect(pkItem?.amount).toBe(0.0);
+  expect(pkItem?.statusText).toBe("⛔ GESPERRT: Stacking-Konflikt");
+  expect(pkItem?.isBlocked).toBe(true);
 
-      // Verify non-PK items remain unblocked with normal dosages
-      const baseItem = safeItems.find((i) => i.name === "HESI TNT Complex" || i.role === "Basis");
-      expect(baseItem).toBeDefined();
-      expect(baseItem?.dose).toBeGreaterThan(0);
-      expect(baseItem?.amount).toBeGreaterThan(0);
-      expect(baseItem?.statusText).toBeUndefined();
-    });
+  // Verify non-PK items remain unblocked with normal dosages
+  const baseItem = safeItems.find(
+    (i) => i.name === "HESI TNT Complex" || i.role === "Basis",
+  );
+  expect(baseItem).toBeDefined();
+  expect(baseItem?.dose).toBeGreaterThan(0);
+  expect(baseItem?.amount).toBeGreaterThan(0);
+  expect(baseItem?.statusText).toBeUndefined();
+});
 ```
 
 ---
@@ -209,16 +348,20 @@ import { applyMixSafetyRules } from "./NutrientMixPanel";
 To verify these changes after implementation:
 
 1. **TypeScript Typecheck**:
+
    ```bash
    npx tsc --noEmit
    ```
-   *(Must return Exit code 0 with zero errors)*
+
+   _(Must return Exit code 0 with zero errors)_
 
 2. **Vitest Unit Tests**:
+
    ```bash
    npx vitest run
    ```
-   *(Must return Exit code 0 with all test suites passing, including `panels.test.ts`)*
+
+   _(Must return Exit code 0 with all test suites passing, including `panels.test.ts`)_
 
 3. **Behavioral Invalidation Check**:
    - If `isWaterProfileIncomplete` is true and any item in `mixItems` has `dose > 0` or `amount > 0` or missing status `⛔ Gesperrt: Wasserprofil fehlt`, the verification fails.

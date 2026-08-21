@@ -2,7 +2,7 @@
 
 **Author**: Explorer 3  
 **Working Directory**: `c:\Users\badbu\Documents\grow\.agents\explorer_3`  
-**Date**: 2026-08-11  
+**Date**: 2026-08-11
 
 ---
 
@@ -28,7 +28,10 @@ Direct observations from inspecting the codebase:
    - Onboarding Welcome Card & Tooltip (`lines 2805-2911`): `linear-gradient(135deg, var(--surface-1), var(--surface-2))`, `.term-tooltip`, `.tooltip-text`.
    - Accessibility Focus Ring (`lines 174-177`):
      ```css
-     :focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+     :focus-visible {
+       outline: 2px solid var(--green);
+       outline-offset: 3px;
+     }
      ```
    - Reduced Motion (`lines 3507-3515`): `@media (prefers-reduced-motion: reduce)` disables animations and transitions.
 
@@ -54,15 +57,15 @@ Direct observations from inspecting the codebase:
 1. **Token Invariant Enforcement**:
    - Observation 1 details all existing CSS variable names and values in `src/styles.css`.
    - Observation 2 states AGENTS.md rule: "Vor neuen Einzelwerten bestehende Tokens verwenden."
-   - *Deduction*: Any new component written under `src/components/` must directly utilize CSS custom properties (`var(--green)`, `var(--surface-1)`, `var(--surface-2)`, etc.) without introducing hardcoded hex colors or arbitrary values.
+   - _Deduction_: Any new component written under `src/components/` must directly utilize CSS custom properties (`var(--green)`, `var(--surface-1)`, `var(--surface-2)`, etc.) without introducing hardcoded hex colors or arbitrary values.
 
 2. **Accessibility & Usability Invariant Enforcement**:
    - Observation 1 and 2 highlight 44px touch targets on mobile, 2px green focus rings, non-color status indicators, `@media (prefers-reduced-motion)`, and German inline tooltips (`.term-tooltip`).
-   - *Deduction*: Implementers must construct UI panels with touch target sizes ≥44px for buttons/inputs, provide inline help tooltips for technical German terms (VPD, DLI, EC, pH), and wrap state in accessible semantic HTML markup.
+   - _Deduction_: Implementers must construct UI panels with touch target sizes ≥44px for buttons/inputs, provide inline help tooltips for technical German terms (VPD, DLI, EC, pH), and wrap state in accessible semantic HTML markup.
 
 3. **Testing Strategy**:
    - Observation 3 shows that Vitest operates with `environment: "node"` targeting `src/**/*.test.ts`, with 29 passing domain/state unit tests.
-   - *Deduction*: Unit tests for new Master Class components should focus on testing domain calculation helpers, input parsing/validation, state transformations, and German terminology translation functions in `.test.ts` files. End-to-end rendering and WCAG compliance are handled by Playwright E2E and Axe.
+   - _Deduction_: Unit tests for new Master Class components should focus on testing domain calculation helpers, input parsing/validation, state transformations, and German terminology translation functions in `.test.ts` files. End-to-end rendering and WCAG compliance are handled by Playwright E2E and Axe.
 
 ---
 

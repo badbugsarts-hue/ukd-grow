@@ -248,7 +248,7 @@ describe("Milestone 4 - App Shell Routing & State Integration Test Suite", () =>
 			expect(passedRun.config.genetics).toBe("Northern Lights");
 
 			// Zero mutation assertion on initial state
-			expect(initialRun.config.name).toBe("UKD Run 2026");
+			expect(initialRun.config.name).toBe("UKD Masterplan v11 Variante B");
 			expect(initialRun.config.genetics).toBe("Double Grape Auto");
 		});
 	});
@@ -261,8 +261,8 @@ describe("Milestone 4 - App Shell Routing & State Integration Test Suite", () =>
 			const guidedText = getTermDescription(term, "guided");
 			const expertText = getTermDescription(term, "expert");
 
-			expect(guidedText).toContain("Luft Wasser aus den Blättern zieht");
-			expect(expertText).toContain("Stomata-Leitfähigkeit");
+			expect(guidedText).toContain("Verdunstungsdruck");
+			expect(expertText).toContain("Formelversion");
 
 			// Verify scientific domain calculations remain unaltered
 			const tempAir = 25.0;
@@ -342,8 +342,8 @@ describe("Milestone 4 - App Shell Routing & State Integration Test Suite", () =>
 			const guidedDesc = getTermDescription("VPD", "guided");
 			const expertDesc = getTermDescription("VPD", "expert");
 
-			expect(guidedDesc).toContain("Luft Wasser aus den Blättern zieht");
-			expect(expertDesc).toContain("Stomata-Leitfähigkeit");
+			expect(guidedDesc).toContain("Verdunstungsdruck");
+			expect(expertDesc).toContain("Formelversion");
 			expect(guidedDesc).not.toEqual(expertDesc);
 		});
 	});

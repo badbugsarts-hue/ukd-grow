@@ -75,9 +75,9 @@ describe("termDictionary", () => {
 		const advancedText = getTermDescription(term, "advanced");
 		const expertText = getTermDescription(term, "expert");
 
-		expect(beginnerText).toContain("Luft Wasser aus den Blättern");
+		expect(beginnerText).toContain("Verdunstungsdruck");
 		expect(advancedText).toContain("Sättigungsdampfdruck");
-		expect(expertText).toContain("Stomata-Leitfähigkeit");
+		expect(expertText).toContain("Formelversion");
 	});
 
 	it("returns safe fallback for unknown terms and invalid lens inputs", () => {

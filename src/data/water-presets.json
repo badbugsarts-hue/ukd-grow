@@ -1,0 +1,72 @@
+[
+  {
+    "id": "berlin",
+    "name": "Berlin (Hart)",
+    "calciumMgL": 105,
+    "magnesiumMgL": 15,
+    "alkalinityMgL": 250
+  },
+  {
+    "id": "munich",
+    "name": "München (Sehr Hart)",
+    "calciumMgL": 115,
+    "magnesiumMgL": 22,
+    "alkalinityMgL": 310
+  },
+  {
+    "id": "hamburg",
+    "name": "Hamburg (Weich - Mittel)",
+    "calciumMgL": 50,
+    "magnesiumMgL": 7,
+    "alkalinityMgL": 140
+  },
+  {
+    "id": "cologne",
+    "name": "Köln (Mittel - Hart)",
+    "calciumMgL": 75,
+    "magnesiumMgL": 14,
+    "alkalinityMgL": 210
+  },
+  {
+    "id": "frankfurt",
+    "name": "Frankfurt (Mittel)",
+    "calciumMgL": 65,
+    "magnesiumMgL": 12,
+    "alkalinityMgL": 180
+  },
+  {
+    "id": "stuttgart",
+    "name": "Stuttgart (Hart)",
+    "calciumMgL": 95,
+    "magnesiumMgL": 18,
+    "alkalinityMgL": 260
+  },
+  {
+    "id": "soft_water_alg",
+    "name": "Standard: Weiches Wasser (< 8.4 °dH)",
+    "calciumMgL": 35,
+    "magnesiumMgL": 8,
+    "alkalinityMgL": 90
+  },
+  {
+    "id": "medium_water_alg",
+    "name": "Standard: Mittleres Wasser (8.4 - 14 °dH)",
+    "calciumMgL": 65,
+    "magnesiumMgL": 12,
+    "alkalinityMgL": 170
+  },
+  {
+    "id": "hard_water_alg",
+    "name": "Standard: Hartes Wasser (> 14 °dH)",
+    "calciumMgL": 110,
+    "magnesiumMgL": 20,
+    "alkalinityMgL": 290
+  },
+  {
+    "id": "ro_water_alg",
+    "name": "Standard: Osmosewasser (RO)",
+    "calciumMgL": 0,
+    "magnesiumMgL": 0,
+    "alkalinityMgL": 0
+  }
+]

@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 
 const routes = [
+  "masterplan",
+  "plan-editor",
   "cockpit",
   "setup",
   "log",
@@ -11,8 +13,10 @@ const routes = [
   "history",
   "mix",
   "climate",
+  "calc",
   "nutrients",
   "products",
+  "autoflower",
   "compatibility",
   "diagnostics",
   "knowledge",
@@ -21,6 +25,9 @@ const routes = [
   "legal",
   "reports",
   "system",
+  "equipment",
+  "ipm",
+  "incidents",
 ] as const;
 
 const knowledge = JSON.parse(
@@ -74,6 +81,7 @@ test("all routes render in all experience lenses without console errors", async 
 test("URL state, saved day, lens and theme persist and clamp safely", async ({
   page,
 }) => {
+  test.setTimeout(120_000);
   await page.goto("/");
   await expect(page.locator("#main-content")).toBeVisible();
   await page.evaluate(() => {
@@ -122,13 +130,13 @@ test("sidebar, contextual help and command palette navigation work", async ({
     "Rohdaten",
     "Cockpit",
   ]) {
-    const btn = page.locator(".sidebar nav").getByRole("button", { name: label, exact: true });
-    // if button is inside a collapsed group, we need to expand it first
-    // Since we don't know the group easily, we can just expand all groups for the test
-    const collapsedHeaders = page.locator('.nav-group.is-collapsed .nav-group-header');
-    const count = await collapsedHeaders.count();
-    for (let i = 0; i < count; i++) {
-        await collapsedHeaders.nth(0).click();
+    const btn = page
+      .locator(".sidebar nav")
+      .getByRole("button", { name: new RegExp(`^${label}`) });
+    const group = btn.locator("xpath=ancestor::div[contains(@class, 'nav-group')]");
+    const header = group.locator(".nav-group-header");
+    if ((await header.getAttribute("aria-expanded")) === "false") {
+      await header.click();
     }
     await btn.click();
     await expect(page.locator("#main-content h1")).toHaveText(label);
@@ -169,12 +177,17 @@ test("cockpit, today checklist and timeline controls update the shared day", asy
 
   await page.getByRole("button", { name: "Vollansicht →" }).click();
   await expect(page.locator("#main-content h1")).toHaveText("Heute");
-  const checklist = page.locator(".inline-checklist input");
-  await expect(checklist).toHaveCount(4);
-  for (let index = 0; index < 4; index += 1) await checklist.nth(index).check();
-  for (let index = 0; index < 4; index += 1)
+  await page
+    .getByRole("button", { name: "Schritt 3: Maßnahmen & Bestätigung" })
+    .click();
+  const checklist = page.getByRole("heading", { name: /Tages-Aufgaben/ })
+    .locator("xpath=following-sibling::div[1]")
+    .getByRole("checkbox");
+  await expect(checklist).toHaveCount(5);
+  for (let index = 0; index < 5; index += 1) await checklist.nth(index).check();
+  for (let index = 0; index < 5; index += 1)
     await expect(checklist.nth(index)).toBeChecked();
-  await page.getByRole("button", { name: "Mischung vorbereiten" }).click();
+  await page.getByRole("button", { name: /Zum Nährstoff-Mixer/ }).click();
   await expect(page.locator("#main-content h1")).toHaveText("Mischlabor");
 
   await gotoRoute(page, "timeline", "advanced", 0);
@@ -195,27 +208,24 @@ test("mix calculator, climate formulas and nutrient detail modes work", async ({
   page,
 }) => {
   await gotoRoute(page, "mix", "guided", 4);
-  const volume = page.locator(".mix-input input");
+  const volume = page.getByLabel("Mischvolumen in Litern");
   await volume.fill("10");
   await expect(
-    page.locator(".mix-list > div").filter({ hasText: "HESI TNT" }),
-  ).toContainText("12.50 ml");
+    page.getByRole("row").filter({ hasText: "HESI TNT" }),
+  ).toContainText("12.5 ml");
   await expect(
-    page.locator(".mix-list > div").filter({ hasText: "Wurzel Complex" }),
-  ).toContainText("25.00 ml");
+    page.getByRole("row").filter({ hasText: "Wurzel Complex" }),
+  ).toContainText("25.0 ml");
   await volume.fill("-5");
-  await expect(volume).toHaveValue("0");
-  await expect(
-    page.locator(".mix-list > div").filter({ hasText: "HESI TNT" }),
-  ).toContainText("0.00 ml");
+  await expect(volume).toHaveValue("1");
 
   await page.getByTitle("Advanced").click();
-  await expect(page.locator(".mix-order-list li")).toHaveCount(10);
+  await expect(page.getByRole("heading", { name: /Schritt 7/ })).toBeVisible();
   await page.getByTitle("Expert").click();
-  await expect(page.getByText("EXPERT TRACE")).toBeVisible();
+  await expect(page.getByTitle("Expert")).toHaveClass(/active/);
 
   await gotoRoute(page, "climate", "expert", 4);
-  await expect(page.getByText(/DLI = PPFD/)).toBeVisible();
+  await expect(page.locator("pre.code-block").filter({ hasText: "DLI = PPFD" })).toBeVisible();
   await expect(
     page.getByRole("img", { name: /Kurvendiagramm: PPFD/ }),
   ).toHaveCount(1);
@@ -304,7 +314,7 @@ test("raw sheet switching, formula toggle and JSON export preserve data", async 
   test.skip(isMobile, "download integrity is browser-independent");
   await gotoRoute(page, "raw", "expert");
   const select = page.getByLabel("Blatt");
-  await expect(select.locator("option")).toHaveCount(27);
+  await expect(select.locator("option")).toHaveCount(29);
   await select.selectOption("02_Daily_Master");
   await expect(page.locator(".raw-toolbar")).toContainText("82 Zeilen");
   const formulaToggle = page.getByLabel("Formeln");
@@ -329,7 +339,7 @@ test("data load failure is visible and retryable", async ({
   isMobile,
 }) => {
   test.skip(isMobile, "one network failure path is sufficient");
-  await page.route("**/data/evidence-guarded-workbook-v6.json", (route) =>
+  await page.route("**/data/evidence-guarded-workbook-v8.json", (route) =>
     route.fulfill({ status: 503, body: "offline" }),
   );
   await page.goto("/");

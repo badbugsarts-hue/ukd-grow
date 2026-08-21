@@ -5,6 +5,7 @@
 Milestone 4 (M4) integrates all Master Class interactive input and context panels into `src/App.tsx`, providing a unified, reactive, 2026-level web application shell for the UKD Grow Masterplan.
 
 The scope encompasses:
+
 1. Routing integration for all core interactive panels (`today`, `mix`, `setup`, `climate`, `knowledge`, `calc`).
 2. Header Experience Lens Selector (`guided`, `advanced`, `expert`) with `LensBadge` display and dual-persistence (`localStorage` + URL query params).
 3. Immutable unidirectional state binding of `run: RunPackage` and `onUpdateRun: (updatedRun: RunPackage) => void` across all panel components.
@@ -17,6 +18,7 @@ The scope encompasses:
 ## 1. Route & Navigation Integration
 
 ### 1.1 Route Definition (`src/types.ts`)
+
 The `RouteId` union in `src/types.ts` is expanded to explicitly include the standalone `calc` route for `VpdDliCalculatorPanel`:
 
 ```typescript
@@ -46,6 +48,7 @@ export type RouteId =
 ```
 
 ### 1.2 Navigation Registry (`src/App.tsx`)
+
 The `NAV` array in `src/App.tsx` is updated to include the `calc` route under the `"Werkzeuge"` group:
 
 ```typescript
@@ -60,6 +63,7 @@ The `NAV` array in `src/App.tsx` is updated to include the `calc` route under th
 ```
 
 ### 1.3 Help & Guidance Registries
+
 The `HELP` and `GUIDED_HINTS` lookup tables in `src/App.tsx` are extended with canonical German explanations:
 
 ```typescript
@@ -80,6 +84,7 @@ The `HELP` and `GUIDED_HINTS` lookup tables in `src/App.tsx` are extended with c
 ## 2. Header & Experience Lens Integration
 
 ### 2.1 Lens Controls and `LensBadge` Integration
+
 The header topbar in `App.tsx` contains the `LensControl` component and displays the active `LensBadge`:
 
 ```tsx
@@ -90,7 +95,9 @@ The header topbar in `App.tsx` contains the `LensControl` component and displays
 ```
 
 ### 2.2 Dual State Persistence
+
 `Workspace()` manages the `lens` state (`"guided" | "advanced" | "expert"`):
+
 - **Initialization**: `readLens()` reads `?lens=` from URL search params, falling back to `localStorage.getItem("ukd:lens")`, defaulting to `"guided"`.
 - **Synchronization**: `useEffect` updates `localStorage.setItem("ukd:lens", lens)` and syncs `window.history.replaceState({}, "", url)` without reloading the page.
 
@@ -102,19 +109,19 @@ The header topbar in `App.tsx` contains the `LensControl` component and displays
 
 ### Component Wiring Matrix
 
-| Route ID | Component | Props Bound | State Callback | Cross-Panel Navigation |
-|---|---|---|---|---|
-| `today` | `DailyOperatorPanel` | `run={run}`, `plan={plan}`, `lens={lens}` | `onUpdateRun={setRun}` | `navigate={navigate}` |
-| `mix` | `NutrientMixPanel` | `run={run}`, `plan={plan}`, `lens={lens}` | `onUpdateRun={setRun}` | `navigate={navigate}` |
-| `setup` | `RunConfigPanel` | `run={run}`, `lens={lens}` | `onUpdateRun={setRun}` | `navigate={navigate}` |
-| `climate` | `EnvironmentTargetsPanel` | `run={run}`, `plan={plan}`, `lens={lens}` | `onUpdateRun={setRun}` | `navigate={navigate}` |
-| `knowledge` | `ContextHelpGlossaryPanel` | `run={run}`, `plan={plan}`, `lens={lens}` | `onUpdateRun={setRun}` | `navigate={navigate}` |
-| `calc` | `VpdDliCalculatorPanel` | `run={run}`, `plan={plan}`, `lens={lens}` | `onUpdateRun={setRun}` | `navigate={navigate}` |
-| `cockpit` | `Cockpit` | `run={run}`, `plan={plan}`, `lens={lens}` | `setRun={setRun}` | `navigate={navigate}` |
-| `log` | `RunLogWorkspace` | `run={run}`, `plan={plan}` | `onChange={setRun}` | — |
-| `history` | `RunHistoryWorkspace` | `run={run}` | `onChange={setRun}` | — |
-| `legal` | `LegalWorkspace` | `run={run}`, `profile={legalProfile}` | `onChange={setRun}`, `onProfileChange={setLegalProfile}` | — |
-| `reports` | `ReportsWorkspace` | `run={run}` | `onChange={setRun}` | — |
+| Route ID    | Component                  | Props Bound                               | State Callback                                           | Cross-Panel Navigation |
+| ----------- | -------------------------- | ----------------------------------------- | -------------------------------------------------------- | ---------------------- |
+| `today`     | `DailyOperatorPanel`       | `run={run}`, `plan={plan}`, `lens={lens}` | `onUpdateRun={setRun}`                                   | `navigate={navigate}`  |
+| `mix`       | `NutrientMixPanel`         | `run={run}`, `plan={plan}`, `lens={lens}` | `onUpdateRun={setRun}`                                   | `navigate={navigate}`  |
+| `setup`     | `RunConfigPanel`           | `run={run}`, `lens={lens}`                | `onUpdateRun={setRun}`                                   | `navigate={navigate}`  |
+| `climate`   | `EnvironmentTargetsPanel`  | `run={run}`, `plan={plan}`, `lens={lens}` | `onUpdateRun={setRun}`                                   | `navigate={navigate}`  |
+| `knowledge` | `ContextHelpGlossaryPanel` | `run={run}`, `plan={plan}`, `lens={lens}` | `onUpdateRun={setRun}`                                   | `navigate={navigate}`  |
+| `calc`      | `VpdDliCalculatorPanel`    | `run={run}`, `plan={plan}`, `lens={lens}` | `onUpdateRun={setRun}`                                   | `navigate={navigate}`  |
+| `cockpit`   | `Cockpit`                  | `run={run}`, `plan={plan}`, `lens={lens}` | `setRun={setRun}`                                        | `navigate={navigate}`  |
+| `log`       | `RunLogWorkspace`          | `run={run}`, `plan={plan}`                | `onChange={setRun}`                                      | —                      |
+| `history`   | `RunHistoryWorkspace`      | `run={run}`                               | `onChange={setRun}`                                      | —                      |
+| `legal`     | `LegalWorkspace`           | `run={run}`, `profile={legalProfile}`     | `onChange={setRun}`, `onProfileChange={setLegalProfile}` | —                      |
+| `reports`   | `ReportsWorkspace`         | `run={run}`                               | `onChange={setRun}`                                      | —                      |
 
 ---
 

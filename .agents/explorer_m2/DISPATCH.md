@@ -1,8 +1,10 @@
 ## 2026-08-11T03:24:36Z
+
 You are Explorer for Milestone 2 (Core Interactive Input Panels).
 Working directory: c:\Users\badbu\Documents\grow\.agents\explorer_m2
 
 Your task:
+
 1. Create directory `c:\Users\badbu\Documents\grow\.agents\explorer_m2`.
 2. Read `c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md`, `c:\Users\badbu\Documents\grow\PROJECT.md`, `c:\Users\badbu\Documents\grow\AGENTS.md`, and inspect `src/components/common/` (`TermTooltip`, `MetricGauge`, `LensBadge`, `termDictionary`).
 3. Inspect `src/domain.ts` and `src/run-state.ts` to map scientific calculation functions and run update functions (`addObservation`, `updateRunConfig`, etc.).

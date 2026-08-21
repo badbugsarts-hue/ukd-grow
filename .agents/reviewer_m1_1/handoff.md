@@ -10,6 +10,7 @@
 ## 1. Observation
 
 ### File Inspection Results
+
 1. `src/components/common/termDictionary.ts` (311 lines):
    - Contains definitions for 14 cultivation parameters (`VPD`, `DLI`, `EC`, `pH`, `PPFD`, `rF`, `Leaf-VPD`, `BT`, `BW`, `VT`, `VW`, `Drain-EC`, `Drain-pH`, `Substrat-EC`).
    - Implements `getTermDefinition`, `getTermDescription` (supporting `guided`, `advanced`, `expert` lenses), `searchTerms`, and `getAllTerms`.
@@ -78,11 +79,13 @@
 ## 3. Findings & Suggestions
 
 ### [Minor] Finding 1: Touch Target Size for Interactive LensBadge on Mobile
+
 - **Where**: `src/components/common/LensBadge.tsx`, lines 49–53.
 - **Why**: When `onClick` is provided, `LensBadge` acts as an interactive button (`role="button"`). Small (`sm`) and medium (`md`) badge sizes have visual heights of ~18–24px, which is below the 44px mobile touch target guideline specified in `AGENTS.md`.
 - **Suggestion**: Add a `minHeight: isInteractive ? "44px" : undefined` or pseudo-element touch padding (`::before`) when rendered interactively on touch screens.
 
 ### [Minor] Finding 2: ARIA Relationship between Tooltip Trigger and Content
+
 - **Where**: `src/components/common/TermTooltip.tsx`, lines 63–98.
 - **Why**: `TermTooltip` uses `role="button"` and `aria-expanded={isOpen}`, but does not explicitly link trigger and tooltip content via `aria-describedby`.
 - **Suggestion**: Assign a unique `id` to the tooltip content `<span role="tooltip" id={tooltipId}>` and add `aria-describedby={isOpen ? tooltipId : undefined}` to the trigger element for optimal screen reader accessibility.
@@ -91,27 +94,27 @@
 
 ## 4. Verified Claims
 
-| Claim | Verification Method | Result |
-|---|---|---|
-| All 9+ required cultivation terms resolved | `common.test.ts` unit tests & `view_file` | PASS |
-| Lens descriptions return distinct beginner/advanced/expert explanations | `common.test.ts` unit tests | PASS |
-| Unknown terms return safe fallbacks | `common.test.ts` unit tests | PASS |
-| `calculateGaugeStatus` correctly evaluates optimal, warn, alert-low, alert-high, and missing | `common.test.ts` unit tests | PASS |
-| Zero TypeScript compilation errors | `npx tsc --noEmit` | PASS |
-| All 55 vitest tests pass | `npx vitest run` | PASS |
-| Strict adherence to `styles.css` token definitions | Code audit against `src/styles.css` | PASS |
+| Claim                                                                                        | Verification Method                       | Result |
+| -------------------------------------------------------------------------------------------- | ----------------------------------------- | ------ |
+| All 9+ required cultivation terms resolved                                                   | `common.test.ts` unit tests & `view_file` | PASS   |
+| Lens descriptions return distinct beginner/advanced/expert explanations                      | `common.test.ts` unit tests               | PASS   |
+| Unknown terms return safe fallbacks                                                          | `common.test.ts` unit tests               | PASS   |
+| `calculateGaugeStatus` correctly evaluates optimal, warn, alert-low, alert-high, and missing | `common.test.ts` unit tests               | PASS   |
+| Zero TypeScript compilation errors                                                           | `npx tsc --noEmit`                        | PASS   |
+| All 55 vitest tests pass                                                                     | `npx vitest run`                          | PASS   |
+| Strict adherence to `styles.css` token definitions                                           | Code audit against `src/styles.css`       | PASS   |
 
 ---
 
 ## 5. Stress Test Results (Adversarial Review)
 
-| Scenario | Expected Behavior | Actual Behavior | Result |
-|---|---|---|---|
-| `MetricGauge` receives `value = NaN`, `null`, `undefined` | Status returns `"missing"`, 0% width, display `"—"` | Evaluates to status `"missing"` gracefully | PASS |
-| `MetricGauge` receives `min === max` (range = 0) | No division by zero / `NaN` | `range > 0` condition sets percentage to 0 | PASS |
-| `MetricGauge` value exceeds `max` or falls below `min` | Percentage clamped between 0 and 100% | Clamped with `Math.max(0, Math.min(100, ...))` | PASS |
-| `getTermDefinition` receives malformed or whitespace string | Returns `undefined` without throwing | Handled by null checks and `trim()` | PASS |
-| `TermTooltip` unmounted while open | Cleanup removes global event listeners | `removeEventListener` executed in `useEffect` cleanup | PASS |
+| Scenario                                                    | Expected Behavior                                   | Actual Behavior                                       | Result |
+| ----------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------- | ------ |
+| `MetricGauge` receives `value = NaN`, `null`, `undefined`   | Status returns `"missing"`, 0% width, display `"—"` | Evaluates to status `"missing"` gracefully            | PASS   |
+| `MetricGauge` receives `min === max` (range = 0)            | No division by zero / `NaN`                         | `range > 0` condition sets percentage to 0            | PASS   |
+| `MetricGauge` value exceeds `max` or falls below `min`      | Percentage clamped between 0 and 100%               | Clamped with `Math.max(0, Math.min(100, ...))`        | PASS   |
+| `getTermDefinition` receives malformed or whitespace string | Returns `undefined` without throwing                | Handled by null checks and `trim()`                   | PASS   |
+| `TermTooltip` unmounted while open                          | Cleanup removes global event listeners              | `removeEventListener` executed in `useEffect` cleanup | PASS   |
 
 ---
 

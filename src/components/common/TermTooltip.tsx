@@ -61,7 +61,6 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({
 	};
 
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: Custom tooltip layout requires span
 		<span
 			ref={triggerRef}
 			className={`term-tooltip ${className}`.trim()}
@@ -87,15 +86,7 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({
 				style={{ display: isOpen ? "block" : undefined }}
 			>
 				{termDef && (
-					<strong
-						className="tooltip-header"
-						style={{
-							display: "block",
-							marginBottom: 4,
-							color: "var(--green)",
-							fontWeight: 700,
-						}}
-					>
+					<strong className="tooltip-header">
 						{termDef.germanName} ({termDef.acronym})
 						{termDef.unit ? ` · ${termDef.unit}` : ""}
 					</strong>

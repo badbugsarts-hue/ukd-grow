@@ -1,10 +1,10 @@
 import type React from "react";
 import { useState } from "react";
 import { calculateMix, DAILY_COLUMNS, numberAt } from "../../domain";
+import { applyRunCommand } from "../../run-commands";
 import type {
 	DayPlan,
 	ExperienceLens,
-	MixBatchRecord,
 	RouteId,
 	RunPackage,
 } from "../../types";
@@ -42,17 +42,23 @@ export function applyMixSafetyRules(
 	stackingBoosterConflict: boolean,
 ): DisplayMixItem[] {
 	return items.map((item) => {
+		const normalizedName = item.name.toLowerCase();
+		const requiresMeasuredWaterChemistry =
+			normalizedName.includes("athena balance") ||
+			normalizedName.includes("calmag") ||
+			normalizedName.includes("cal mag") ||
+			normalizedName.includes("ph down");
 		const isPkItem =
 			item.name === "PK13/14" ||
 			item.name === "PK 13/14" ||
 			item.name.includes("PK13/14");
 
-		if (isWaterProfileIncomplete) {
+		if (isWaterProfileIncomplete && requiresMeasuredWaterChemistry) {
 			return {
 				...item,
 				dose: 0.0,
 				amount: 0.0,
-				statusText: "⛔ Gesperrt: Wasserprofil fehlt",
+				statusText: "⛔ Gesperrt: Wasserchemie fehlt",
 				isBlocked: true,
 			};
 		}
@@ -92,6 +98,9 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 	);
 	const [deviationNotes, setDeviationNotes] = useState<string>("");
 	const [saveStatus, setSaveStatus] = useState<string | null>(null);
+	const [actualDoses, setActualDoses] = useState<Record<string, string>>({});
+	const [waterTempC, setWaterTempC] = useState<string>("");
+	const [finalVolumeLiters, setFinalVolumeLiters] = useState<string>("");
 
 	// Check fail-closed water profile missing alert
 	const isWaterProfileIncomplete =
@@ -172,44 +181,66 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 	// Targets from plan
 	const targetEc = plan ? numberAt(plan, DAILY_COLUMNS.ec) : 1.4;
 	const targetPh = plan ? numberAt(plan, DAILY_COLUMNS.ph) : 6.2;
+	const actualDoseFor = (item: DisplayMixItem): number =>
+		item.isBlocked ? 0 : Number(actualDoses[item.name]);
+	const actualsComplete = mixItems.every((item) => {
+		if (item.isBlocked || item.dose === 0) return true;
+		const actual = actualDoses[item.name];
+		return (
+			actual !== undefined &&
+			actual.trim() !== "" &&
+			Number.isFinite(Number(actual)) &&
+			Number(actual) >= 0
+		);
+	});
+	const parsedFinalVolume = Number(finalVolumeLiters);
+	const canRecordBatch =
+		actualsComplete &&
+		finalVolumeLiters.trim() !== "" &&
+		Number.isFinite(parsedFinalVolume) &&
+		parsedFinalVolume > 0;
 
 	const handleRecordBatch = () => {
-		const record: MixBatchRecord = {
+		if (!canRecordBatch) return;
+		const batch = {
 			id: crypto.randomUUID(),
-			runId: run.id,
 			day: currentDay,
 			createdAt: new Date().toISOString(),
 			waterSourceEc: water.sourceEc,
 			waterSourcePh: water.sourcePh,
-			waterTempC: 20,
+			waterTempC:
+				waterTempC.trim() === "" || !Number.isFinite(Number(waterTempC))
+					? null
+					: Number(waterTempC),
 			waterVolumeLiters: batchLiters,
 			components: mixItems.map((item, idx) => ({
 				productName: item.name,
 				productId: null,
 				plannedDoseMlPerL: item.dose,
-				actualDoseMlPerL: item.dose,
-				actualTotalMl: item.amount,
+				actualDoseMlPerL: actualDoseFor(item),
+				actualTotalMl: actualDoseFor(item) * batchLiters,
 				mixOrder: idx + 1,
 			})),
 			finalEc: measuredEc ?? null,
 			finalPh: measuredPh ?? null,
-			finalVolumeLiters: batchLiters,
+			finalVolumeLiters: parsedFinalVolume,
 			plannedDay: plan?.day ?? null,
 			deviationNotes: deviationNotes.trim(),
 			reservoirId: null,
 			batchLabel: batchLabel.trim() || `Batch Tag ${currentDay}`,
 		};
-
-		const updatedRun: RunPackage = {
-			...run,
-			mixBatches: [record, ...(run.mixBatches || [])],
-			updatedAt: new Date().toISOString(),
-		};
-
-		onUpdateRun(updatedRun);
+		const result = applyRunCommand(run, { kind: "mix-batch.create", batch });
+		if (!result.ok) {
+			setSaveStatus(result.errors.map((entry) => entry.message).join(" "));
+			return;
+		}
+		onUpdateRun(result.value);
 		setSaveStatus(
-			`Mischcharge "${record.batchLabel}" erfolgreich protokolliert!`,
+			`Mischcharge "${batch.batchLabel}" erfolgreich protokolliert!`,
 		);
+		setActualDoses({});
+		setWaterTempC("");
+		setFinalVolumeLiters("");
 		setTimeout(() => setSaveStatus(null), 4000);
 	};
 
@@ -305,9 +336,9 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 					>
 						⛔ FEHLENDES WASSERPROFIL (Fail-Closed Gate)
 					</strong>
-					FEHLENDES WASSERPROFIL: Keine automatische Conditioner- oder
-					CalMag-Dosis ableitbar. Bitte Wasserwerte in der Run-Konfiguration
-					erfassen.
+					FEHLENDES WASSERPROFIL: Conditioner, CalMag und pH-Korrektur bleiben
+					gesperrt. Die kanonischen Basiswerte bleiben als Plan sichtbar, sind
+					aber erst nach Endmix-Messung operativ zu bestätigen.
 					{navigate && (
 						<button
 							type="button"
@@ -616,7 +647,7 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 				</div>
 
 				{/* Calculated Recipe Table */}
-				<div style={{ overflowX: "auto" }} tabIndex={0} role="region" aria-label="Mischungs-Tabelle scrollbar">
+				<div style={{ overflowX: "auto" }}>
 					<table
 						style={{
 							width: "100%",
@@ -670,6 +701,14 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 										borderBottom: "1px solid var(--line)",
 									}}
 								>
+									Ist-Dosis (ml/L)
+								</th>
+								<th
+									style={{
+										padding: "8px 10px",
+										borderBottom: "1px solid var(--line)",
+									}}
+								>
 									Status & Hinweis
 								</th>
 							</tr>
@@ -706,6 +745,27 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 										}}
 									>
 										{item.amount.toFixed(1)} ml
+									</td>
+									<td style={{ padding: "8px 10px" }}>
+										{item.isBlocked || item.dose === 0 ? (
+											<span style={{ color: "var(--muted)" }}>0,00 · gesperrt/nicht geplant</span>
+										) : (
+											<input
+												type="number"
+												min="0"
+												step="0.001"
+												value={actualDoses[item.name] ?? ""}
+												onChange={(event) =>
+													setActualDoses((current) => ({
+														...current,
+														[item.name]: event.target.value,
+													}))
+												}
+												aria-label={`Tatsächliche Dosis ${item.name} in Milliliter pro Liter`}
+												required
+												style={{ width: "92px", minHeight: "44px", padding: "6px", background: "var(--surface-1)", border: "1px solid var(--line)", borderRadius: "4px", color: "var(--text)" }}
+											/>
+										)}
 									</td>
 									<td style={{ padding: "8px 10px", fontSize: "11px" }}>
 										{item.statusText ? (
@@ -891,6 +951,7 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 						Schritt 7: Charge Protokollieren & Speichern
 					</h3>
 					<div
+						className="mix-record-grid"
 						style={{
 							display: "grid",
 							gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
@@ -898,7 +959,36 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 						}}
 					>
 						<div>
+							<label htmlFor="mix-water-temperature" style={{ fontSize: "12px", color: "var(--muted)", display: "block", marginBottom: "4px" }}>
+								Gemessene Wassertemperatur (°C, optional):
+							</label>
+							<input
+								id="mix-water-temperature"
+								type="number"
+								step="0.1"
+								value={waterTempC}
+								onChange={(event) => setWaterTempC(event.target.value)}
+								style={{ width: "100%", minHeight: "44px", padding: "8px", background: "var(--surface-1)", border: "1px solid var(--line)", borderRadius: "var(--radius-sm)", color: "var(--text)" }}
+							/>
+						</div>
+						<div>
+							<label htmlFor="mix-final-volume" style={{ fontSize: "12px", color: "var(--muted)", display: "block", marginBottom: "4px" }}>
+								Tatsächliches Endvolumen (L) *:
+							</label>
+							<input
+								id="mix-final-volume"
+								type="number"
+								min="0.01"
+								step="0.01"
+								value={finalVolumeLiters}
+								onChange={(event) => setFinalVolumeLiters(event.target.value)}
+								required
+								style={{ width: "100%", minHeight: "44px", padding: "8px", background: "var(--surface-1)", border: "1px solid var(--line)", borderRadius: "var(--radius-sm)", color: "var(--text)" }}
+							/>
+						</div>
+						<div>
 							<label
+								htmlFor="mix-batch-label"
 								style={{
 									fontSize: "12px",
 									color: "var(--muted)",
@@ -909,6 +999,7 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 								Chargen-Bezeichnung:
 							</label>
 							<input
+								id="mix-batch-label"
 								type="text"
 								value={batchLabel}
 								onChange={(e) => setBatchLabel(e.target.value)}
@@ -926,6 +1017,7 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 						</div>
 						<div>
 							<label
+								htmlFor="mix-deviation-notes"
 								style={{
 									fontSize: "12px",
 									color: "var(--muted)",
@@ -936,6 +1028,7 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 								Abweichungen / Bemerkungen:
 							</label>
 							<input
+								id="mix-deviation-notes"
 								type="text"
 								value={deviationNotes}
 								onChange={(e) => setDeviationNotes(e.target.value)}
@@ -956,6 +1049,7 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 					<button
 						type="button"
 						onClick={handleRecordBatch}
+						disabled={!canRecordBatch}
 						style={{
 							padding: "10px 16px",
 							background: "var(--green)",
@@ -967,8 +1061,13 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
 							cursor: "pointer",
 						}}
 					>
-						📝 Nährstoff-Mix als Charge aufzeichnen
+						📝 Ist-Charge aufzeichnen
 					</button>
+					{!canRecordBatch && (
+						<p role="status" style={{ margin: 0, color: "var(--amber)", fontSize: "12px" }}>
+							Vor dem Speichern alle geplanten Ist-Dosen und das tatsächliche Endvolumen erfassen. Leere Felder werden nicht als Planwert oder Nullmessung interpretiert.
+						</p>
+					)}
 
 					{saveStatus && (
 						<div

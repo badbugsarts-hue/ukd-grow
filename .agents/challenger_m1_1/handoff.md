@@ -3,11 +3,13 @@
 ## 1. Observation
 
 ### Implementation & Test Files Inspected
+
 - `src/components/common/termDictionary.ts`: Lines 1–311
 - `src/components/common/MetricGauge.tsx`: Lines 1–258
 - `src/components/common/common.test.ts`: Updated to include 18 test cases across `termDictionary` and `calculateGaugeStatus`.
 
 ### Empirical Test Execution Results
+
 - **TypeScript compilation**:
   - Command: `npx tsc --noEmit`
   - Output: Exit code `0` (0 errors).
@@ -88,16 +90,20 @@ Both `src/components/common/termDictionary.ts` and `src/components/common/Metric
 To independently verify this result:
 
 1. Run TypeScript check:
+
    ```bash
    npx tsc --noEmit
    ```
-   *Expected result*: Exit code `0` with 0 errors.
+
+   _Expected result_: Exit code `0` with 0 errors.
 
 2. Run Vitest test suite:
+
    ```bash
    npx vitest run
    ```
-   *Expected result*: All 5 test files pass (47 tests passed), including 18 tests in `src/components/common/common.test.ts`.
+
+   _Expected result_: All 5 test files pass (47 tests passed), including 18 tests in `src/components/common/common.test.ts`.
 
 3. Inspect test coverage in `src/components/common/common.test.ts`:
    Verify edge-case assertions for unknown term lookups, alias normalizations, negative values, NaNs, infinities, zero ranges, and extreme threshold bounds.

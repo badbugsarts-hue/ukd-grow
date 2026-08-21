@@ -1,8 +1,8 @@
 {
   "schemaVersion": "2.0.0",
   "release": "v8 Elite OWNED STOCK HESI AN",
-  "applicationRelease": "v7.0 Masterplan Upgrade",
-  "generatedAt": "2026-08-10",
+  "applicationRelease": "v8.0 Operator Workspace",
+	"generatedAt": "2026-08-16",
   "canonicalWorkbook": {
     "path": "data/evidence-guarded-workbook-v8.json",
     "sha256": "4F9071844702547E2CE3014480ED316740560893FAAB36AE9C083A243658EBD1",
@@ -23,9 +23,9 @@
       "sha256": "D61AF676375733BD0FA9A82F5E7C2355333C73A44D632424215E345CE2D20702"
     },
     {
-      "path": "sources/evidence-v6/UKD_Grow_Masterplan_2026_v6_EVIDENCE_GUARDED_Mobile.pdf",
+      "path": "UKD_Grow_Masterplan_2026_v8_OWNED_STOCK_HESI_AN_Mobile.pdf",
       "role": "reading-companion",
-      "sha256": "1B2E6378A1DD3CF3710EFBF518ED5F7ECC4941EB02ED9AAFC58C1F91C2732E52"
+      "sha256": "F73740687D76BCC61CBB508B7277759989CEE75267564015B77CC37D1F4A7AE5"
     },
     {
       "path": "sources/evidence-v6/deep-research-input.md",
@@ -37,7 +37,7 @@
     {
       "path": "src/data/knowledge-base.json",
       "role": "verified-claims",
-      "sha256": "9AE66150D0CA3529E85F9671BD418AAADADC97BAD175D30DB144304C786C7D42"
+      "sha256": "BEA14CD7F69EAD75BB10B949B13A2A5C4535A5D42CE419DF2FE3AFFA7E749A29"
     },
     {
       "path": "src/data/ai-context.json",
@@ -52,7 +52,7 @@
     {
       "path": "src/data/capability-roadmap.json",
       "role": "capability-truth",
-      "sha256": "E7EC27500395416EEDBB1003ECF7413DB50B5F996A77CF270C72B443EB97A40C"
+      "sha256": "B8CD3D97107F29A250CD6AAAF7F9C0E891A86564631B1E86979C97429F33FA01"
     },
     {
       "path": "src/data/integration-epics.json",

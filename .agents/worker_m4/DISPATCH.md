@@ -1,24 +1,42 @@
-## 2026-08-11T05:02:37Z
-You are Worker for Milestone 4 (App Shell Routing & State Integration in `App.tsx`).
-Working directory: c:\Users\badbu\Documents\grow\.agents\worker_m4
+## 2026-08-21T02:36:19Z
+You are a Worker agent implementing Milestone 4: App Shell Global Integration, Dynamic Plan Recalculation & Testing Gate for the UKD Grow Masterplan project.
+Your Working Directory is: c:\Users\badbu\Documents\grow\.agents\worker_m4
+Project Root: c:\Users\badbu\Documents\grow
+
+Read:
+- c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md
+- c:\Users\badbu\Documents\grow\AGENTS.md
+- c:\Users\badbu\Documents\grow\PROJECT.md
+- src/App.tsx
+- src/run-state.ts
+- src/live-run.ts
+- src/domain.ts
+- src/components/panels/AutoflowerCockpitPanel.tsx
+- src/components/panels/RunConfigPanel.tsx
 
 MANDATORY INTEGRITY WARNING:
 DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
 
-Your task:
-1. Create directory `c:\Users\badbu\Documents\grow\.agents\worker_m4`.
-2. Read `c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md`, `c:\Users\badbu\Documents\grow\PROJECT.md`, `c:\Users\badbu\Documents\grow\AGENTS.md`, and `c:\Users\badbu\Documents\grow\.agents\explorer_m4\handoff.md`.
-3. Integrate the Master Class components into `src/App.tsx` following the blueprint in `.agents/explorer_m4/handoff.md`:
-   - Import `TermTooltip`, `LensBadge`, `MetricGauge` from `./components/common`
-   - Import `EnvironmentTargetsPanel`, `NutrientMixPanel`, `RunConfigPanel`, `VpdDliCalculatorPanel`, `DailyOperatorPanel`, `ContextHelpGlossaryPanel` from `./components/panels`
-   - Route `today` -> `DailyOperatorPanel`
-   - Route `mix` -> `NutrientMixPanel`
-   - Route `setup` -> `RunConfigPanel`
-   - Route `climate` -> `EnvironmentTargetsPanel` and `VpdDliCalculatorPanel`
-   - Route `knowledge` -> `ContextHelpGlossaryPanel`
-   - Integrate `LensBadge` and `TermTooltip` into shell header and navigation controls.
-   - Pass props cleanly (`run`, `plan`, `lens`, `onUpdateRun={setRun}`, `navigate={setRoute}`).
-4. Create `src/AppIntegration.test.tsx` containing comprehensive unit/integration tests asserting component rendering per route, state update triggers via `onUpdateRun`, and zero-mutation of domain state.
-5. Run type checking (`npx tsc --noEmit`) and unit tests (`npx vitest run`).
-6. Write your handoff report in `c:\Users\badbu\Documents\grow\.agents\worker_m4\handoff.md`.
-7. Send a message to Parent (`6783987b-1cde-4c0a-8087-df980caf57b6`) with your report summary when complete.
+File Write Boundaries:
+You EXCLUSIVELY own:
+- `src/App.tsx`
+- Any related App tests (e.g. `src/App.test.tsx`, `tests/e2e/`, etc.)
+
+Your Tasks:
+1. Integrate the Global Live vs. Simulation Mode Switch & Indicator in `src/App.tsx`:
+   - Add a prominent, styled segmented switch or toggle button in the App Topbar / Header (visible across all views).
+   - Shows current mode:
+     - Live Mode: Emerald indicator dot, "LIVE: Tag X (UTC)" with computed active day from `evaluateLiveClock(run, now)` / `emergenceDateIso`.
+     - Simulation Mode: Blue/Amber indicator, "SIMULATION: Tag X" with interactive day slider/scrubber.
+   - Clicking/switching toggles `run.executionMode` using `updateExecutionMode(run, newMode)` and updates state via `setRun(...)` (which auto-persists to IndexedDB).
+2. Wire up the Autoflower Cockpit in `src/App.tsx`:
+   - When route is `"autoflower"`, render `<AutoflowerCockpitPanel lens={lens} onSelectStrain={(strain) => { ... }} />`.
+   - When a strain is selected from the cockpit page, update `run.config.genetics` and `run.plants[0].identity` (breeder, strain name, cycle weeks) via `setRun(...)` and navigate to `"setup"` or show confirmation toast/badge.
+3. Ensure Dynamic Plan Recalculation:
+   - In Live Mode, ensure `currentDay` is driven by the live clock / plant milestones (`emergenceDateIso` or `pottingDateIso`), dynamically updating `activeDay`, `dayPlan = getDayPlan(workbook, calculatedDay)`, and passing the correct day targets to all views (`Dashboard`, `Today`, `MixLab`, `Climate`, `Timeline`, `Targets`).
+4. Full Test & Quality Gate:
+   - Run `npx vitest run` and ensure 100% of tests pass across the entire workspace.
+   - Run `npx tsc --noEmit` and ensure 0 TypeScript errors.
+   - Run `npx vite build` and ensure production build succeeds cleanly.
+   - Run `npx @biomejs/biome check src` and ensure clean linting.
+5. Write `c:\Users\badbu\Documents\grow\.agents\worker_m4\handoff.md` with verification commands and results, then notify parent.

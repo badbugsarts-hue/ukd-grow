@@ -11,6 +11,7 @@
 This report presents a thorough analysis of the UKD Grow Masterplan application shell (`App.tsx`), experience level mechanisms (`guided`, `advanced`, `expert`), state flow pipelines, storage contracts (`run-storage.ts`), and scientific core validation (`scientific-core.ts`).
 
 The objective is to establish an architectural blueprint for integrating new **"Master Class" input panels** located in `src/components/` into `App.tsx` and workspace views, ensuring:
+
 - **Zero regression** on existing domain calculations, state machines, and IndexedDB storage contracts (`RunPackage-v3`).
 - **Strict compliance** with `AGENTS.md` invariants (read-only plan snapshots, immutable event streams, clear separation of planned vs. measured values).
 - **High UX standards** tailored for all experience levels in clear German terminology with tooltips and visual safety gates.
@@ -20,6 +21,7 @@ The objective is to establish an architectural blueprint for integrating new **"
 ## 2. Current App Shell Architecture & Navigation
 
 ### 2.1 Component Lifecycle & Data Ingestion
+
 1. **`App` (`src/App.tsx:448-520`)**:
    - Asynchronously loads canonical JSON snapshots: `evidence-guarded-workbook-v8.json` (Workbook), `legacy-audit.json`, `knowledge-base.json`, `ai-context.json`, and `skills.json`.
    - Displays a loading screen during hydration and renders `<Workspace />` upon completion.
@@ -34,7 +36,9 @@ The objective is to establish an architectural blueprint for integrating new **"
    - Automatically debounces (250ms) changes to `run` and persists them to IndexedDB using `saveActiveRun(run)`.
 
 ### 2.2 Navigation Structure (`NAV`)
+
 The shell organizes 21 routes into 6 logical groups:
+
 - **Operator**: `cockpit`, `setup`, `log`, `today`, `timeline`, `history`
 - **Werkzeuge**: `mix`, `climate`, `incidents`
 - **Bibliothek**: `products`, `compatibility`, `diagnostics`, `ipm`, `nutrients`
@@ -42,17 +46,19 @@ The shell organizes 21 routes into 6 logical groups:
 - **System**: `raw`, `legal`, `reports`, `system`, `equipment`
 
 ### 2.3 Experience Level Lenses (`ExperienceLens`)
+
 - **`guided`**: Filters the sidebar to core routes (`GUIDED_CORE_ROUTES`), displays top guidance banners (`GuidedBanner`), provides step-by-step action instructions (`💡`), truncates large datasets (max 25 rows), and hides formula/trace panels.
 - **`advanced`**: Displays full data tables, complete metrics, mixing protocols (`MixOrder`), and detailed checklists without inline beginner banners.
 - **`expert`**: Exposes formula inspection (`ExpertTrace`), raw cell formula toggles, detailed provenance tracing, JSON inspect blocks, and raw model exports.
 
-*Invariant Check*: Experience levels alter layout density, visual cues, and explanation levels—they **never** alter calculated results, formulas, or safety rules.
+_Invariant Check_: Experience levels alter layout density, visual cues, and explanation levels—they **never** alter calculated results, formulas, or safety rules.
 
 ---
 
 ## 3. State Management & Storage Contracts
 
 ### 3.1 `RunPackage` (v4 Schema) Invariants
+
 - `RunPackage` is an immutable state tree (`src/types.ts:518-566`).
 - Active snapshots (`run.configurationSnapshot`) are immutable once a run moves from `"draft"` to `"active"`.
 - Every state modification appends to immutable event streams:
@@ -61,7 +67,9 @@ The shell organizes 21 routes into 6 logical groups:
   - `events`: User-facing timeline entries (`RunEvent`).
 
 ### 3.2 Canonical State Mutator Functions (`src/run-state.ts`)
+
 Existing domain functions that must be used by input panels (no direct state mutations):
+
 - `addObservation(run, observation)`: Adds daily measurements (`DailyObservation`) and extracts typed `Measurement` items.
 - `addStructuredObservation(run, observation)`: Records category/severity-based qualitative observations.
 - `updateRunConfig(run, config)`: Updates setup parameters (genetics, light wattage, medium, water profile).
@@ -70,6 +78,7 @@ Existing domain functions that must be used by input panels (no direct state mut
 - `addRunOverride(run, override)`: Registers intentional deviations with required justification.
 
 ### 3.3 Storage Pipeline (`src/run-storage.ts`)
+
 - **Primary Store**: IndexedDB database `ukd-operator-workspace` (Store `run-packages-v3`).
 - **Autosave Gate**: Triggered in `Workspace` on `run` state change with 250ms debounce window.
 - **Schema Validation**: Validates loaded data via `validateRunPackage(raw)`. Failed validation returns `null` or prompts backup restoration without crashing the app shell.
@@ -81,6 +90,7 @@ Existing domain functions that must be used by input panels (no direct state mut
 To maintain code clarity and adhere to modular architecture guidelines, all new "Master Class" input panels and support UI elements should be placed inside a new directory: `src/components/`.
 
 ### 4.1 Recommended Component Hierarchy
+
 ```
 src/
 ├── components/
@@ -102,7 +112,9 @@ src/
 ### 5.1 Common Support Components
 
 #### `TermTooltip`
+
 Provides clear German explanations for technical terminology.
+
 ```typescript
 export interface TermTooltipProps {
   term: "VPD" | "DLI" | "PPFD" | "EC" | "pH" | "Dryback" | "Drain";
@@ -110,20 +122,24 @@ export interface TermTooltipProps {
   lens?: ExperienceLens;
 }
 ```
-*Terminology Dictionary*:
-- **VPD**: *Dampfdruckdefizit* – Maß für das Verdunstungspotenzial der Luft. Beeinflusst Nährstoffaufnahme und Transpiration.
-- **DLI**: *Tägliche Lichtmenge (Daily Light Integral)* – Gesamtmenge an nutzbarer Lichtstrahlung pro Quadratmeter an einem Tag (mol/m²/d).
-- **PPFD**: *Photosynthetische Photonenflussdichte* – Momentane Lichtintensität am Pflanzendach (µmol/m²/s).
-- **EC**: *Elektrische Leitfähigkeit* – Stärke der Nährstoffkonzentration in der Lösung (mS/cm).
-- **pH**: *Säuregrad* – Bestimmt die chemische Verfügbarkeit von Nährstoffen an den Wurzeln.
-- **Dryback**: *Abtrocknungsrate* – Gewichtsdifferenz des Topfes zwischen Bewässerungszyklen.
+
+_Terminology Dictionary_:
+
+- **VPD**: _Dampfdruckdefizit_ – Maß für das Verdunstungspotenzial der Luft. Beeinflusst Nährstoffaufnahme und Transpiration.
+- **DLI**: _Tägliche Lichtmenge (Daily Light Integral)_ – Gesamtmenge an nutzbarer Lichtstrahlung pro Quadratmeter an einem Tag (mol/m²/d).
+- **PPFD**: _Photosynthetische Photonenflussdichte_ – Momentane Lichtintensität am Pflanzendach (µmol/m²/s).
+- **EC**: _Elektrische Leitfähigkeit_ – Stärke der Nährstoffkonzentration in der Lösung (mS/cm).
+- **pH**: _Säuregrad_ – Bestimmt die chemische Verfügbarkeit von Nährstoffen an den Wurzeln.
+- **Dryback**: _Abtrocknungsrate_ – Gewichtsdifferenz des Topfes zwischen Bewässerungszyklen.
 
 ---
 
 ### 5.2 Master Class Input Panels
 
 #### 1. `DailyObservationPanel`
+
 Used in `log` (`RunLogWorkspace`) and `today` (`Today`) views.
+
 ```typescript
 export interface DailyObservationPanelProps {
   run: RunPackage;
@@ -132,13 +148,17 @@ export interface DailyObservationPanelProps {
   onUpdateRun: (updatedRun: RunPackage) => void;
 }
 ```
-*Inputs & Mechanics*:
+
+_Inputs & Mechanics_:
+
 - Quantitative inputs: Air Temp Max/Min, Humidity Max/Min, Leaf Temp, PPFD, pH In, EC In, pH Drain, EC Drain, Water Volume, Drain Volume, Pot Mass, Plant Height.
 - Qualitative input: Plant Stress rating (`none` | `slight` | `moderate` | `severe`) with notes.
 - Flow: Validates inputs using plausibility bounds, creates `DailyObservation` via `createObservation(plan.day)`, calls `addObservation(run, obs)`, and passes the resulting `RunPackage` to `onUpdateRun`.
 
 #### 2. `NutrientMixPanel`
+
 Used in `mix` (`MixLab`) view.
+
 ```typescript
 export interface NutrientMixPanelProps {
   plan: DayPlan;
@@ -147,7 +167,9 @@ export interface NutrientMixPanelProps {
   onUpdateRun?: (updatedRun: RunPackage) => void;
 }
 ```
-*Inputs & Mechanics*:
+
+_Inputs & Mechanics_:
+
 - Interactive batch volume slider/input (Liters).
 - Calculates product doses using `calculateMix(plan, liters)`.
 - Displays step-by-step chemical safety mixing order:
@@ -159,7 +181,9 @@ export interface NutrientMixPanelProps {
   6. Homogenize and measure final pH; adjust with pH Down only as final step.
 
 #### 3. `ClimateControlPanel`
+
 Used in `climate` (`Climate`) view.
+
 ```typescript
 export interface ClimateControlPanelProps {
   plan: DayPlan;
@@ -168,13 +192,17 @@ export interface ClimateControlPanelProps {
   onUpdateRun: (updatedRun: RunPackage) => void;
 }
 ```
-*Inputs & Mechanics*:
+
+_Inputs & Mechanics_:
+
 - Photoperiod (hours), Light Power (Watts), Canopy Distance (cm), Measured PPFD, Air Temperature (°C), Relative Humidity (%), Leaf Temperature Offset (°C).
 - Real-time calculations: Leaf-VPD via `calculateLeafVpd(airTemp, rh, leafDelta)`, DLI via `calculateDli(ppfd, hours)`.
 - Compares calculated Leaf-VPD against target corridor for current phase.
 
 #### 4. `WaterBaselinePanel`
+
 Used in `setup` (`RunSetupWorkspace`) view.
+
 ```typescript
 export interface WaterBaselinePanelProps {
   run: RunPackage;
@@ -182,7 +210,9 @@ export interface WaterBaselinePanelProps {
   onUpdateRun: (updatedRun: RunPackage) => void;
 }
 ```
-*Inputs & Mechanics*:
+
+_Inputs & Mechanics_:
+
 - Source water pH, EC, Calcium (mg/L), Magnesium (mg/L), Bicarbonate (HCO₃⁻).
 - Updates `run.config.water` via `updateRunConfig(run, newConfig)`.
 
@@ -191,6 +221,7 @@ export interface WaterBaselinePanelProps {
 ## 6. Integration Strategy in `App.tsx`
 
 To integrate these components seamlessly:
+
 1. **Import Structure**: Import panel components cleanly into `App.tsx` or route workspace files (`RunWorkspace.tsx`).
 2. **State Propagation**: `Workspace` passes `run`, `plan`, `lens`, and `setRun` to `RouteContent`. `RouteContent` delegates to specific route components (`Cockpit`, `Today`, `MixLab`, `Climate`, `RunLogWorkspace`, `RunSetupWorkspace`).
 3. **Autosave Safety**: Because `setRun` updates state in `Workspace`, the existing `useEffect` automatically triggers debounced save (`saveActiveRun`). No custom storage calls are needed inside child input components!
@@ -200,13 +231,13 @@ To integrate these components seamlessly:
 
 ## 7. Verification & Parity Matrix
 
-| Verification Aspect | Method | Pass Criteria |
-|---|---|---|
-| Type Safety | `npx tsc --noEmit` | Clean compilation, zero TypeScript errors |
-| Test Suite | `npx vitest run` | All existing unit tests pass (29/29) |
-| Production Build | `npx vite build` | Successfully bundles dist artifacts |
+| Verification Aspect         | Method                         | Pass Criteria                                                            |
+| --------------------------- | ------------------------------ | ------------------------------------------------------------------------ |
+| Type Safety                 | `npx tsc --noEmit`             | Clean compilation, zero TypeScript errors                                |
+| Test Suite                  | `npx vitest run`               | All existing unit tests pass (29/29)                                     |
+| Production Build            | `npx vite build`               | Successfully bundles dist artifacts                                      |
 | Experience Level Invariance | Manual inspection / code audit | Calculation outputs identical across Guided, Advanced, and Expert lenses |
-| Storage Integrity | IndexedDB test | Active run rehydrated accurately without schema mutation |
+| Storage Integrity           | IndexedDB test                 | Active run rehydrated accurately without schema mutation                 |
 
 ---
 

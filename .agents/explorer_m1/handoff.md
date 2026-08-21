@@ -3,7 +3,7 @@
 **Author**: Explorer M1  
 **Target Subagent**: Implementer M1  
 **Date**: 2026-08-11T03:12:45Z  
-**Status**: Read-Only Analysis Complete — Specifications Defined  
+**Status**: Read-Only Analysis Complete — Specifications Defined
 
 ---
 
@@ -74,6 +74,7 @@
 The exact specifications for all 5 target files have been defined in full detail below. Implementer M1 can create these files directly.
 
 ### Specification 1: `src/components/common/termDictionary.ts`
+
 ```typescript
 import type { ExperienceLens, ScientificUnit } from "../../types";
 
@@ -174,8 +175,7 @@ export const DICTIONARY: Record<string, TermDefinition> = {
     germanName: "Photosynthetische Photonenflussdichte",
     unit: "µmol/m²/s",
     category: "light",
-    beginner:
-      "PPFD misst die aktuelle Lichtintensität auf Höhe der Blätter.",
+    beginner: "PPFD misst die aktuelle Lichtintensität auf Höhe der Blätter.",
     advanced:
       "Anzahl der verwertbaren Lichtquanten (400–700 nm) pro Quadratmeter und Sekunde.",
     expert:
@@ -240,12 +240,10 @@ export const DICTIONARY: Record<string, TermDefinition> = {
     germanName: "Blütewoche",
     unit: "Wochen",
     category: "phase",
-    beginner:
-      "Gibt die aktuelle Blütewoche an (z.B. BW 3 = Blütetag 15–21).",
+    beginner: "Gibt die aktuelle Blütewoche an (z.B. BW 3 = Blütetag 15–21).",
     advanced:
       "Wochenabschnitt der generativen Phase zur Zuordnung im Düngeschema.",
-    expert:
-      "Berechnet als Math.floor((BT - 1) / 7) + 1.",
+    expert: "Berechnet als Math.floor((BT - 1) / 7) + 1.",
   },
   VT: {
     key: "VT",
@@ -255,8 +253,7 @@ export const DICTIONARY: Record<string, TermDefinition> = {
     category: "phase",
     beginner:
       "Zählt die Tage des vegetativen Wachstums (18/6 Licht) ab den ersten echten Blättern.",
-    advanced:
-      "Tageszahl in der Vegetationsphase vor der Blüteeinleitung.",
+    advanced: "Tageszahl in der Vegetationsphase vor der Blüteeinleitung.",
     expert:
       "Fokus auf Wurzelaufbau, Strukturierung (Topping/LST) und Etablierung des Vorgelege-Klimas.",
   },
@@ -266,12 +263,9 @@ export const DICTIONARY: Record<string, TermDefinition> = {
     germanName: "Vegetationswoche",
     unit: "Wochen",
     category: "phase",
-    beginner:
-      "Gibt die vegetative Woche an.",
-    advanced:
-      "Wochenabschnitt der Vegetationsphase.",
-    expert:
-      "Berechnet als Math.floor((VT - 1) / 7) + 1.",
+    beginner: "Gibt die vegetative Woche an.",
+    advanced: "Wochenabschnitt der Vegetationsphase.",
+    expert: "Berechnet als Math.floor((VT - 1) / 7) + 1.",
   },
   "Drain-EC": {
     key: "Drain-EC",
@@ -294,8 +288,7 @@ export const DICTIONARY: Record<string, TermDefinition> = {
     category: "nutrients",
     beginner:
       "Der pH-Wert des auslaufenden Wassers. Er verrät, wie sich der pH-Wert in der Wurzelzone verändert hat.",
-    advanced:
-      "pH-Wert des Ablaufwassers zur Diagnose der Wurzelzonen-Chemie.",
+    advanced: "pH-Wert des Ablaufwassers zur Diagnose der Wurzelzonen-Chemie.",
     expert:
       "Sinkender Drain-pH deutet auf Kationenaustausch / Ammonium-Aufnahme hin; steigender Drain-pH auf Nitrat-Aufnahme.",
   },
@@ -305,10 +298,8 @@ export const DICTIONARY: Record<string, TermDefinition> = {
     germanName: "Wurzelzonen-EC",
     unit: "mS/cm",
     category: "nutrients",
-    beginner:
-      "Die tatsächliche Salzkonzentration direkt im Wurzelbereich.",
-    advanced:
-      "Effektiver EC im Porenwasser des Substrats (Pore Water EC).",
+    beginner: "Die tatsächliche Salzkonzentration direkt im Wurzelbereich.",
+    advanced: "Effektiver EC im Porenwasser des Substrats (Pore Water EC).",
     expert:
       "Abschätzung über 1:2 Extrakt oder WGT (Pore Water = 2-3x Bulk EC bei Sättigung).",
   },
@@ -353,7 +344,7 @@ export function getTermDefinition(term: string): TermDefinition | undefined {
 
 export function getTermDescription(
   term: string,
-  lens: ExperienceLens = "guided"
+  lens: ExperienceLens = "guided",
 ): string {
   const def = getTermDefinition(term);
   if (!def) return `Fachbegriff "${term}"`;
@@ -378,7 +369,7 @@ export function searchTerms(query: string): TermDefinition[] {
       item.germanName.toLowerCase().includes(q) ||
       item.beginner.toLowerCase().includes(q) ||
       item.advanced.toLowerCase().includes(q) ||
-      item.expert.toLowerCase().includes(q)
+      item.expert.toLowerCase().includes(q),
   );
 }
 
@@ -388,6 +379,7 @@ export function getAllTerms(): TermDefinition[] {
 ```
 
 ### Specification 2: `src/components/common/TermTooltip.tsx`
+
 ```tsx
 import React, { useState, useRef, useEffect } from "react";
 import type { ExperienceLens } from "../../types";
@@ -464,15 +456,24 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({
       onMouseLeave={() => setIsOpen(false)}
     >
       <span className="term-text">{displayText}</span>
-      {showIcon && <span className="tooltip-icon" aria-hidden="true"> ⓘ</span>}
+      {showIcon && (
+        <span className="tooltip-icon" aria-hidden="true">
+          {" "}
+          ⓘ
+        </span>
+      )}
       <span
         className="tooltip-text"
         role="tooltip"
         style={{ display: isOpen ? "block" : undefined }}
       >
         {termDef && (
-          <strong className="tooltip-header" style={{ display: "block", marginBottom: 4, color: "var(--green)" }}>
-            {termDef.germanName} ({termDef.acronym}){termDef.unit ? ` · ${termDef.unit}` : ""}
+          <strong
+            className="tooltip-header"
+            style={{ display: "block", marginBottom: 4, color: "var(--green)" }}
+          >
+            {termDef.germanName} ({termDef.acronym})
+            {termDef.unit ? ` · ${termDef.unit}` : ""}
           </strong>
         )}
         <span>{tooltipContent}</span>
@@ -485,6 +486,7 @@ export default TermTooltip;
 ```
 
 ### Specification 3: `src/components/common/LensBadge.tsx`
+
 ```tsx
 import React from "react";
 import type { ExperienceLens } from "../../types";
@@ -499,7 +501,13 @@ export interface LensBadgeProps {
 
 const LENS_CONFIG: Record<
   ExperienceLens,
-  { label: string; icon: string; styleClass: string; colorVar: string; dimVar: string }
+  {
+    label: string;
+    icon: string;
+    styleClass: string;
+    colorVar: string;
+    dimVar: string;
+  }
 > = {
   guided: {
     label: "GEFÜHRT",
@@ -584,16 +592,13 @@ export default LensBadge;
 ```
 
 ### Specification 4: `src/components/common/MetricGauge.tsx`
+
 ```tsx
 import React from "react";
 import type { ExperienceLens, ScientificUnit } from "../../types";
 
 export type GaugeStatus =
-  | "optimal"
-  | "warning"
-  | "alert-low"
-  | "alert-high"
-  | "missing";
+  "optimal" | "warning" | "alert-low" | "alert-high" | "missing";
 
 export interface GaugeStatusResult {
   status: GaugeStatus;
@@ -611,7 +616,7 @@ export function calculateGaugeStatus(
   optimalMin: number,
   optimalMax: number,
   warnMin?: number,
-  warnMax?: number
+  warnMax?: number,
 ): GaugeStatusResult {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return {
@@ -721,17 +726,24 @@ export const MetricGauge: React.FC<MetricGaugeProps> = ({
     optimalMin,
     optimalMax,
     warnMin,
-    warnMax
+    warnMax,
   );
 
   const range = max - min;
-  const optMinPct = range > 0 ? Math.max(0, Math.min(100, ((optimalMin - min) / range) * 100)) : 0;
-  const optMaxPct = range > 0 ? Math.max(0, Math.min(100, ((optimalMax - min) / range) * 100)) : 100;
+  const optMinPct =
+    range > 0
+      ? Math.max(0, Math.min(100, ((optimalMin - min) / range) * 100))
+      : 0;
+  const optMaxPct =
+    range > 0
+      ? Math.max(0, Math.min(100, ((optimalMax - min) / range) * 100))
+      : 100;
   const optWidthPct = optMaxPct - optMinPct;
 
-  const displayVal = value !== null && value !== undefined && !Number.isNaN(value)
-    ? `${value} ${unit}`.trim()
-    : "—";
+  const displayVal =
+    value !== null && value !== undefined && !Number.isNaN(value)
+      ? `${value} ${unit}`.trim()
+      : "—";
 
   return (
     <div
@@ -778,7 +790,13 @@ export const MetricGauge: React.FC<MetricGaugeProps> = ({
           >
             <span aria-hidden="true">{result.icon}</span> {result.labelGerman}
           </span>
-          <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--text)" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontWeight: 700,
+              color: "var(--text)",
+            }}
+          >
             {displayVal}
           </span>
         </div>
@@ -830,9 +848,15 @@ export const MetricGauge: React.FC<MetricGaugeProps> = ({
           fontFamily: "var(--font-mono)",
         }}
       >
-        <span>{min} {unit}</span>
-        <span>Ziel: {optimalMin}–{optimalMax} {unit}</span>
-        <span>{max} {unit}</span>
+        <span>
+          {min} {unit}
+        </span>
+        <span>
+          Ziel: {optimalMin}–{optimalMax} {unit}
+        </span>
+        <span>
+          {max} {unit}
+        </span>
       </div>
     </div>
   );
@@ -842,6 +866,7 @@ export default MetricGauge;
 ```
 
 ### Specification 5: `src/components/common/common.test.ts`
+
 ```typescript
 import { describe, expect, it } from "vitest";
 import {
@@ -901,7 +926,7 @@ describe("termDictionary", () => {
   it("returns safe fallback for unknown terms", () => {
     expect(getTermDefinition("UNKNOWN_TERM")).toBeUndefined();
     expect(getTermDescription("UNKNOWN_TERM", "guided")).toBe(
-      'Fachbegriff "UNKNOWN_TERM"'
+      'Fachbegriff "UNKNOWN_TERM"',
     );
   });
 
@@ -933,7 +958,7 @@ describe("MetricGauge calculateGaugeStatus", () => {
       optimalMin,
       optimalMax,
       warnMin,
-      warnMax
+      warnMax,
     );
     expect(result.status).toBe("optimal");
     expect(result.colorVar).toBe("var(--green)");
@@ -950,7 +975,7 @@ describe("MetricGauge calculateGaugeStatus", () => {
       optimalMin,
       optimalMax,
       warnMin,
-      warnMax
+      warnMax,
     );
     expect(lowWarn.status).toBe("warning");
     expect(lowWarn.colorVar).toBe("var(--amber)");
@@ -964,7 +989,7 @@ describe("MetricGauge calculateGaugeStatus", () => {
       optimalMin,
       optimalMax,
       warnMin,
-      warnMax
+      warnMax,
     );
     expect(highWarn.status).toBe("warning");
     expect(highWarn.colorVar).toBe("var(--amber)");
@@ -978,7 +1003,7 @@ describe("MetricGauge calculateGaugeStatus", () => {
       optimalMin,
       optimalMax,
       warnMin,
-      warnMax
+      warnMax,
     );
     expect(result.status).toBe("alert-low");
     expect(result.colorVar).toBe("var(--blue)");
@@ -994,7 +1019,7 @@ describe("MetricGauge calculateGaugeStatus", () => {
       optimalMin,
       optimalMax,
       warnMin,
-      warnMax
+      warnMax,
     );
     expect(result.status).toBe("alert-high");
     expect(result.colorVar).toBe("var(--red)");
@@ -1008,7 +1033,7 @@ describe("MetricGauge calculateGaugeStatus", () => {
       min,
       max,
       optimalMin,
-      optimalMax
+      optimalMax,
     );
     expect(nullRes.status).toBe("missing");
     expect(nullRes.colorVar).toBe("var(--muted)");
@@ -1020,7 +1045,7 @@ describe("MetricGauge calculateGaugeStatus", () => {
       min,
       max,
       optimalMin,
-      optimalMax
+      optimalMax,
     );
     expect(nanRes.status).toBe("missing");
   });
@@ -1031,7 +1056,7 @@ describe("MetricGauge calculateGaugeStatus", () => {
       min,
       max,
       optimalMin,
-      optimalMax
+      optimalMax,
     );
     expect(lowerOpt.status).toBe("optimal");
 
@@ -1040,7 +1065,7 @@ describe("MetricGauge calculateGaugeStatus", () => {
       min,
       max,
       optimalMin,
-      optimalMax
+      optimalMax,
     );
     expect(upperOpt.status).toBe("optimal");
   });
@@ -1054,20 +1079,25 @@ describe("MetricGauge calculateGaugeStatus", () => {
 To independently verify these specifications after implementation:
 
 1. **Unit Test Suite**:
+
    ```bash
    pnpm test
    ```
+
    Or specifically for Milestone 1 common primitives:
+
    ```bash
    npx vitest run src/components/common/common.test.ts
    ```
 
 2. **TypeScript Typecheck**:
+
    ```bash
    pnpm typecheck
    ```
 
 3. **Full Project Gate**:
+
    ```bash
    pnpm check
    ```

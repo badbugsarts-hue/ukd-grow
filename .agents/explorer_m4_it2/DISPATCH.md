@@ -1,8 +1,10 @@
 ## 2026-08-11T05:12:30Z
+
 You are Explorer for Milestone 4 Iteration 2 (Remediation of App Shell Routing & Test Configuration).
 Working directory: c:\Users\badbu\Documents\grow\.agents\explorer_m4_it2
 
 Your task:
+
 1. Create directory `c:\Users\badbu\Documents\grow\.agents\explorer_m4_it2`.
 2. Read `c:\Users\badbu\Documents\grow\.agents\reviewer_m4_1\handoff.md`, `src/App.tsx`, `vite.config.ts`, and `src/AppIntegration.test.tsx`.
 3. Define exact specifications for:

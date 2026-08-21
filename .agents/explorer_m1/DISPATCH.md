@@ -4,6 +4,7 @@ You are Explorer for Milestone 1 (Common UI Primitives & Terminology Tooltip Sys
 Working directory: c:\Users\badbu\Documents\grow\.agents\explorer_m1
 
 Your task:
+
 1. Create directory `c:\Users\badbu\Documents\grow\.agents\explorer_m1`.
 2. Read `c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md` and `c:\Users\badbu\Documents\grow\PROJECT.md`.
 3. Inspect `src/styles.css` for badge, tooltip, gauge, and token styles.

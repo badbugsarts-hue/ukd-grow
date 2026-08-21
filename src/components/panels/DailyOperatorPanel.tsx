@@ -1,11 +1,14 @@
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
+	calculateBiologicalPlantAge,
 	calculateDli,
 	calculateLeafVpd,
 	calculateMix,
+	calculateSubstrateHydration,
 	DAILY_COLUMNS,
 	numberAt,
+	type SubstrateHydration,
 	textAt,
 } from "../../domain";
 import {
@@ -17,12 +20,14 @@ import {
 	latestObservation,
 	setTaskCompleted,
 	transitionTaskState,
+	updatePotProfile,
 } from "../../run-state";
 import type {
 	DailyObservation,
 	DayPlan,
 	ExperienceLens,
 	ObservationSeverity,
+	PotProfile,
 	RouteId,
 	RunPackage,
 	StructuredObservation,
@@ -32,10 +37,12 @@ import type {
 import LensBadge from "../common/LensBadge";
 import MetricGauge from "../common/MetricGauge";
 import TermTooltip from "../common/TermTooltip";
+import { BeakerIcon, SproutIcon, WarningIcon } from "../common/Icons";
 
 export interface DailyOperatorPanelProps {
 	run: RunPackage;
 	plan?: DayPlan;
+	getPlanForDay?: (day: number) => DayPlan;
 	lens: ExperienceLens;
 	onUpdateRun: (updatedRun: RunPackage) => void;
 	navigate?: (route: RouteId) => void;
@@ -244,9 +251,103 @@ export function getTargetsForDay(
 	}
 }
 
+export const HYDRATION_CATEGORY_DETAILS: Record<
+	SubstrateHydration["category"],
+	{
+		label: string;
+		color: string;
+		background: string;
+		border: string;
+		recommendationTitle: string;
+		guidedText: string;
+		advancedText: string;
+		expertText: string;
+	}
+> = {
+	saturated: {
+		label: "Vollsättigung / Nass",
+		color: "var(--purple, #8b5cf6)",
+		background: "rgba(139, 92, 246, 0.12)",
+		border: "rgba(139, 92, 246, 0.4)",
+		recommendationTitle: "Gieß-Empfehlung: Vollsättigung",
+		guidedText:
+			"Kein Wasser zuführen. Topf ist voll gesättigt. Drainage ablaufen lassen und Sauerstoffzufuhr der Wurzeln gewährleisten.",
+		advancedText:
+			"Vollsättigung (≥ 90% Hydratation). Sauerstoffzufuhr der Wurzeln gewährleisten und Drainage ablaufen lassen. Keine zusätzliche Nährlösung zuführen.",
+		expertText:
+			"Vollsättigung (≥ 90%). Porenraum vollständig wassergesättigt; minimale Sauerstoffdiffusionsrate. Trocknungsphase (Dryback) zur Vermeidung von Hypoxie zwingend abwarten.",
+	},
+	heavy: {
+		label: "Feucht / Gut versorgt",
+		color: "var(--cyan, #06b6d4)",
+		background: "rgba(6, 182, 212, 0.12)",
+		border: "rgba(6, 182, 212, 0.4)",
+		recommendationTitle: "Gieß-Empfehlung: Gut versorgt",
+		guidedText:
+			"Heute nicht gießen. Der Topf hat noch reichlich Feuchtigkeit.",
+		advancedText:
+			"Feucht / Gut versorgt (70–89% Hydratation). Keine Bewässerung erforderlich. Trocknungsphase (Dryback) abwarten.",
+		expertText:
+			"Feuchtezone (70–89%). Substratsaugspannung gering (~10–30 hPa). Gasaustausch im Wurzelraum intakt. Weiteres Abtrocknen bis zum Ziel-Dryback zulassen.",
+	},
+	medium: {
+		label: "Optimaler Feuchtebereich",
+		color: "var(--green, #10b981)",
+		background: "rgba(16, 185, 129, 0.12)",
+		border: "rgba(16, 185, 129, 0.4)",
+		recommendationTitle: "Gieß-Empfehlung: Optimale Feuchte",
+		guidedText:
+			"Optimale Bodenfeuchte. Wurzeln haben das ideale Gleichgewicht aus Feuchtigkeit und Luft.",
+		advancedText:
+			"Optimaler Feuchtebereich (40–69% Hydratation). Perfektes Wasser-Luft-Verhältnis im Wurzelraum für maximale Nährstoffaufnahme.",
+		expertText:
+			"Optimum (40–69% Hydratation). Ausgeglichenes Porenwasser-/Porenluft-Verhältnis. Osmotische Nährstoffaufnahme und Transpirationssog im Gleichgewicht.",
+	},
+	light: {
+		label: "Leicht / Gießbereit",
+		color: "var(--amber, #f59e0b)",
+		background: "rgba(245, 158, 11, 0.12)",
+		border: "rgba(245, 158, 11, 0.4)",
+		recommendationTitle: "Gieß-Empfehlung: Vorbereitung",
+		guidedText:
+			"Topf wird spürbar leichter. Nährlösung für die nächste Bewässerung vorbereiten.",
+		advancedText:
+			"Substrat trocknet ab (20–39% Hydratation). Nährlösung vorbereiten (Dryback-Ziel bald erreicht).",
+		expertText:
+			"Dryback-Zielkorridor (20–39%). Erhöhte Saugspannung regt Wurzelwachstum an. Nächsten Gießstoß vorbereiten, um Salzakkumulation zu verhindern.",
+	},
+	dry: {
+		label: "Kritisch Trocken",
+		color: "var(--red, #ef4444)",
+		background: "rgba(239, 68, 68, 0.12)",
+		border: "rgba(239, 68, 68, 0.4)",
+		recommendationTitle: "Gieß-Empfehlung: Gießen erforderlich (Dryback-Ziel erreicht)",
+		guidedText:
+			"Jetzt gießen! Das Substrat ist trocken und die Pflanze benötigt frische Nährlösung.",
+		advancedText:
+			"Gießen erforderlich (Dryback-Ziel erreicht, < 20% Hydratation). Substrat ist trocken. Bewässerung nach aktuellem Tagesplan durchführen.",
+		expertText:
+			"Dryback-Ziel erreicht (< 20% Hydratation). Matrixpotenzial nähert sich permanentem Welkepunkt. Sofortige Bewässerung nach Tagesplan mit 15–20% Drain durchführen.",
+	},
+	unknown: {
+		label: "Fehlt",
+		color: "var(--muted, #9ca3af)",
+		background: "var(--surface-3)",
+		border: "var(--line)",
+		recommendationTitle: "Sättigungsgewicht fehlt",
+		guidedText:
+			"Bitte wiege den vollgegossenen Topf, um die Feuchtigkeit schätzen zu können.",
+		advancedText:
+			"Sättigungsgewicht (100% Hydratation) fehlt. Berechnung nicht möglich.",
+		expertText:
+			"Referenzgewicht (Sättigung oder Tara) unbekannt. Dimensional valider Hydratationswert (VWC) kann nicht ermittelt werden.",
+	},
+};
+
 export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 	run,
 	plan,
+	getPlanForDay,
 	lens,
 	onUpdateRun,
 	navigate,
@@ -263,14 +364,14 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 		}
 	}, [plan?.day, plan]);
 
+	const activePlan = useMemo(() => {
+		return getPlanForDay ? getPlanForDay(selectedDay) : plan;
+	}, [getPlanForDay, selectedDay, plan]);
+
 	// Derived phase targets for selectedDay
 	const targets = useMemo(
-		() =>
-			getTargetsForDay(
-				selectedDay,
-				plan?.day === selectedDay ? plan : undefined,
-			),
-		[selectedDay, plan],
+		() => getTargetsForDay(selectedDay, activePlan),
+		[selectedDay, activePlan],
 	);
 
 	// Existing observation lookup for selectedDay
@@ -278,6 +379,15 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 		() => latestObservation(run, selectedDay),
 		[run, selectedDay],
 	);
+
+	// Derived biological plant age calculation
+	const bioAge = useMemo(() => {
+		return calculateBiologicalPlantAge(
+			run.config.dayZeroAnchor ?? "emergence",
+			run.growthEvents ?? [],
+			new Date(),
+		);
+	}, [run.config.dayZeroAnchor, run.growthEvents]);
 
 	// Step 2: Form Inputs for Daily Measurement & Observations
 	const [tempAirMax, setTempAirMax] = useState<string>("");
@@ -310,6 +420,74 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 	const [taskReasonMap, setTaskReasonMap] = useState<Record<string, string>>(
 		{},
 	);
+
+	// Pot Profile Quick-Calibration & Dryback tracking state
+	const [potTaraInput, setPotTaraInput] = useState<string>(
+		run.config.pot?.emptyMassGrams !== null &&
+			run.config.pot?.emptyMassGrams !== undefined
+			? String(run.config.pot.emptyMassGrams)
+			: "",
+	);
+	const [potSatInput, setPotSatInput] = useState<string>(
+		run.config.pot?.saturatedMassGrams !== null &&
+			run.config.pot?.saturatedMassGrams !== undefined
+			? String(run.config.pot.saturatedMassGrams)
+			: "",
+	);
+	const [potVolInput, setPotVolInput] = useState<string>(
+		run.config.pot?.nominalVolumeLiters
+			? String(run.config.pot.nominalVolumeLiters)
+			: "11",
+	);
+	const [potProfileSavedToast, setPotProfileSavedToast] = useState<string | null>(null);
+
+	// Sync local pot inputs when run.config.pot changes externally
+	useEffect(() => {
+		setPotTaraInput(
+			run.config.pot?.emptyMassGrams !== null &&
+				run.config.pot?.emptyMassGrams !== undefined
+				? String(run.config.pot.emptyMassGrams)
+				: "",
+		);
+		setPotSatInput(
+			run.config.pot?.saturatedMassGrams !== null &&
+				run.config.pot?.saturatedMassGrams !== undefined
+				? String(run.config.pot.saturatedMassGrams)
+				: "",
+		);
+		setPotVolInput(
+			run.config.pot?.nominalVolumeLiters
+				? String(run.config.pot.nominalVolumeLiters)
+				: "11",
+		);
+	}, [run.config.pot]);
+
+	// Save Pot Calibration handler
+	const handleSavePotCalibration = () => {
+		const emptyMass =
+			potTaraInput.trim() !== "" ? parseFloat(potTaraInput) : null;
+		const satMass =
+			potSatInput.trim() !== "" ? parseFloat(potSatInput) : null;
+		const nominalVol =
+			potVolInput.trim() !== "" ? parseFloat(potVolInput) : 11;
+
+		const updatedPot: PotProfile = {
+			...run.config.pot,
+			nominalVolumeLiters:
+				!Number.isNaN(nominalVol) && nominalVol > 0 ? nominalVol : 11,
+			emptyMassGrams:
+				emptyMass !== null && !Number.isNaN(emptyMass)
+					? Math.max(0, emptyMass)
+					: null,
+			saturatedMassGrams:
+				satMass !== null && !Number.isNaN(satMass) ? Math.max(0, satMass) : null,
+		};
+
+		const updatedRun = updatePotProfile(run, updatedPot);
+		onUpdateRun(updatedRun);
+		setPotProfileSavedToast("Topfprofil gespeichert ✓");
+		setTimeout(() => setPotProfileSavedToast(null), 3000);
+	};
 
 	// Pre-fill form when selectedDay or existingObs changes
 	useEffect(() => {
@@ -390,6 +568,62 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 		numAppliedWater > 0
 			? Math.round((numDrainVolume / numAppliedWater) * 100)
 			: 0;
+
+	// Substrate Hydration and Dryback calculations
+	const currentPotMassVal = parseFloat(potMassG);
+	const activePotProfile: PotProfile = useMemo(() => {
+		const emptyMass =
+			potTaraInput.trim() !== ""
+				? parseFloat(potTaraInput)
+				: run.config.pot?.emptyMassGrams ?? null;
+		const satMass =
+			potSatInput.trim() !== ""
+				? parseFloat(potSatInput)
+				: run.config.pot?.saturatedMassGrams ?? null;
+		const nominalVol =
+			potVolInput.trim() !== ""
+				? parseFloat(potVolInput)
+				: run.config.pot?.nominalVolumeLiters ?? 11;
+		return {
+			type: run.config.pot?.type || "fabric",
+			nominalVolumeLiters:
+				!Number.isNaN(nominalVol) && nominalVol > 0 ? nominalVol : 11,
+			actualFillLiters: run.config.pot?.actualFillLiters ?? null,
+			diameterCm: run.config.pot?.diameterCm ?? null,
+			heightCm: run.config.pot?.heightCm ?? null,
+			emptyMassGrams:
+				emptyMass !== null && !Number.isNaN(emptyMass) ? Math.max(0, emptyMass) : null,
+			saturatedMassGrams:
+				satMass !== null && !Number.isNaN(satMass) ? Math.max(0, satMass) : null,
+		};
+	}, [potTaraInput, potSatInput, potVolInput, run.config.pot]);
+
+	const substrateHydration = useMemo(() => {
+		if (Number.isNaN(currentPotMassVal) || currentPotMassVal <= 0) {
+			return null;
+		}
+		return calculateSubstrateHydration(currentPotMassVal, activePotProfile);
+	}, [currentPotMassVal, activePotProfile]);
+
+	const historicalDrybackRate = useMemo(() => {
+		if (Number.isNaN(currentPotMassVal) || currentPotMassVal <= 0) return null;
+		const prev = run.observations
+			.filter(
+				(obs) =>
+					obs.day < selectedDay &&
+					obs.values.potMassGrams !== null &&
+					obs.values.potMassGrams > 0,
+			)
+			.sort((a, b) => b.day - a.day)[0];
+		if (!prev || prev.values.potMassGrams === null) return null;
+		const deltaDays = selectedDay - prev.day;
+		const deltaHours = deltaDays * 24;
+		const massLoss = prev.values.potMassGrams - currentPotMassVal;
+		if (deltaHours > 0 && massLoss > 0) {
+			return Math.round((massLoss / deltaHours) * 10) / 10;
+		}
+		return null;
+	}, [currentPotMassVal, run.observations, selectedDay]);
 
 	// Day Clamping Handler
 	const handleDaySelect = (day: number) => {
@@ -545,7 +779,10 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 	};
 
 	// Alert acknowledgment handler
-	const activeAlerts = useMemo(() => deriveRunAlerts(run, plan!), [run, plan]);
+	const activeAlerts = useMemo(
+		() => (plan ? deriveRunAlerts(run, plan) : []),
+		[run, plan],
+	);
 	const unacknowledgedAlerts = activeAlerts.filter(
 		(a) => !run.acknowledgedAlertIds?.includes(a.id),
 	);
@@ -650,15 +887,34 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 						</h2>
 						<LensBadge lens={lens} />
 					</div>
-					<p
+					<div
 						style={{
 							margin: "4px 0 0 0",
 							fontSize: "13px",
 							color: "var(--muted)",
+							display: "flex",
+							alignItems: "center",
+							flexWrap: "wrap",
+							gap: "8px",
 						}}
 					>
-						Tag {selectedDay} / 80 — {targets.phaseName} ({targets.goal})
-					</p>
+						<span>
+							Operativ: Tag {selectedDay} / 80 — {targets.phaseName} ({targets.goal})
+						</span>
+						<span
+							style={{
+								fontSize: "12px",
+								background: "var(--green-dim)",
+								color: "var(--green)",
+								padding: "2px 8px",
+								borderRadius: "var(--radius-sm)",
+								border: "1px solid var(--green)",
+								fontWeight: 600,
+							}}
+						>
+							🌱 Biologisch: Tag {bioAge.biologicalAgeDays} ({run.config.dayZeroAnchor ?? "emergence"})
+						</span>
+					</div>
 				</div>
 
 				{/* Phase Quick-Tabs */}
@@ -1231,6 +1487,59 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 						/>
 					</div>
 
+					{/* Nährstoffe & Düngung (Tages-Dosis) */}
+					{activePlan && (
+						<>
+							<h3
+								style={{
+									margin: "20px 0 10px 0",
+									fontSize: "16px",
+									fontWeight: 700,
+									color: "var(--text)",
+									display: "flex",
+									alignItems: "center",
+									gap: "8px"
+								}}
+							>
+								<BeakerIcon size={20} /> Nährstoffe & Düngung (Dosis für 10L Ansatz)
+							</h3>
+							<div
+								style={{
+									background: "var(--surface-2)",
+									padding: "14px",
+									borderRadius: "var(--radius)",
+									border: "1px solid var(--line)",
+									marginBottom: "20px"
+								}}
+							>
+								{(() => {
+									const mixItems = calculateMix(activePlan, 10);
+									// Filter items that actually have a dose > 0, or are essential balancers
+									const activeItems = mixItems.filter(m => m.amount > 0 || m.name === "Athena Balance" || m.name === "pH Down");
+									const hasNutrients = activeItems.some(m => m.amount > 0);
+									
+									return (
+										<ul style={{ margin: 0, paddingLeft: "20px" }}>
+											{!hasNutrients && (
+												<li style={{ color: "var(--muted)", marginBottom: "8px", listStyle: "none", marginLeft: "-20px" }}>
+													<i>Keine aktiven Basis-Dünger für Tag {selectedDay} vorgesehen.</i>
+												</li>
+											)}
+											{activeItems.map((m, idx) => (
+												<li key={idx} style={{ marginBottom: "8px", color: m.amount === 0 ? "var(--muted)" : "var(--text)" }}>
+													<strong>{m.name}</strong>: <span style={{ color: m.amount > 0 ? "var(--green)" : "var(--muted)", fontWeight: "bold" }}>{m.amount} ml/g</span>
+													<span style={{ fontSize: "0.85em", color: "var(--muted)", marginLeft: "12px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+														({m.role}) {m.warning && <span style={{ color: "var(--yellow)", display: "inline-flex", alignItems: "center", gap: "4px" }}><WarningIcon size={14} /> {m.warning}</span>}
+													</span>
+												</li>
+											))}
+										</ul>
+									);
+								})()}
+							</div>
+						</>
+					)}
+
 					{/* Practical Operator Guidance Cards */}
 					<div
 						style={{
@@ -1253,9 +1562,12 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 									fontWeight: 700,
 									color: "var(--green)",
 									marginBottom: "6px",
+									display: "flex",
+									alignItems: "center",
+									gap: "6px"
 								}}
 							>
-								🌿 Pflanzentraining & Pflege
+								<SproutIcon size={16} /> Pflanzentraining & Pflege
 							</div>
 							<p
 								style={{ margin: 0, fontSize: "13px", color: "var(--text-2)" }}
@@ -1774,6 +2086,470 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 						</div>
 					</div>
 
+					{/* ── Pot Weight Dryback Tracking Widget ── */}
+					<div
+						style={{
+							background: "var(--surface-2)",
+							padding: "16px",
+							borderRadius: "var(--radius)",
+							border: "1px solid var(--line)",
+							display: "flex",
+							flexDirection: "column",
+							gap: "14px",
+						}}
+					>
+						<div
+							style={{
+								display: "flex",
+								justifyContent: "space-between",
+								alignItems: "center",
+								flexWrap: "wrap",
+								gap: "8px",
+							}}
+						>
+							<div>
+								<h4
+									style={{
+										margin: 0,
+										fontSize: "15px",
+										fontWeight: 700,
+										color: "var(--green)",
+									}}
+								>
+									🪴 Topfgewicht &amp; Substrat-Hydratation (Dryback Tracking)
+								</h4>
+								<span style={{ fontSize: "12px", color: "var(--muted)" }}>
+									Gravimetrische Feuchtigkeitskontrolle &amp; Bewässerungssteuerung
+								</span>
+							</div>
+							<LensBadge lens={lens} />
+						</div>
+
+						{/* Primary Gravimetric Inputs */}
+						<div
+							style={{
+								display: "grid",
+								gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+								gap: "12px",
+							}}
+						>
+							<div>
+								<label
+									style={{
+										display: "block",
+										fontSize: "12px",
+										color: "var(--muted)",
+										marginBottom: "4px",
+									}}
+								>
+									<TermTooltip
+										term="Topfgewicht"
+										customText="Aktuell gemessenes Bruttogewicht des Topfes auf der Waage."
+										lens={lens}
+									>
+										Aktuelles Topfgewicht (g)
+									</TermTooltip>
+								</label>
+								<input
+									type="number"
+									step="50"
+									min="0"
+									max="30000"
+									value={potMassG}
+									onChange={(e) => setPotMassG(e.target.value)}
+									placeholder="z.B. 3400"
+									aria-label="Aktuelles Topfgewicht in Gramm"
+									style={{
+										width: "100%",
+										minHeight: "44px",
+										padding: "8px 12px",
+										borderRadius: "var(--radius-sm)",
+										border: "1px solid var(--line)",
+										background: "var(--surface-3)",
+										color: "var(--text)",
+										fontSize: "14px",
+										fontWeight: 600,
+									}}
+								/>
+							</div>
+
+							<div>
+								<label
+									style={{
+										display: "block",
+										fontSize: "12px",
+										color: "var(--muted)",
+										marginBottom: "4px",
+									}}
+								>
+									<TermTooltip
+										term="TARA"
+										customText="Trockengewicht des Topfes inklusive trockenem Substrat vor der ersten Bewässerung."
+										lens={lens}
+									>
+										TARA / Leergewicht (g)
+									</TermTooltip>
+								</label>
+								<input
+									type="number"
+									step="50"
+									min="0"
+									max="20000"
+									value={potTaraInput}
+									onChange={(e) => setPotTaraInput(e.target.value)}
+									placeholder="z.B. 800"
+									aria-label="TARA Leergewicht in Gramm"
+									style={{
+										width: "100%",
+										minHeight: "44px",
+										padding: "8px 12px",
+										borderRadius: "var(--radius-sm)",
+										border: "1px solid var(--line)",
+										background: "var(--surface-3)",
+										color: "var(--text)",
+										fontSize: "14px",
+									}}
+								/>
+							</div>
+
+							<div>
+								<label
+									style={{
+										display: "block",
+										fontSize: "12px",
+										color: "var(--muted)",
+										marginBottom: "4px",
+									}}
+								>
+									<TermTooltip
+										term="Vollsättigung"
+										customText="Topfgewicht bei 100% Wassersättigung direkt nach vollständiger Sättigung und Ablauf des freien Drains."
+										lens={lens}
+									>
+										100% Vollsättigung (g)
+									</TermTooltip>
+								</label>
+								<input
+									type="number"
+									step="50"
+									min="0"
+									max="30000"
+									value={potSatInput}
+									onChange={(e) => setPotSatInput(e.target.value)}
+									placeholder="z.B. 4800"
+									aria-label="Vollsättigungsgewicht in Gramm"
+									style={{
+										width: "100%",
+										minHeight: "44px",
+										padding: "8px 12px",
+										borderRadius: "var(--radius-sm)",
+										border: "1px solid var(--line)",
+										background: "var(--surface-3)",
+										color: "var(--text)",
+										fontSize: "14px",
+									}}
+								/>
+							</div>
+
+							<div>
+								<label
+									style={{
+										display: "block",
+										fontSize: "12px",
+										color: "var(--muted)",
+										marginBottom: "4px",
+									}}
+								>
+									Topfvolumen (L)
+								</label>
+								<input
+									type="number"
+									step="0.5"
+									min="0.5"
+									max="100"
+									value={potVolInput}
+									onChange={(e) => setPotVolInput(e.target.value)}
+									placeholder="z.B. 11"
+									aria-label="Topfvolumen in Liter"
+									style={{
+										width: "100%",
+										minHeight: "44px",
+										padding: "8px 12px",
+										borderRadius: "var(--radius-sm)",
+										border: "1px solid var(--line)",
+										background: "var(--surface-3)",
+										color: "var(--text)",
+										fontSize: "14px",
+									}}
+								/>
+							</div>
+						</div>
+
+						{/* Quick Save / Calibration Button */}
+						<div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+							<button
+								type="button"
+								onClick={handleSavePotCalibration}
+								aria-label="Topf-Referenzwerte im Run speichern"
+								style={{
+									minHeight: "44px",
+									minWidth: "44px",
+									padding: "0 18px",
+									background: "var(--surface-3)",
+									border: "1px solid var(--line-strong)",
+									color: "var(--text)",
+									borderRadius: "var(--radius-sm)",
+									fontWeight: 600,
+									fontSize: "13px",
+									cursor: "pointer",
+								}}
+							>
+								Topfprofil kalibrieren / speichern
+							</button>
+							{potProfileSavedToast && (
+								<span style={{ color: "var(--green)", fontSize: "13px", fontWeight: 600 }}>
+									{potProfileSavedToast}
+								</span>
+							)}
+						</div>
+
+						{/* Real-time Substrate Hydration Progress Bar / Gauge */}
+						<div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+							<div
+								style={{
+									display: "flex",
+									justifyContent: "space-between",
+									alignItems: "center",
+									fontSize: "12px",
+								}}
+							>
+								<span style={{ color: "var(--muted)" }}>
+									<TermTooltip
+										term="Substrat-Feuchte"
+										customText="Aktueller relativer Feuchtegehalt des Substrats bezogen auf die maximale nutzbare Wasserkapazität."
+										lens={lens}
+									>
+										Substrat-Hydratation
+									</TermTooltip>
+								</span>
+								<strong
+									style={{
+										color: substrateHydration
+											? HYDRATION_CATEGORY_DETAILS[substrateHydration.category].color
+											: "var(--muted)",
+										fontSize: "14px",
+									}}
+								>
+									{substrateHydration?.hydrationPercent !== null && substrateHydration?.hydrationPercent !== undefined ? `${substrateHydration.hydrationPercent} %` : "Unbekannt"}
+								</strong>
+							</div>
+
+							<div
+								role="meter"
+								aria-label="Substrat-Hydratation"
+								aria-valuenow={substrateHydration?.hydrationPercent ?? undefined}
+								aria-valuemin={0}
+								aria-valuemax={100}
+								aria-valuetext={
+									substrateHydration?.hydrationPercent !== null && substrateHydration?.hydrationPercent !== undefined
+										? `${substrateHydration.hydrationPercent}% (${HYDRATION_CATEGORY_DETAILS[substrateHydration.category].label})`
+										: "Unbekannt"
+								}
+								style={{
+									position: "relative",
+									width: "100%",
+									height: "26px",
+									background: "var(--surface-3)",
+									borderRadius: "var(--radius-sm)",
+									overflow: "hidden",
+									border: "1px solid var(--line)",
+									display: "flex",
+								}}
+							>
+								<div style={{ width: "20%", background: "rgba(239, 68, 68, 0.4)", borderRight: "1px solid rgba(255,255,255,0.1)", height: "100%" }} title="0–20% Trocken" />
+								<div style={{ width: "20%", background: "rgba(245, 158, 11, 0.4)", borderRight: "1px solid rgba(255,255,255,0.1)", height: "100%" }} title="20–40% Leicht" />
+								<div style={{ width: "30%", background: "rgba(16, 185, 129, 0.4)", borderRight: "1px solid rgba(255,255,255,0.1)", height: "100%" }} title="40–70% Optimal" />
+								<div style={{ width: "20%", background: "rgba(6, 182, 212, 0.4)", borderRight: "1px solid rgba(255,255,255,0.1)", height: "100%" }} title="70–90% Feucht" />
+								<div style={{ width: "10%", background: "rgba(139, 92, 246, 0.4)", height: "100%" }} title="90–100% Sättigung" />
+
+								{substrateHydration && substrateHydration.hydrationPercent !== null && (
+									<div
+										style={{
+											position: "absolute",
+											left: `calc(${Math.min(99, Math.max(1, substrateHydration.hydrationPercent))}% - 3px)`,
+											top: 0,
+											bottom: 0,
+											width: "6px",
+											background: "#ffffff",
+											boxShadow: "0 0 6px rgba(0,0,0,0.8)",
+											zIndex: 2,
+											borderRadius: "2px",
+										}}
+									/>
+								)}
+							</div>
+
+							<div
+								style={{
+									display: "flex",
+									justifyContent: "space-between",
+									fontSize: "10px",
+									color: "var(--muted)",
+									padding: "0 2px",
+								}}
+							>
+								<span>0% Trocken</span>
+								<span>20% Leicht</span>
+								<span>40% Optimal</span>
+								<span>70% Feucht</span>
+								<span>100% Nass</span>
+							</div>
+						</div>
+
+						{/* Key Metrics Grid */}
+						{substrateHydration && (
+							<div
+								style={{
+									display: "grid",
+									gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+									gap: "8px",
+								}}
+							>
+								<div
+									style={{
+										background: "var(--surface-1)",
+										padding: "10px",
+										borderRadius: "var(--radius-sm)",
+										border: "1px solid var(--line)",
+										textAlign: "center",
+									}}
+								>
+									<span style={{ fontSize: "11px", color: "var(--muted)", display: "block" }}>
+										<TermTooltip term="Substrat-Feuchte" customText="Aktueller relativer Feuchtegehalt des Substrats." lens={lens}>
+											Hydratation
+										</TermTooltip>
+									</span>
+									<strong style={{ fontSize: "15px", color: HYDRATION_CATEGORY_DETAILS[substrateHydration.category].color }}>
+										{substrateHydration.hydrationPercent} %
+									</strong>
+								</div>
+
+								<div
+									style={{
+										background: "var(--surface-1)",
+										padding: "10px",
+										borderRadius: "var(--radius-sm)",
+										border: "1px solid var(--line)",
+										textAlign: "center",
+									}}
+								>
+									<span style={{ fontSize: "11px", color: "var(--muted)", display: "block" }}>
+										<TermTooltip term="Dryback" customText="Prozentualer Wasserverlust (Depletion) seit der Vollsättigung." lens={lens}>
+											Dryback
+										</TermTooltip>
+									</span>
+									<strong style={{ fontSize: "15px", color: "var(--text-2)" }}>
+										{substrateHydration.depletionPercent} %
+									</strong>
+								</div>
+
+								<div
+									style={{
+										background: "var(--surface-1)",
+										padding: "10px",
+										borderRadius: "var(--radius-sm)",
+										border: "1px solid var(--line)",
+										textAlign: "center",
+									}}
+								>
+									<span style={{ fontSize: "11px", color: "var(--muted)", display: "block" }}>
+										Restwasser
+									</span>
+									<strong style={{ fontSize: "15px", color: "var(--text-2)" }}>
+										{substrateHydration.availableWaterGrams} g
+									</strong>
+								</div>
+
+								<div
+									style={{
+										background: "var(--surface-1)",
+										padding: "10px",
+										borderRadius: "var(--radius-sm)",
+										border: "1px solid var(--line)",
+										textAlign: "center",
+									}}
+								>
+									<span style={{ fontSize: "11px", color: "var(--muted)", display: "block" }}>
+										Dryback-Rate
+									</span>
+									<strong style={{ fontSize: "15px", color: "var(--text-2)" }}>
+										{historicalDrybackRate !== null ? `${historicalDrybackRate} g/h` : "—"}
+									</strong>
+								</div>
+							</div>
+						)}
+
+						{/* Dynamic German Watering Recommendation Callout */}
+						{substrateHydration && (
+							<div
+								style={{
+									padding: "12px 14px",
+									borderRadius: "var(--radius-sm)",
+									background: HYDRATION_CATEGORY_DETAILS[substrateHydration.category].background,
+									border: `1px solid ${HYDRATION_CATEGORY_DETAILS[substrateHydration.category].border}`,
+									display: "flex",
+									flexDirection: "column",
+									gap: "4px",
+								}}
+							>
+								<div
+									style={{
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "space-between",
+										flexWrap: "wrap",
+										gap: "6px",
+									}}
+								>
+									<strong
+										style={{
+											color: HYDRATION_CATEGORY_DETAILS[substrateHydration.category].color,
+											fontSize: "14px",
+										}}
+									>
+										{HYDRATION_CATEGORY_DETAILS[substrateHydration.category].recommendationTitle}
+									</strong>
+									<span
+										style={{
+											fontSize: "11px",
+											fontWeight: 600,
+											color: HYDRATION_CATEGORY_DETAILS[substrateHydration.category].color,
+											padding: "2px 8px",
+											borderRadius: "12px",
+											background: "rgba(0,0,0,0.2)",
+										}}
+									>
+										{HYDRATION_CATEGORY_DETAILS[substrateHydration.category].label} ({substrateHydration.hydrationPercent}%)
+									</span>
+								</div>
+								<p
+									style={{
+										margin: 0,
+										fontSize: "13px",
+										color: "var(--text)",
+										lineHeight: 1.4,
+									}}
+								>
+									{lens === "expert"
+										? HYDRATION_CATEGORY_DETAILS[substrateHydration.category].expertText
+										: lens === "advanced"
+											? HYDRATION_CATEGORY_DETAILS[substrateHydration.category].advancedText
+											: HYDRATION_CATEGORY_DETAILS[substrateHydration.category].guidedText}
+								</p>
+							</div>
+						)}
+					</div>
+
 					{/* Plant Growth & Freeform Notes */}
 					<div
 						style={{
@@ -1794,7 +2570,7 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 								color: "var(--amber)",
 							}}
 						>
-							🪴 Pflanzengröße, Stress & Freitext-Notizen
+							🪴 Pflanzengröße, Stress &amp; Freitext-Notizen
 						</h4>
 						<div
 							style={{
@@ -1812,33 +2588,6 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 										marginBottom: "4px",
 									}}
 								>
-									Topfgewicht (g)
-								</label>
-								<input
-									type="number"
-									step="50"
-									value={potMassG}
-									onChange={(e) => setPotMassG(e.target.value)}
-									placeholder="z.B. 3400"
-									style={{
-										width: "100%",
-										padding: "8px",
-										borderRadius: "var(--radius-sm)",
-										border: "1px solid var(--line)",
-										background: "var(--surface-3)",
-										color: "var(--text)",
-									}}
-								/>
-							</div>
-							<div>
-								<label
-									style={{
-										display: "block",
-										fontSize: "12px",
-										color: "var(--muted)",
-										marginBottom: "4px",
-									}}
-								>
 									Pflanzenhöhe (cm)
 								</label>
 								<input
@@ -1847,9 +2596,11 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 									value={plantHeightCm}
 									onChange={(e) => setPlantHeightCm(e.target.value)}
 									placeholder="z.B. 45"
+									aria-label="Pflanzenhöhe in Zentimeter"
 									style={{
 										width: "100%",
-										padding: "8px",
+										minHeight: "44px",
+										padding: "8px 12px",
 										borderRadius: "var(--radius-sm)",
 										border: "1px solid var(--line)",
 										background: "var(--surface-3)",
@@ -1874,9 +2625,11 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 									max="10"
 									value={stressScore}
 									onChange={(e) => setStressScore(e.target.value)}
+									aria-label="Stress Score von 0 bis 10"
 									style={{
 										width: "100%",
-										padding: "8px",
+										minHeight: "44px",
+										padding: "8px 12px",
 										borderRadius: "var(--radius-sm)",
 										border: "1px solid var(--line)",
 										background: "var(--surface-3)",
@@ -1902,9 +2655,10 @@ export const DailyOperatorPanel: React.FC<DailyOperatorPanelProps> = ({
 								value={obsNotes}
 								onChange={(e) => setObsNotes(e.target.value)}
 								placeholder="Besondere Beobachtungen, Aussehen des Canopys..."
+								aria-label="Routine Notizen zum Tag"
 								style={{
 									width: "100%",
-									padding: "8px",
+									padding: "8px 12px",
 									borderRadius: "var(--radius-sm)",
 									border: "1px solid var(--line)",
 									background: "var(--surface-3)",

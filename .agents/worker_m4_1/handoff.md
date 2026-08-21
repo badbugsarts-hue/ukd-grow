@@ -55,6 +55,7 @@
 ## 4. Conclusion
 
 Milestone 4 (M4: App Shell Routing & State Integration) is 100% complete and fully verified.
+
 - All 6 panels (`DailyOperatorPanel`, `NutrientMixPanel`, `RunConfigPanel`, `EnvironmentTargetsPanel`, `ContextHelpGlossaryPanel`, `VpdDliCalculatorPanel`) are imported, wired to their routes, and bound to `run: RunPackage` and `onUpdateRun`.
 - Dual lens persistence and topbar badge display are active.
 - All safety invariants, storage persistence, legal profile confirmation gates, and backup/restore modals remain intact.
@@ -64,22 +65,28 @@ Milestone 4 (M4: App Shell Routing & State Integration) is 100% complete and ful
 ## 5. Verification Method
 
 1. **Type Check**:
+
    ```bash
    npx tsc --noEmit
    ```
-   *Expected*: Exit code 0, 0 errors.
+
+   _Expected_: Exit code 0, 0 errors.
 
 2. **Unit & Component Test Suite**:
+
    ```bash
    npx vitest run
    ```
-   *Expected*: 9 test files passed, 112/112 tests passed.
+
+   _Expected_: 9 test files passed, 112/112 tests passed.
 
 3. **Production Build**:
+
    ```bash
    npx vite build
    ```
-   *Expected*: Production bundle compiled cleanly in `dist/`.
+
+   _Expected_: Production bundle compiled cleanly in `dist/`.
 
 4. **Invalidation Conditions**:
    - Any typescript error when adding or rendering routes.

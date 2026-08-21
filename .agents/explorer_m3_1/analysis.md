@@ -3,7 +3,7 @@
 **Component**: `src/components/panels/DailyOperatorPanel.tsx`  
 **Milestone**: M3 — Daily Operator Panel  
 **Author**: Explorer Agent  
-**Date**: 2026-08-11  
+**Date**: 2026-08-11
 
 ---
 
@@ -34,7 +34,8 @@ export interface DailyOperatorPanelProps {
 ## Core Capabilities & Features
 
 ### 1. Interactive Tageskarten Navigation (Days 0–80)
-- **Phase Group Quick-Tabs**: 
+
+- **Phase Group Quick-Tabs**:
   - Keimung / Sämling (Tag 0–7)
   - Vegetation (Tag 8–28)
   - Hauptblüte (Tag 29–63)
@@ -75,6 +76,7 @@ The panel organizes daily operations into 3 sequential, interactive steps:
 ```
 
 #### **Step 1: Tages-Check & Sollwerte**
+
 - Displays active phase, target photoperiod (hours), fixture power (W), and height (cm).
 - Renders `MetricGauge` components for:
   - **PPFD** (µmol/m²/s)
@@ -91,6 +93,7 @@ The panel organizes daily operations into 3 sequential, interactive steps:
   - Scientific context & evidence classification
 
 #### **Step 2: Messwerte & Beobachtung erfassen**
+
 - Pre-fills form fields if an observation for `selectedDay` already exists in `run.observations`.
 - Input fields with real-time feedback:
   - Air Temp Max & Min (°C)
@@ -111,6 +114,7 @@ The panel organizes daily operations into 3 sequential, interactive steps:
   - Dispatches `onUpdateRun(updatedRun)` immutably.
 
 #### **Step 3: Maßnahmen & Bestätigung**
+
 - **Daily Checklist**:
   - Computes daily tasks derived from plan and `run.tasks`.
   - Toggling completion checkbox invokes `setTaskCompleted(run, selectedDay, title, completed)`.
@@ -144,13 +148,13 @@ The panel organizes daily operations into 3 sequential, interactive steps:
 
 ## Pure State Functions & Immutability Matrix
 
-| Action | Function in `src/run-state.ts` | Target Field in `RunPackage` |
-|---|---|---|
-| Record Daily Measurement | `addObservation(run, obs)` | `observations`, `measurements`, `events`, `auditEvents`, `domainEvents` |
-| Record Observation | `addStructuredObservation(run, structuredObs)` | `structuredObservations`, `events`, `auditEvents`, `domainEvents` |
-| Toggle Task Done/Undone | `setTaskCompleted(run, day, task, completed)` | `completedTasks`, `tasks`, `auditEvents`, `domainEvents` |
-| Change Task State | `transitionTaskState(run, taskId, nextState, reason)` | `tasks`, `auditEvents`, `domainEvents` |
-| Acknowledge Alert | `acknowledgeAlert(run, alertId)` | `acknowledgedAlertIds` |
+| Action                   | Function in `src/run-state.ts`                        | Target Field in `RunPackage`                                            |
+| ------------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------- |
+| Record Daily Measurement | `addObservation(run, obs)`                            | `observations`, `measurements`, `events`, `auditEvents`, `domainEvents` |
+| Record Observation       | `addStructuredObservation(run, structuredObs)`        | `structuredObservations`, `events`, `auditEvents`, `domainEvents`       |
+| Toggle Task Done/Undone  | `setTaskCompleted(run, day, task, completed)`         | `completedTasks`, `tasks`, `auditEvents`, `domainEvents`                |
+| Change Task State        | `transitionTaskState(run, taskId, nextState, reason)` | `tasks`, `auditEvents`, `domainEvents`                                  |
+| Acknowledge Alert        | `acknowledgeAlert(run, alertId)`                      | `acknowledgedAlertIds`                                                  |
 
 ---
 
@@ -226,11 +230,15 @@ export interface CalculatedDayTargets {
   stopRules: string;
 }
 
-export function getTargetsForDay(day: number, plan?: DayPlan): CalculatedDayTargets {
+export function getTargetsForDay(
+  day: number,
+  plan?: DayPlan,
+): CalculatedDayTargets {
   if (plan && plan.day === day) {
     const lightHours = numberAt(plan, DAILY_COLUMNS.lightHours) || 18;
     const ppfd = numberAt(plan, DAILY_COLUMNS.ppfd) || 500;
-    const dli = numberAt(plan, DAILY_COLUMNS.dli) || calculateDli(ppfd, lightHours);
+    const dli =
+      numberAt(plan, DAILY_COLUMNS.dli) || calculateDli(ppfd, lightHours);
     const ec = numberAt(plan, DAILY_COLUMNS.ec) || 1.4;
     const ph = numberAt(plan, DAILY_COLUMNS.ph) || 6.0;
     const tempLight = numberAt(plan, DAILY_COLUMNS.tempLight) || 24;
@@ -239,15 +247,22 @@ export function getTargetsForDay(day: number, plan?: DayPlan): CalculatedDayTarg
 
     return {
       phaseName: textAt(plan, DAILY_COLUMNS.phase) || "Vegetation",
-      phaseShort: day <= 7 ? "Keimung" : day <= 28 ? "Veg" : day <= 63 ? "Hauptblüte" : "Spätblüte",
+      phaseShort:
+        day <= 7
+          ? "Keimung"
+          : day <= 28
+            ? "Veg"
+            : day <= 63
+              ? "Hauptblüte"
+              : "Spätblüte",
       goal: textAt(plan, DAILY_COLUMNS.goal) || "Tagesentwicklung fördern",
       lightHours,
       ledWatts: numberAt(plan, DAILY_COLUMNS.watts) || 140,
       distanceCm: numberAt(plan, DAILY_COLUMNS.distance) || 40,
       ppfdMin: Math.max(100, Math.round(ppfd * 0.85)),
       ppfdMax: Math.round(ppfd * 1.15),
-      dliMin: Math.max(5, Math.round((dli * 0.85) * 10) / 10),
-      dliMax: Math.round((dli * 1.15) * 10) / 10,
+      dliMin: Math.max(5, Math.round(dli * 0.85 * 10) / 10),
+      dliMax: Math.round(dli * 1.15 * 10) / 10,
       tempMin: Math.max(18, tempLight - 2),
       tempMax: tempLight + 2,
       rhMin: Math.max(35, rh - 5),
@@ -287,7 +302,8 @@ export function getTargetsForDay(day: number, plan?: DayPlan): CalculatedDayTarg
       phTarget: 5.8,
       waterMinL: 0.2,
       waterMaxL: 0.4,
-      trainingNotes: "Kein mechanisches Training. Hohe Luftfeuchtigkeit wahren.",
+      trainingNotes:
+        "Kein mechanisches Training. Hohe Luftfeuchtigkeit wahren.",
       qaNotes: "Substrat feucht halten, Stauwasser vermeiden.",
       stopRules: "Keine Starkdüngung vor dem ersten echten Blattpaar.",
     };
@@ -366,7 +382,8 @@ export function getTargetsForDay(day: number, plan?: DayPlan): CalculatedDayTarg
       waterMinL: 0.8,
       waterMaxL: 1.5,
       trainingNotes: "Kein Schneiden mehr. Schwere Blütenstände stützen.",
-      qaNotes: "Trichomfärbung mit Mikroskop/Lupe (Milchig / Bernstein) prüfen.",
+      qaNotes:
+        "Trichomfärbung mit Mikroskop/Lupe (Milchig / Bernstein) prüfen.",
       stopRules: "Kein Nährstoffdünger mehr in den letzten 7–10 Tagen.",
     };
   }

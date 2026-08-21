@@ -168,7 +168,7 @@ describe("Empirical Challenge M4: App Shell Routing & State Integration", () => 
 			const updatedRun = updateRunConfig(initialRun, newConfig);
 
 			expect(updatedRun.config.name).toBe("Test Run M4");
-			expect(initialRun.config.name).toBe("UKD Run 2026"); // Zero mutation
+			expect(initialRun.config.name).toBe("UKD Masterplan v11 Variante B"); // Zero mutation
 		});
 	});
 

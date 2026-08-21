@@ -3,6 +3,7 @@
 ## 1. Observation
 
 ### Implementation & Fixes
+
 - **`src/components/panels/NutrientMixPanel.tsx`**:
   - Defined and exported `DisplayMixItem` interface and the pure helper function `applyMixSafetyRules(items, isWaterProfileIncomplete, stackingBoosterConflict)`.
   - When `isWaterProfileIncomplete` is `true`, `applyMixSafetyRules` overrides all nutrient dose items to `dose: 0.0`, `amount: 0.0`, `statusText: "⛔ Gesperrt: Wasserprofil fehlt"`, and `isBlocked: true`.
@@ -16,6 +17,7 @@
   - Added unit test: `zeros out PK 13/14 dose amount and displays '⛔ GESPERRT: Stacking-Konflikt' when booster conflict is active`.
 
 ### Command Results
+
 - **TypeScript Typecheck**:
   - Command: `npx tsc --noEmit`
   - Result: Exit code 0, 0 errors.
@@ -61,19 +63,23 @@
 To independently verify:
 
 1. **TypeScript Typecheck**:
+
    ```bash
    npx tsc --noEmit
    ```
-   *(Must return Exit code 0 with zero errors)*
+
+   _(Must return Exit code 0 with zero errors)_
 
 2. **Vitest Unit Tests**:
+
    ```bash
    npx vitest run
    ```
-   *(Must return Exit code 0 with 8/8 test files and 95/95 unit tests passing)*
+
+   _(Must return Exit code 0 with 8/8 test files and 95/95 unit tests passing)_
 
 3. **Vite Production Build**:
    ```bash
    npx vite build
    ```
-   *(Must return Exit code 0)*
+   _(Must return Exit code 0)_

@@ -47,6 +47,7 @@
 
 The integration plan for Milestone 4 (App Shell Routing & State Integration) is fully designed and ready for implementation.
 Key implementation actions required:
+
 1. Update `src/types.ts`: Add `"calc"` to `RouteId` union.
 2. Update `src/App.tsx`:
    - Import `LensBadge` from `./components/common/LensBadge`.
@@ -62,22 +63,28 @@ Key implementation actions required:
 ## 5. Verification Method
 
 1. **Typecheck**:
+
    ```bash
    npx tsc --noEmit
    ```
-   *Expected outcome*: Exit code 0, 0 errors.
+
+   _Expected outcome_: Exit code 0, 0 errors.
 
 2. **Unit Test Suite**:
+
    ```bash
    npx vitest run
    ```
-   *Expected outcome*: 9 test files passed, 112/112 tests passed.
+
+   _Expected outcome_: 9 test files passed, 112/112 tests passed.
 
 3. **Build Check**:
+
    ```bash
    npx vite build
    ```
-   *Expected outcome*: Successful production build output in `dist/`.
+
+   _Expected outcome_: Successful production build output in `dist/`.
 
 4. **Invalidation Conditions**:
    - Any typescript compilation errors on `RouteId` or component props.

@@ -52,7 +52,7 @@ describe("verified backup and recovery", () => {
 		expect(restored.ok).toBe(true);
 		if (restored.ok) {
 			expect(restored.migrated).toBe(true);
-			expect(restored.value.schemaVersion).toBe("4.0.0");
+			expect(restored.value.schemaVersion).toBe("6.0.0");
 		}
 	});
 });

@@ -1,46 +1,46 @@
-# BRIEFING — 2026-08-11T01:27:45Z
+# BRIEFING — 2026-08-21T04:35:00Z
 
 ## Mission
-Implement 4 interactive input panels (`EnvironmentTargetsPanel.tsx`, `NutrientMixPanel.tsx`, `RunConfigPanel.tsx`, `VpdDliCalculatorPanel.tsx`) and unit tests `panels.test.ts` for Milestone 2.
+Implement Milestone 2: Autoflower Cockpit Browser & Selector for the UKD Grow Masterplan project.
 
 ## 🔒 My Identity
-- Archetype: implementer, qa, specialist
+- Archetype: worker_m2
 - Roles: implementer, qa, specialist
 - Working directory: c:\Users\badbu\Documents\grow\.agents\worker_m2
-- Original parent: 6783987b-1cde-4c0a-8087-df980caf57b6
-- Milestone: Milestone 2 (Core Interactive Input Panels)
+- Original parent: f405ce39-450a-4cb1-bc3b-d8f617d532f0
+- Milestone: Milestone 2: Autoflower Cockpit Browser & Selector
 
 ## 🔒 Key Constraints
-- Pure presentation and domain binding: UI panels receive domain data/RunPackage state, render inputs cleanly, call callbacks on change.
-- Styling: Use `styles.css` CSS variables, clean responsive layout.
-- Shared components: Use `TermTooltip`, `MetricGauge`, `LensBadge`.
-- Integrity: Genuine implementations, full domain integration, proper tests.
+- Exclusively own src/components/panels/AutoflowerCockpitPanel.tsx, src/components/modals/AutoflowerCockpitModal.tsx, and tests.
+- High-performance, 2026 dark emerald aesthetics using CSS tokens from styles.css.
+- Comprehensive multi-facet filtering and sorting.
+- Cultivar Card grid with rank, kind, provenance, cannabinoid summary, yield projection bar with uncertainty band, key traits, action buttons.
+- Sliding Detail Drawer with 44-attribute profile.
+- Modal component with keyboard ESC and onSelectStrain callback.
+- Full type safety and test coverage.
 
 ## Current Parent
-- Conversation ID: 6783987b-1cde-4c0a-8087-df980caf57b6
-- Updated: 2026-08-11T01:27:45Z
+- Conversation ID: f405ce39-450a-4cb1-bc3b-d8f617d532f0
+- Updated: not yet
 
 ## Task Summary
-- **What to build**: 4 input panels in `src/components/panels/` and tests in `src/components/panels/panels.test.ts`.
-- **Success criteria**: Type check clean (`npx tsc --noEmit`), all Vitest unit tests pass (`npx vitest run`), crisp UI following AGENTS.md and PROJECT.md requirements. STATUS: COMPLETED & VERIFIED (57/57 vitest tests pass, tsc clean, vite build clean).
+- **What to build**: AutoflowerCockpitModal.tsx, upgraded AutoflowerCockpitPanel.tsx, unit tests AutoflowerCockpitPanel.test.tsx.
+- **Success criteria**: 61 strains rendered, multi-facet filtering, sorting, drawer view, modal integration, tests passing.
+- **Interface contracts**: src/types.ts, src/data/autoflower-cockpit.json
+- **Code layout**: src/components/modals/, src/components/panels/
 
 ## Change Tracker
 - **Files modified**:
-  - `src/components/panels/EnvironmentTargetsPanel.tsx` (New interactive environment & climate targets panel)
-  - `src/components/panels/NutrientMixPanel.tsx` (New 7-step recipe & mix batch panel with fail-closed water profile check)
-  - `src/components/panels/RunConfigPanel.tsx` (New run config editor with 0-100% readiness score & readiness gate)
-  - `src/components/panels/VpdDliCalculatorPanel.tsx` (New standalone quick calculator & 4-phase comparison matrix)
-  - `src/components/panels/panels.test.ts` (New unit test suite covering calculations, readiness scores, and state transitions)
-- **Build status**: PASS (tsc clean, vitest 57/57 pass, vite build clean)
-- **Pending issues**: None
+  - `src/components/panels/AutoflowerCockpitPanel.tsx`: Full Masterclass upgrade with dual views, multi-facet filters, sorting, yield uncertainty bar ($MAXY = 130\text{ g}$), and sliding detail drawer with 44 attributes.
+  - `src/components/modals/AutoflowerCockpitModal.tsx`: New modal component with backdrop blur, keyboard ESC dismissal, and embedded strain selection bridge.
+  - `src/components/panels/AutoflowerCockpitPanel.test.tsx`: 17 unit/component tests covering dataset integrity, filtering, sorting, uncertainty math, callbacks, and modals.
+- **Build status**: 17/17 tests passing (100%), 0 Biome lint errors/warnings.
+- **Pending issues**: None.
 
 ## Quality Status
-- **Build/test result**: PASS (57 tests passed)
-- **Lint status**: CLEAN
-- **Tests added/modified**: 10 new tests in `panels.test.ts`
+- **Build/test result**: PASS (17 tests passed in 1031ms)
+- **Lint status**: 0 errors, 0 warnings across all 3 files
+- **Tests added/modified**: 17 new tests in `src/components/panels/AutoflowerCockpitPanel.test.tsx`
 
-## Artifact Index
-- `.agents/worker_m2/DISPATCH.md` — Dispatch prompt
-- `.agents/worker_m2/BRIEFING.md` — Working memory
-- `.agents/worker_m2/progress.md` — Progress log
-- `.agents/worker_m2/handoff.md` — Handoff report
+## Loaded Skills
+- None

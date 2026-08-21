@@ -7,6 +7,7 @@ MANDATORY INTEGRITY WARNING:
 DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
 
 Your task:
+
 1. Create directory `c:\Users\badbu\Documents\grow\.agents\worker_m2_it2`.
 2. Read `c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md`, `c:\Users\badbu\Documents\grow\PROJECT.md`, `c:\Users\badbu\Documents\grow\AGENTS.md`, and `c:\Users\badbu\Documents\grow\.agents\explorer_m2_it2\handoff.md`.
 3. Implement the fixes in `src/components/panels/NutrientMixPanel.tsx` and update `src/components/panels/panels.test.ts` according to the exact specifications in `.agents/explorer_m2_it2/handoff.md`:

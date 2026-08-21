@@ -1,60 +1,86 @@
-# Project: UKD App UI Master Class
+# Project: UKD Grow Masterplan Setup View & Autoflower Cockpit Integration
 
 ## Architecture
-- **Component Architecture**: Modular component library under `src/components/`, split into `common/` (primitives, tooltips, gauges) and `panels/` (domain-specific input panels).
-- **State & Data Flow**: Unidirectional state flow. `App.tsx` (`Workspace`) owns the reactive `run: RunPackage` state, passing it and an `onUpdateRun` callback down to input panels. Panels invoke pure state transition functions (`addObservation`, `addStructuredObservation`, `updateRunConfig`) from `src/run-state.ts` and pass updated immutable snapshots to `onUpdateRun`.
-- **Experience Lenses**: `guided`, `advanced`, and `expert` lenses adjust detail levels, tooltip guidance, and visual density without affecting domain calculations or scientific values.
-- **Fail-Closed Safety Contract**: Missing or inconsistent setup/phase inputs block dosage outputs and present clear resolution steps.
+- **App Shell & Routing (`src/App.tsx`)**: Hosts global Topbar with Live/Simulation toggle, manages route navigation, handles active `RunPackage` persistence to IndexedDB (`ukd-operator-workspace` v8), and propagates global plan/current day state to all panels.
+- **State & Domain Engine (`src/run-state.ts`, `src/run-storage.ts`, `src/domain.ts`, `src/live-run.ts`)**:
+  - `RunPackage`: Versioned schema (`6.0.0`), `executionMode: "simulation" | "live"`, `run.config` with complete setup parameters and pot profile.
+  - `GrowthEvents & Milestones`: Records `seed-planted` (potting) and `emergence` (Day Zero) events in `run.growthEvents`, calculating biological age vs operational age and recalculating `currentDay` in Live mode.
+  - `Domain Recalculation`: Dynamic recalculation of daily DLI, VPD, and nutrient targets via `getDayPlan(workbook, calculatedDay)`.
+- **Autoflower Cockpit (`src/data/autoflower-cockpit.json`, `src/components/panels/AutoflowerCockpitPanel.tsx`, `src/components/modals/AutoflowerCockpitModal.tsx`)**:
+  - 61-strain verified dataset extracted from Autoflower-Cockpit v3 reference.
+  - Full interactive browser with facets (breeder, cycle time, difficulty, cannabinoid profile, mold/feed sensitivity, yield projection).
+  - Cultivar selection mechanism that populates `run.config.genetics` and `run.plantIdentity`.
+- **Comprehensive Setup View (`src/components/panels/RunConfigPanel.tsx`)**:
+  - 8-card categorized setup interface (Genetics & Cockpit, Timeline & Milestones, Lighting & PPFD, Tent & Geometry, Water Chemistry, Pot & Substrate / Dryback, Ventilation & Exhaust, Nutrient & Irrigation System).
+  - Full visibility and direct editing with validation of all configured parameters.
+  - Live vs Simulation mode toggle with instant persistence and audit tracking.
 
 ## Feature Inventory
-| # | Feature | Description | Milestone | Source |
-|---|---------|-------------|-----------|--------|
-| 1 | F1: Common UI Primitives & Term Tooltips | `TermTooltip`, `LensBadge`, `MetricGauge`, German term dictionary | M1 | .antigravitz term map |
-| 2 | F2: Environment & Climate Targets Panel | `EnvironmentTargetsPanel`: Interactive PPFD, DLI, rF, VPD sliders & gauges | M2 | .antigravitz section map |
-| 3 | F3: Nutrient Mix & Recipe Panel | `NutrientMixPanel`: 7-step batch calculator, EC/pH dosing, product status chips | M2 | .antigravitz poster / section map |
-| 4 | F4: Run Config & Readiness Setup Panel | `RunConfigPanel`: Medium, light, tent, AKF, water profile setup & fail-closed readiness gate | M2 | .antigravitz decision flow |
-| 5 | F5: VPD & DLI Calculator Panel | `VpdDliCalculatorPanel`: Standalone quick calculator with target matrix | M2 | .antigravitz section map |
-| 6 | F6: Daily Operator Panel | `DailyOperatorPanel`: Interactive Tageskarten (Days 0-80), 3-step daily action flow | M3 | .antigravitz v10 PDF / posters |
-| 7 | F7: Context Help & Knowledge Glossary Panel | `ContextHelpGlossaryPanel`: Searchable, filterable German glossary for all terms | M3 | .antigravitz v10 PDF |
-| 8 | F8: App.tsx Shell Integration & Routing | Route integration into `App.tsx` navigation tabs, binding state to `RunPackage` | M4 | ORIGINAL_REQUEST R2 |
-| 9 | F9: Component & Unit Test Suite | Co-located unit tests for panel calculations & tooltips (161/161 vitest tests passing) | M5 | ORIGINAL_REQUEST Acceptance |
-| 10 | F10: Final Verification & Audit Gate | `npx tsc --noEmit`, `npx vitest run`, `npx vite build`, Forensic Audit CLEAN | M5 | ORIGINAL_REQUEST Acceptance |
+| # | Feature | Description | Milestone | Source | Status |
+|---|---------|-------------|-----------|--------|--------|
+| F1 | Setup Parameters Visibility & Editing | Display and allow direct editing of all `RunConfig` and `PotProfile` parameters in `RunConfigPanel.tsx` (including `plantCount`, `startDate`, `endDay`, `mediumProduct`, `pot.type`, `nominalVolumeLiters`, `nutrientSystem`, `irrigationSystem`). | M3 | User R1, Explorer Setup | DONE |
+| F2 | Ventilation & Exhaust Persistence | Persist `exhaustM3h` into `run.equipment` / `run.config` instead of transient React local state. | M3 | Explorer Setup | DONE |
+| F3 | Substrate Dryback Tare Weights | Add `emptyMassGrams` and `saturatedMassGrams` inputs to Pot & Substrate card to satisfy `calculateSubstrateHydration` domain requirements. | M3 | User R5, Explorer Setup | DONE |
+| F4 | Autoflower Cockpit 61-Strain Dataset | Integrate the verified 61-strain plant dataset with 44 fields into `src/data/autoflower-cockpit.json` and TypeScript types. | M1 | User R2, Spec Miner | DONE |
+| F5 | Autoflower Cockpit Browser & Selector Modal | Create interactive 2026-design browser and modal selector with multi-facet filters, search, drawer detail, and direct selection into active `run.config`. | M2 | User R2, Spec Miner | DONE |
+| F6 | Global Live vs Simulation Mode Toggle | Implement global Live/Simulation switch in header/topbar with status indicator, anti-rollback protection, and instant IndexedDB persistence. | M1, M4 | User R3, Explorer State | DONE |
+| F7 | Retroactive Plant Milestone Tracking | Support retroactive entry of potting (`seed-planted`) and emergence (`emergence` / Day Zero) dates in Setup with dynamic calendar and biological age recalculation. | M1, M3 | User R4, Explorer State | DONE |
+| F8 | Dynamic Global Plan Recalculation | Dynamically compute operational `currentDay` from retroactive milestones in Live mode, updating all downstream panels (`Cockpit`, `Today`, `MixLab`, `Climate`, `Timeline`). | M4 | User R4, Explorer State | DONE |
+| F9 | Missing UKD Setup Elements & Validation | Implement complete setup elements: tent geometry volume calculations, target VPD ranges, fan turnover CFM, substrate mix ratios, base water ions, KCanG compliance checks. | M3 | User R5, Explorer Setup | DONE |
+| F10 | Comprehensive Test Verification & Full Gate | Maintain 100% passing tests (485/485 passing), typecheck, build, and forensic audit CLEAN. | M4 | Acceptance Criteria | DONE |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Common UI Primitives & Terminology System | `src/components/common/` (`TermTooltip`, `LensBadge`, `MetricGauge`) | None | DONE |
-| M2 | Core Interactive Input Panels | `src/components/panels/` (`EnvironmentTargetsPanel`, `NutrientMixPanel`, `RunConfigPanel`, `VpdDliCalculatorPanel`) | M1 | DONE |
-| M3 | Daily Operator & Knowledge Glossary Panels | `src/components/panels/` (`DailyOperatorPanel`, `ContextHelpGlossaryPanel`) | M1 | DONE |
-| M4 | App Shell Routing & State Integration | Integration in `src/App.tsx` navigation & state callbacks | M2, M3 | DONE |
-| M5 | Test Suite, E2E & Final Quality Gate | Unit tests, E2E test verification, full audit, tsc/vitest/vite build check | M4 | DONE |
+| M1 | Data Models, Storage & State Engine | Update `src/types.ts`, `src/data/autoflower-cockpit.json`, `src/run-state.ts`, `src/run-storage.ts`, and `src/live-run.ts` with Live/Simulation toggle helpers, 61-strain types, and retroactive milestone mutation/audit functions. | none | DONE |
+| M2 | Autoflower Cockpit Browser & Selector | Build/update `src/components/panels/AutoflowerCockpitPanel.tsx` and create `src/components/modals/AutoflowerCockpitModal.tsx` matching 2026 dark emerald aesthetics, multi-facet filtering, sliding drawer, and strain selection callback. | M1 | DONE |
+| M3 | Setup View Parameter Visibility, Editing & Missing Elements | Revamp `src/components/panels/RunConfigPanel.tsx` with 8 modular cards, full editing, dryback tare weights, persistent ventilation, retroactive milestone date pickers, and missing UKD elements. | M1, M2 | DONE |
+| M4 | App Shell Global Integration, Dynamic Plan Recalculation & Gate | Wire Global Live/Sim toggle into `src/App.tsx`, mount Autoflower Cockpit in library/selector routes, ensure dynamic plan updates across panels, run full test suite, typecheck, build, and forensic audit. | M1, M2, M3 | DONE |
 
 ## Interface Contracts
-### Panel Component Contract
+### Data & State Model (`src/run-state.ts`, `src/types.ts`)
 ```typescript
-import { RunPackage, DayPlan, ExperienceLens, RouteId } from '../../types';
-
-export interface PanelProps {
-  run: RunPackage;
-  plan?: DayPlan;
-  lens: ExperienceLens;
-  onUpdateRun: (updatedRun: RunPackage) => void;
-  navigate?: (route: RouteId) => void;
+export interface AutoflowerStrain {
+  id: string;
+  name: string;
+  breeder: string;
+  genetics: string;
+  type: string;
+  cycleWeeksMin: number;
+  cycleWeeksMax: number;
+  expectedYieldMinG: number;
+  expectedYieldMaxG: number;
+  thcPercentMin: number;
+  thcPercentMax: number;
+  cbdPercentMin: number;
+  cbdPercentMax: number;
+  terpenes: string[];
+  moldResistance: string;
+  feedTolerance: string;
+  difficulty: string;
+  heightMinCm: number;
+  heightMaxCm: number;
+  description: string;
+  provenance: string;
+  evidenceRating: number;
 }
-```
 
-### Term Tooltip Component Contract
-```typescript
-export interface TermTooltipProps {
-  term: string; // e.g. "VPD", "DLI", "EC", "PPFD"
-  children?: React.ReactNode;
-  lens?: ExperienceLens;
-  showIcon?: boolean;
-}
+export function updateExecutionMode(run: RunPackage, mode: "simulation" | "live"): RunPackage;
+export function updatePlantMilestones(
+  run: RunPackage,
+  milestones: { pottingDateIso?: string; emergenceDateIso?: string },
+  reason?: string
+): RunPackage;
 ```
 
 ## Code Layout
-- `src/components/common/`: Shared UI primitives (`TermTooltip.tsx`, `LensBadge.tsx`, `MetricGauge.tsx`).
-- `src/components/panels/`: Domain input panels (`EnvironmentTargetsPanel.tsx`, `NutrientMixPanel.tsx`, `RunConfigPanel.tsx`, `VpdDliCalculatorPanel.tsx`, `DailyOperatorPanel.tsx`, `ContextHelpGlossaryPanel.tsx`).
-- `src/App.tsx`: App shell, navigation, workspace routing.
-- `src/styles.css`: CSS tokens (`--green`, `--surface-1`, etc.).
+- `src/types.ts`: Type definitions for RunPackage, PotProfile, EquipmentProfile, AutoflowerStrain, Milestones.
+- `src/data/autoflower-cockpit.json`: Verified 61-strain canonical plant database.
+- `src/run-state.ts`: Reducers, milestone helpers, execution mode toggle, domain events, and audit events.
+- `src/run-storage.ts`: IndexedDB persistence and recovery.
+- `src/domain.ts`: Biological age calculation, dynamic day calculation, substrate hydration, DLI/VPD calculations.
+- `src/live-run.ts`: Live clock evaluation with anti-rollback.
+- `src/components/panels/AutoflowerCockpitPanel.tsx`: Full standalone Autoflower Cockpit browser.
+- `src/components/modals/AutoflowerCockpitModal.tsx`: Modal dialog for selecting genetics into setup.
+- `src/components/panels/RunConfigPanel.tsx`: Comprehensive 8-card setup view.
+- `src/App.tsx`: App shell, topbar Live/Sim toggle, routing, state coordination.

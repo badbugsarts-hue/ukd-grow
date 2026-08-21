@@ -132,8 +132,10 @@ test("all report formats download and invalid restore is rejected", async ({
   page,
   isMobile,
 }) => {
+  test.setTimeout(120_000);
   test.skip(isMobile, "download format integrity is browser-independent");
   await open(page, "reports");
+  let validBackupPath: string | null = null;
   for (const [button, extension] of [
     ["JSON sichern", ".json"],
     ["CSV exportieren", ".csv"],
@@ -148,6 +150,54 @@ test("all report formats download and invalid restore is rejected", async ({
     let size = 0;
     for await (const chunk of stream) size += chunk.length;
     expect(size).toBeGreaterThan(20);
+    const savedPath = await download.path();
+    expect(savedPath).not.toBeNull();
+    if (extension === ".json" && savedPath) {
+      validBackupPath = savedPath;
+      const envelope = JSON.parse(readFileSync(savedPath, "utf8"));
+      expect(envelope.appVersion).toBe("8.0.0");
+			expect(envelope.runSchemaVersion).toBe("6.0.0");
+    }
+    if (extension === ".xlsx" && savedPath) {
+	  const exceljs = await import("exceljs");
+	  const WorkbookConstructor = exceljs.Workbook ?? exceljs.default.Workbook;
+	  const workbook = new WorkbookConstructor();
+      await workbook.xlsx.load(readFileSync(savedPath));
+      expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual(
+        expect.arrayContaining([
+          "Observations",
+          "Mix Batches",
+          "Irrigation",
+          "Growth Events",
+          "Equipment",
+          "Maintenance",
+          "IPM",
+          "Incidents",
+          "Post Harvest",
+          "Energy",
+          "Product Inventory",
+        ]),
+      );
+      const observationHeaders = workbook
+        .getWorksheet("Observations")
+        ?.getRow(1)
+        .values;
+      expect(observationHeaders).toEqual(
+        expect.arrayContaining([
+          "waterLiters",
+          "drainLiters",
+          "drainPercent",
+          "potMassGrams",
+        ]),
+      );
+    }
+  }
+  expect(validBackupPath).not.toBeNull();
+  if (validBackupPath) {
+    await page.locator('input[type="file"]').setInputFiles(validBackupPath);
+    await expect(page.locator(".save-state")).toContainText(
+      "isoliert geprüft und atomar wiederhergestellt",
+    );
   }
   await page.locator('input[type="file"]').setInputFiles({
     name: "broken.json",
@@ -155,6 +205,40 @@ test("all report formats download and invalid restore is rejected", async ({
     buffer: Buffer.from('{"schemaVersion":"9"}'),
   });
   await expect(page.locator(".inline-error")).toContainText("Fehler");
+});
+
+test("P0 operations use state machines and persist through the command gateway", async ({
+  page,
+}) => {
+  await open(page, "ipm");
+  await page.getByLabel("Befund").fill("Blattunterseite auffällig");
+  await page.getByLabel("Ort").fill("Canopy links");
+  await page.getByRole("button", { name: "Inspektion speichern" }).click();
+  await expect(page.getByText("Blattunterseite auffällig")).toBeVisible();
+  await page.getByRole("button", { name: "Nächsten Status bestätigen" }).click();
+  await expect(page.getByText(/MONITORING/)).toBeVisible();
+
+  await open(page, "incidents");
+  await page.getByLabel("Beschreibung").fill("Abluft ausgefallen");
+  await page.getByLabel("Kategorie").selectOption("fan-failure");
+  await page.getByLabel("Schweregrad").selectOption("high");
+  await page.getByRole("button", { name: "Incident eröffnen" }).click();
+  await expect(page.getByText("Abluft ausgefallen")).toBeVisible();
+  await expect(page.getByText(/Plan superseded: JA/)).toBeVisible();
+
+  await open(page, "inventory");
+  await page.getByLabel("Produkt").fill("Reference Test Product");
+  await page.getByLabel("Gebindegröße").fill("1 L");
+  await page.getByRole("button", { name: "Bestand hinzufügen" }).click();
+  await expect(page.getByText("Reference Test Product")).toBeVisible();
+
+  await open(page, "equipment");
+  await page.getByLabel("Hersteller").fill("UKD Test");
+  await page.getByLabel("Modell").fill("Asset 01");
+  await page.getByRole("button", { name: "Asset hinzufügen" }).click();
+  await expect(
+    page.getByRole("heading", { name: "UKD Test Asset 01" }),
+  ).toBeVisible();
 });
 
 test("legal profile stays session-only while inventory persists", async ({
@@ -278,4 +362,36 @@ test("dialogs trap and restore focus and question marks remain editable", async 
   await notes.fill("Warum?");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(notes).toHaveValue("Warum?");
+});
+
+test("file connector validates, previews and commits measurements as unverified", async ({ page }) => {
+  await open(page, "connector");
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "measurements.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from([
+      "timestamp,metric,value,unit,deviceId,source",
+      "2026-08-18T10:00:00Z,water.ec,1.2,mS/cm,ec-meter-1,manual-export",
+    ].join("\n")),
+  });
+  await page.getByRole("button", { name: "Validieren & Vorschau" }).click();
+  await expect(page.getByText("Schema- und Einheitenprüfung bestanden.")).toBeVisible();
+  await page.getByRole("button", { name: "Validierten Batch übernehmen" }).click();
+  await expect(page.getByText("1 Messwerte wurden als unverified übernommen.")).toBeVisible();
+  await open(page, "log");
+  await expect(page.getByText(/Messdatei importiert/).first()).toBeVisible();
+});
+
+test("setup profiles create a new immutable run draft without replacing history", async ({ page }) => {
+  await open(page, "profiles");
+  await page.getByLabel("Profilname").fill("60x60 Reference");
+  await page.getByRole("button", { name: "Setup-Profil speichern" }).click();
+  await expect(page.getByText("Setup-Profil versioniert gespeichert.")).toBeVisible();
+  await page.getByLabel("Templatename").fill("Double Grape Template");
+  await page.getByRole("button", { name: "Template speichern" }).click();
+  await expect(page.getByText(/Run-Template gespeichert/)).toBeVisible();
+  await page.getByRole("button", { name: "Neuen Run-Entwurf erstellen" }).click();
+  await expect(page.getByText(/Neuer Entwurf/)).toBeVisible();
+  await open(page, "history");
+  await expect(page.getByRole("region", { name: "Gespeicherte Runs" }).locator("article")).toHaveCount(2);
 });

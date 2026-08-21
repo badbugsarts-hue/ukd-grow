@@ -64,9 +64,10 @@ const HANDLED_ROUTES: RouteId[] = [
 	"legal",
 	"reports",
 	"system",
+	"equipment",
+	"ipm",
+	"incidents",
 ];
-
-const UNHANDLED_ROUTES: RouteId[] = ["equipment", "ipm", "incidents"];
 
 describe("Milestone 4 - Comprehensive Navigation Routing & Callback Stress Suite", () => {
 	const _mockPlan = getDayPlan(mockWorkbook, 14);
@@ -76,13 +77,13 @@ describe("Milestone 4 - Comprehensive Navigation Routing & Callback Stress Suite
 			expect(ALL_ROUTES.length).toBe(22);
 		});
 
-		it("verifies that 19 routes are properly mapped in WorkspaceRoute switch statement", () => {
-			expect(HANDLED_ROUTES.length).toBe(19);
+		it("verifies that all 22 routes are properly mapped in WorkspaceRoute switch statement", () => {
+			expect(HANDLED_ROUTES.length).toBe(22);
+			expect(HANDLED_ROUTES).toEqual(ALL_ROUTES);
 		});
 
-		it("empirically confirms that 3 routes (equipment, ipm, incidents) are unhandled in WorkspaceRoute switch", () => {
-			expect(UNHANDLED_ROUTES.length).toBe(3);
-			expect(UNHANDLED_ROUTES).toEqual(["equipment", "ipm", "incidents"]);
+		it("empirically confirms that equipment route is mapped and handled", () => {
+			expect(HANDLED_ROUTES).toContain("equipment");
 		});
 	});
 

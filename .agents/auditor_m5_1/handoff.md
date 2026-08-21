@@ -11,6 +11,7 @@
 The final forensic audit on Milestones 1 through 5 of the UKD App has been completed. Every component, input panel, routing rule, tooltip, gauge, state machine, and test case was independently inspected and verified against the user requirements (`ORIGINAL_REQUEST.md`), architecture specifications (`PROJECT.md`), and scientific/legal invariants (`AGENTS.md`).
 
 All three mandatory verification gates passed cleanly:
+
 1. `npx tsc --noEmit`: 0 errors.
 2. `npx vitest run`: 161/161 tests passing across 14 test files.
 3. `npx vite build`: Production build completed successfully in 5.54s (`dist/` generated).
@@ -102,22 +103,28 @@ The complete work product of Milestones 1 through 5 is **CLEAN**. The codebase m
 To independently reproduce and verify this audit:
 
 1. **Run Typecheck**:
+
    ```bash
    npx tsc --noEmit
    ```
-   *Expected output*: Exits with code 0 and no errors.
+
+   _Expected output_: Exits with code 0 and no errors.
 
 2. **Run Test Suite**:
+
    ```bash
    npx vitest run
    ```
-   *Expected output*: All 161 tests across 14 test files pass.
+
+   _Expected output_: All 161 tests across 14 test files pass.
 
 3. **Run Production Build**:
+
    ```bash
    npx vite build
    ```
-   *Expected output*: Successful build in `dist/` directory.
+
+   _Expected output_: Successful build in `dist/` directory.
 
 4. **Inspect Source Structure**:
    - `src/components/common/`: Shared UI primitives (`TermTooltip`, `LensBadge`, `MetricGauge`).

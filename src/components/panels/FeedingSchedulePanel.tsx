@@ -4,9 +4,9 @@ export function FeedingSchedulePanel() {
 	return (
 		<div className="panel-container">
 			<div className="panel-header">
-				<h2>💧 UKD v10 · FÜTTERUNGSPLAN · UGro Rhiza Coco</h2>
+				<h2>💧 UKD v11 Variante B · FÜTTERUNGSPLAN · Pot9 Rhiza</h2>
 				<p>
-					Eazy Plug Mini -{">"} Eazy Block Standard -{">"} UGro Rhiza Coco ·
+					Eazy Plug Mini -{">"} Eazy Block Standard -{">"} Pot9 Rhiza ·
 					exakte UKD-Planwerte, keine Hersteller-Fütterungstabelle
 				</p>
 			</div>
@@ -24,7 +24,7 @@ export function FeedingSchedulePanel() {
 					Anzucht- und Medium-Pfad
 				</h3>
 				<p style={{ margin: 0, fontSize: "13px", color: "var(--text)" }}>
-					<strong>Eazy Plug Mini -{">"} Eazy Block Standard -{">"} UGro Rhiza Coco</strong>
+					<strong>Eazy Plug Mini -{">"} Eazy Block Standard -{">"} Pot9 Rhiza</strong>
 					<br />
 					<span style={{ color: "var(--muted)", fontSize: "12px" }}>
 						Umtopfen nach Wurzel-/Pflanzenzustand; Substrat-pH/EC sind Referenzwerte, keine Gießwasser-Sollwerte.
@@ -32,7 +32,14 @@ export function FeedingSchedulePanel() {
 				</p>
 			</div>
 
-			<div style={{ overflowX: "auto", marginTop: "20px" }}>
+			<div
+				className="data-table-wrap"
+				style={{ marginTop: "20px" }}
+				role="region"
+				aria-label="Fütterungsplan, horizontal scrollbar"
+				// biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard access is required for the scrollable data region.
+				tabIndex={0}
+			>
 				<table
 					style={{
 						width: "100%",
@@ -70,13 +77,11 @@ export function FeedingSchedulePanel() {
 						{/* Medium-Pfad */}
 						<tr style={{ borderBottom: "1px solid var(--line)" }}>
 							<td style={{ padding: "12px", fontWeight: "bold" }}>Medium-Pfad</td>
-							<td style={{ padding: "12px", color: "#3b82f6", fontWeight: "bold" }}>REFERENZ</td>
-							<td style={{ padding: "12px", color: "var(--muted)" }}>Eazy Plug Mini -{">"} Eazy Block Standard -{">"} UGro Rhiza Coco</td>
+							<td style={{ padding: "12px", color: "var(--blue)", fontWeight: "bold" }}>REFERENZ</td>
+							<td style={{ padding: "12px", color: "var(--muted)" }}>Eazy Plug Mini -{">"} Eazy Block Standard -{">"} Pot9 Rhiza</td>
+							<td style={{ padding: "12px" }}>EazyPlug</td>
 							<td style={{ padding: "12px" }}>EazyBlock</td>
-							<td style={{ padding: "12px" }}>EazyBlock</td>
-							<td style={{ padding: "12px" }}>EazyBlock</td>
-							<td style={{ padding: "12px" }}>EazyBlock</td>
-							<td colSpan={8} style={{ padding: "12px", textAlign: "center", background: "rgba(255,255,255,0.02)" }}>UGro Rhiza</td>
+							<td colSpan={10} style={{ padding: "12px", textAlign: "center", background: "rgba(255,255,255,0.02)" }}>Pot9 Rhiza</td>
 						</tr>
 
 						{/* HESI Basis */}
@@ -157,7 +162,7 @@ export function FeedingSchedulePanel() {
 						{/* Voodoo Juice & Tarantula (Optional / Ausgewählte Ergänzung) */}
 						<tr style={{ borderBottom: "1px solid var(--line)", background: "rgba(168, 85, 247, 0.1)" }}>
 							<td style={{ padding: "12px", fontWeight: "bold" }}>Voodoo Juice</td>
-							<td style={{ padding: "12px", color: "#a855f7", fontWeight: "bold" }}>AUSGEWÄHLTE<br/>ERGÄNZUNG</td>
+							<td style={{ padding: "12px", color: "var(--purple)", fontWeight: "bold" }}>AUSGEWÄHLTE<br/>ERGÄNZUNG</td>
 							<td style={{ padding: "12px", color: "var(--muted)" }}>Definierte frische UKD-Ereignisse; Hersteller-Kompatibilität ist kein Beweis.</td>
 							<td style={{ padding: "12px" }}>2 ml/L<br /><span style={{ fontSize: "10px", color: "var(--muted)" }}>1 Tage</span></td>
 							<td style={{ padding: "12px" }}>2 ml/L<br /><span style={{ fontSize: "10px", color: "var(--muted)" }}>1 Tage</span></td>
@@ -169,7 +174,7 @@ export function FeedingSchedulePanel() {
 
 						<tr style={{ borderBottom: "1px solid var(--line)", background: "rgba(168, 85, 247, 0.1)" }}>
 							<td style={{ padding: "12px", fontWeight: "bold" }}>Tarantula</td>
-							<td style={{ padding: "12px", color: "#a855f7", fontWeight: "bold" }}>AUSGEWÄHLTE<br/>ERGÄNZUNG</td>
+							<td style={{ padding: "12px", color: "var(--purple)", fontWeight: "bold" }}>AUSGEWÄHLTE<br/>ERGÄNZUNG</td>
 							<td style={{ padding: "12px", color: "var(--muted)" }}>Mit Voodoo ausgewählt; gleiche konservative Frisch-Ereignisse.</td>
 							<td style={{ padding: "12px" }}>2 ml/L<br /><span style={{ fontSize: "10px", color: "var(--muted)" }}>1 Tage</span></td>
 							<td style={{ padding: "12px" }}>2 ml/L<br /><span style={{ fontSize: "10px", color: "var(--muted)" }}>1 Tage</span></td>
@@ -182,14 +187,14 @@ export function FeedingSchedulePanel() {
 						{/* Nur Bedingt */}
 						<tr style={{ borderBottom: "1px solid var(--line)", background: "rgba(234, 179, 8, 0.1)" }}>
 							<td style={{ padding: "12px", fontWeight: "bold" }}>Athena Balance</td>
-							<td style={{ padding: "12px", color: "#eab308", fontWeight: "bold" }}>NUR BEDINGT</td>
+							<td style={{ padding: "12px", color: "var(--amber)", fontWeight: "bold" }}>NUR BEDINGT</td>
 							<td style={{ padding: "12px", color: "var(--muted)" }}>Bevorzugter Silizium-/pH-Pfad; keine universelle Kalenderdosis.</td>
 							<td colSpan={12} style={{ padding: "12px", color: "var(--muted)", textAlign: "center" }}>—</td>
 						</tr>
 
 						<tr style={{ borderBottom: "1px solid var(--line)", background: "rgba(234, 179, 8, 0.1)" }}>
 							<td style={{ padding: "12px", fontWeight: "bold" }}>Sensi CalMag Xtra</td>
-							<td style={{ padding: "12px", color: "#eab308", fontWeight: "bold" }}>NUR BEDINGT</td>
+							<td style={{ padding: "12px", color: "var(--amber)", fontWeight: "bold" }}>NUR BEDINGT</td>
 							<td style={{ padding: "12px", color: "var(--muted)" }}>Vorhandene CalMag-Quelle; Dosis nur über ausdrücklich freigegebenen CalMag-Plan.</td>
 							<td colSpan={12} style={{ padding: "12px", color: "var(--muted)", textAlign: "center" }}>—</td>
 						</tr>
@@ -212,8 +217,8 @@ export function FeedingSchedulePanel() {
 				</table>
 			</div>
 
-			<div style={{ marginTop: "16px", padding: "16px", background: "var(--surface-2)", borderRadius: "var(--radius-sm)", fontSize: "12px", color: "var(--muted)" }}>
-				<strong>SO LIEST DU DIE TABELLE:</strong> Die Zellen zeigen die aufgelösten UKD-v10-Planwerte. '7 Tage' bedeutet sieben Kalendertage mit positivem Planwert - nicht sieben erzwungene Gießvorgänge. Tatsächlich angewendet wird nur, wenn ein reales Gieß-/Mischereignis stattfindet und dokumentiert wird. Produkte mit 'nur bedingt' bleiben bis zur Freigabe auf 0.
+			<div style={{ padding: "16px", background: "var(--surface-1)", borderRadius: "var(--radius-md)", fontSize: "13px", marginTop: "20px" }}>
+				<strong>SO LIEST DU DIE TABELLE:</strong> Die Zellen zeigen die aufgelösten UKD-v11-Planwerte. '7 Tage' bedeutet sieben Kalendertage mit positivem Planwert - nicht sieben erzwungene Gießvorgänge. Tatsächlich angewendet wird nur, wenn ein reales Gieß-/Mischereignis stattfindet und dokumentiert wird. Produkte mit 'nur bedingt' bleiben bis zur Freigabe auf 0.
 			</div>
 		</div>
 	);

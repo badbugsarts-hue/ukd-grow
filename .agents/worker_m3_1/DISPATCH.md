@@ -4,6 +4,7 @@ You are Worker M3 for Milestone 3 (M3: Daily Operator & Knowledge Glossary Panel
 Working directory: c:\Users\badbu\Documents\grow\.agents\worker_m3_1
 
 Read:
+
 1. c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md
 2. c:\Users\badbu\Documents\grow\PROJECT.md
 3. c:\Users\badbu\Documents\grow\AGENTS.md
@@ -17,6 +18,7 @@ DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results,
 
 Your task:
 Implement the Milestone 3 components and unit tests:
+
 1. `src/components/panels/DailyOperatorPanel.tsx`:
    - Full interactive Tageskarten (Days 0-80) with phase quick-tabs, day slider, carousel.
    - 3-Step workflow: Step 1 (Tages-Check & Sollwerte), Step 2 (Messwerte & Beobachtungen erfassen with `addObservation` and `addStructuredObservation`), Step 3 (Maßnahmen & Bestätigung with `setTaskCompleted`, `transitionTaskState`, `calculateMix`, `acknowledgeAlert`).
@@ -33,6 +35,7 @@ Implement the Milestone 3 components and unit tests:
    - Tests day navigation, metric calculations, state mutations via callbacks, search/filtering, multi-lens rendering, and scientific invariant preservation.
 
 Verification:
+
 - Run `npx tsc --noEmit` and confirm exit code 0.
 - Run `npx vitest run` and confirm all tests pass without regression.
 - Run `npx vite build` and confirm production build succeeds.

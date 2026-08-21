@@ -18,7 +18,9 @@ Direct observations from codebase inspection:
      const [route, setRoute] = useState<RouteId>(readRoute);
      const [lens, setLens] = useState<ExperienceLens>(readLens);
      const [day, setDay] = useState(readDay);
-     const [run, setRun] = useState<RunPackage>(() => createDefaultRunPackage());
+     const [run, setRun] = useState<RunPackage>(() =>
+       createDefaultRunPackage(),
+     );
      ```
 
 2. **Persistence Pipeline (`src/App.tsx:582-592` & `src/run-storage.ts:176-181`)**:
@@ -27,7 +29,9 @@ Direct observations from codebase inspection:
      useEffect(() => {
        if (!runHydrated) return;
        const timer = window.setTimeout(() => {
-         saveActiveRun(run).catch(() => setStorageError("Autosave fehlgeschlagen..."));
+         saveActiveRun(run).catch(() =>
+           setStorageError("Autosave fehlgeschlagen..."),
+         );
        }, 250);
        return () => window.clearTimeout(timer);
      }, [run, runHydrated]);
@@ -41,7 +45,14 @@ Direct observations from codebase inspection:
    - Lenses available: `"guided"`, `"advanced"`, `"expert"`.
    - `Sidebar` filters visible navigation items in `"guided"` mode using `GUIDED_CORE_ROUTES`:
      ```typescript
-     const GUIDED_CORE_ROUTES: RouteId[] = ["cockpit", "today", "setup", "log", "mix", "timeline"];
+     const GUIDED_CORE_ROUTES: RouteId[] = [
+       "cockpit",
+       "today",
+       "setup",
+       "log",
+       "mix",
+       "timeline",
+     ];
      ```
 
 5. **Existing Component Directory (`src/`)**:
@@ -96,6 +107,7 @@ Direct observations from codebase inspection:
 ## 5. Verification Method
 
 To verify the integration after implementation:
+
 1. Run type checker: `pnpm typecheck` (or `npx tsc --noEmit`) - must pass with 0 errors.
 2. Run test suite: `pnpm test` (or `npx vitest run`) - must pass all 29 unit tests.
 3. Run build gate: `pnpm build` (or `npx vite build`) - must complete dist build cleanly.

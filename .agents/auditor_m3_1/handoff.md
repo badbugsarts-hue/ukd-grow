@@ -9,6 +9,7 @@
 ## 1. Observation
 
 ### 1.1 Inspected Files & Statistics
+
 - `src/components/panels/DailyOperatorPanel.tsx` (1,507 lines, 64,002 bytes)
   - Implements 81-day interactive Tageskarten carousel (Days 0–80) with phase quick-tabs (Keimung, Veg, Hauptblüte, Spätblüte).
   - Implements 3-step operator flow:
@@ -24,6 +25,7 @@
   - 17 comprehensive unit tests covering day navigation, target corridor resolution, observation recording, structured observations, task checklist state transitions, nutrient recipe previews, alert acknowledgments, term dictionary lookups, multi-lens rendering, edge case handling, and zero-regression domain calculation precision.
 
 ### 1.2 Verification Commands & Results
+
 - `npx tsc --noEmit`: Executed successfully with exit code 0 (0 TypeScript errors).
 - `npx vitest run`: Executed successfully with exit code 0.
   - Test Files: 9 passed (9/9)
@@ -70,6 +72,7 @@ Milestone 3 (Daily Operator & Knowledge Glossary Panels) is authentically implem
 ## 5. Verification Method
 
 To independently verify this audit:
+
 ```bash
 # 1. Typecheck
 npx tsc --noEmit
@@ -80,4 +83,5 @@ npx vitest run
 # 3. Production Build Check
 npx vite build
 ```
+
 Invalidation condition: Any failure in `npx tsc --noEmit`, `npx vitest run`, `npx vite build`, or discovery of hardcoded test result shortcuts.

@@ -4,6 +4,7 @@ You are an Explorer for Milestone 4 (M4: App Shell Routing & State Integration).
 Working directory: c:\Users\badbu\Documents\grow\.agents\explorer_m4_1
 
 Read:
+
 1. c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md
 2. c:\Users\badbu\Documents\grow\PROJECT.md
 3. c:\Users\badbu\Documents\grow\AGENTS.md
@@ -12,6 +13,7 @@ Read:
 Your objective:
 Investigate and design the integration of all new Master Class interactive panels into `src/App.tsx`.
 Ensure:
+
 - Clear, seamless routing for tabs (`today`, `mix`, `setup`, `climate`, `knowledge`, `calc`).
 - Header experience lens selector (`guided`, `advanced`, `expert`) with `LensBadge` and state persistence.
 - Binding of `run: RunPackage` state and `onUpdateRun` state handler across all panels.

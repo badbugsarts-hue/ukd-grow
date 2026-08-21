@@ -107,5 +107,6 @@ npx vite build
 ```
 
 Inspection targets:
+
 - `src/App.tsx`: Lines 13–20 (imports) and 1174–1264 (`RouteContent` switch)
 - `src/AppIntegration.test.tsx`: Route mapping and zero-mutation test assertions

@@ -8,7 +8,7 @@
 
 ## 1. Review Summary
 
-The implementation of the Milestone 2 Core Interactive Input Panels (`src/components/panels/`) has been thoroughly reviewed and independently verified. 
+The implementation of the Milestone 2 Core Interactive Input Panels (`src/components/panels/`) has been thoroughly reviewed and independently verified.
 
 - **Target Files**:
   - `src/components/panels/EnvironmentTargetsPanel.tsx` (637 lines)
@@ -82,16 +82,20 @@ The Milestone 2 Core Interactive Input Panels (`src/components/panels/`) meet al
 To independently verify this report:
 
 1. **Type Check**:
+
    ```bash
    npx tsc --noEmit
    ```
-   *Expected result*: Exit code 0, 0 errors.
+
+   _Expected result_: Exit code 0, 0 errors.
 
 2. **Unit Tests**:
+
    ```bash
    npx vitest run src/components/panels/panels.test.ts
    ```
-   *Expected result*: 10 passed tests (100% pass rate).
+
+   _Expected result_: 10 passed tests (100% pass rate).
 
 3. **Files Inspected**:
    - `src/components/panels/EnvironmentTargetsPanel.tsx`
@@ -110,11 +114,13 @@ To independently verify this report:
 ## 7. Findings & Stress-Test Results
 
 ### Findings
+
 - **Critical**: None
 - **Major**: None
 - **Minor**: None
 
 ### Verified Claims
+
 - `npx tsc --noEmit` → verified via CLI execution → PASS
 - `npx vitest run` → verified via CLI execution → PASS (57/57 tests passed)
 - Invariant 4 (Fail-Closed Water Profile Gate) → verified in `NutrientMixPanel.tsx` & `RunConfigPanel.tsx` → PASS
@@ -122,6 +128,7 @@ To independently verify this report:
 - Invariant 19 (Append-Only Run State Updates) → verified in `addObservation` & `activateRun` integration → PASS
 
 ### Stress Test Results (Adversarial Critic)
+
 - **Boundary inputs on readiness calculator**: Null/NaN values correctly fail readiness checks (Score: 0%).
 - **Dosage scaling at volume = 0/negative**: Minimum volume clamped to 1L in `NutrientMixPanel.tsx`, preventing NaN or infinite dosing.
 - **Float precision on leaf offset**: Leaf temp rounded to 1 decimal place (`Math.round(val * 10) / 10`), avoiding JS floating point inaccuracy.

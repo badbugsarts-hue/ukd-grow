@@ -3,6 +3,7 @@
 ## 1. Observation
 
 ### System & Build Checks
+
 - **TypeScript Typecheck**: `npx tsc --noEmit` executed with 0 errors (Exit code 0).
 - **Vitest Unit Test Suite**: `npx vitest run` executed with 1 failed test file and 2 failed individual tests:
   ```
@@ -15,6 +16,7 @@
 ### Code Inspection Findings
 
 #### Finding 1 [CRITICAL - FAIL-CLOSED SAFETY RULE VIOLATION / INTEGRITY]
+
 - **File**: `src/components/panels/NutrientMixPanel.tsx`, lines 36–54 & lines 403–441.
 - **Observed Code**:
   ```tsx
@@ -39,6 +41,7 @@
 - **Issue**: Although `isWaterProfileIncomplete` triggers a red warning banner at line 164, the panel **fails to block positive dose generation**. `mixItems` calculates and displays positive dosage values (e.g. 2.5 ml/L, 25.0 ml total) and marks items as `✓ Freigegeben` even when essential water chemistry (pH, EC, Ca/Mg) is missing. This violates the core fail-closed safety requirement ("Missing water chemistry shows warning alert and blocks positive dose generation").
 
 #### Finding 2 [MAJOR - COSMETIC-ONLY CONFLICT DETECTION]
+
 - **File**: `src/components/panels/NutrientMixPanel.tsx`, lines 28, 348–367, 403–441.
 - **Observed Code**:
   ```tsx
@@ -53,6 +56,7 @@
 - **Issue**: Checking the PK booster conflict checkbox displays a warning text box in Step 4, but **does not modify `mixItems` or block PK 13/14 dosage**. In the recipe table, PK 13/14 continues to show positive dosage values and remains approved (`✓ Freigegeben`), rendering the conflict enforcement non-functional.
 
 #### Finding 3 [CRITICAL - TEST SUITE EXECUTION FAILURE]
+
 - **File**: `src/components/panels/climate-stress-test.test.ts`, lines 167 & 182.
 - **Observed Code**:
   ```ts
@@ -61,6 +65,7 @@
 - **Issue**: `VpdDliCalculatorPanel` is invoked directly as a plain JavaScript function rather than rendered as a React component. Because the component uses `useState`, calling it directly throws `TypeError: Cannot read properties of null (reading 'useState')`, causing the test suite to fail.
 
 #### Verified Features
+
 - **Readiness Score Calculation & Activation Gate**: `RunConfigPanel.tsx` (`calculateReadinessScore`) accurately scores 5 categories at 20% each (100% total). Below 100%, `isReady` is false, missing items are listed, and activation is disabled (`disabled={!readiness.isReady}`). Verified in `panels.test.ts`.
 - **German Term Tooltips**: `TermTooltip` is properly rendered across `EnvironmentTargetsPanel.tsx`, `NutrientMixPanel.tsx`, `RunConfigPanel.tsx`, and `VpdDliCalculatorPanel.tsx`.
 
@@ -91,6 +96,7 @@
 **Verdict**: `REQUEST_CHANGES`
 
 ### Summary of Required Changes
+
 1. **Fix Fail-Closed Water Chemistry Gate**: In `NutrientMixPanel.tsx`, when `isWaterProfileIncomplete` is `true`, zero out or block all positive dose calculations in `mixItems` (or display `⛔ Gesperrt: Wasserprofil fehlt` instead of positive ml dosages and `✓ Freigegeben`).
 2. **Enforce PK 13/14 Stacking Gate**: In `NutrientMixPanel.tsx`, when `stackingBoosterConflict` is checked, block/zero out PK 13/14 dosage in `mixItems` and update table status to `⛔ GESPERRT: Stacking-Konflikt`.
 3. **Fix React Hook Invocation in Test Suite**: In `src/components/panels/climate-stress-test.test.ts`, remove direct function invocation of `VpdDliCalculatorPanel(...)` or test component rendering with `@testing-library/react`.

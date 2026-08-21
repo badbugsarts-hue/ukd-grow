@@ -1,7 +1,11 @@
 import type {
 	CellValue,
+	DayZeroAnchor,
 	EnergyReading,
+	GrowthEvent,
 	IrrigationEvent,
+	PotProfile,
+	PpfdMapPoint,
 	RunEnergySummary,
 	Workbook,
 	WorkbookSheet,
@@ -268,3 +272,227 @@ export function calculateDrybackRate(events: IrrigationEvent[]): {
 	}
 	return { avgDrybackGramsPerHour: Math.round(avg * 10) / 10, trend };
 }
+
+export interface PpfdMapSummary {
+	mean: number;
+	min: number;
+	max: number;
+	uniformity: number; // min / mean
+}
+
+export function calculatePpfdMapSummary(
+	points: PpfdMapPoint[],
+	fixtureHeightCm: number,
+	dimmerPercent: number,
+): PpfdMapSummary {
+	if (!Array.isArray(points) || points.length === 0) {
+		return { mean: 0, min: 0, max: 0, uniformity: 0 };
+	}
+
+	const safeDimmer = Number.isFinite(dimmerPercent)
+		? Math.max(0, Math.min(100, dimmerPercent)) / 100
+		: 1;
+
+	const validValues = points
+		.map((p) => (p && typeof p.ppfd === "number" && Number.isFinite(p.ppfd) ? p.ppfd * safeDimmer : null))
+		.filter((v): v is number => v !== null && v >= 0);
+
+	if (validValues.length === 0) {
+		return { mean: 0, min: 0, max: 0, uniformity: 0 };
+	}
+
+	const sum = validValues.reduce((acc, val) => acc + val, 0);
+	const mean = Math.round((sum / validValues.length) * 10) / 10;
+	const min = Math.round(Math.min(...validValues) * 10) / 10;
+	const max = Math.round(Math.max(...validValues) * 10) / 10;
+	const uniformity = mean > 0 ? Math.round((min / mean) * 1000) / 1000 : 0;
+
+	return { mean, min, max, uniformity };
+}
+
+export function calculateBiologicalPlantAge(
+	dayZeroAnchor: DayZeroAnchor,
+	growthEvents: GrowthEvent[],
+	now = new Date(),
+): {
+	biologicalAgeDays: number;
+	operationalAgeDays: number;
+	anchorDateString: string;
+	germinationDays?: number;
+} {
+	const safeEvents = Array.isArray(growthEvents)
+		? growthEvents.filter((e): e is GrowthEvent => Boolean(e && typeof e === "object" && typeof e.kind === "string" && typeof e.occurredAt === "string"))
+		: [];
+
+	// Find operational start event
+	const opEvent = safeEvents.find(
+		(e) => e.kind === "run-operational-start" || e.kind === "seed-started" || e.kind === "seed-planted",
+	);
+
+	const sortedEvents = [...safeEvents].sort(
+		(a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime(),
+	);
+	const earliestEvent = sortedEvents[0];
+
+	const opDate = opEvent
+		? new Date(opEvent.occurredAt)
+		: earliestEvent
+			? new Date(earliestEvent.occurredAt)
+			: now;
+
+	const isOpDateValid = !Number.isNaN(opDate.getTime());
+	const operationalAgeDays = isOpDateValid
+		? Math.max(0, Math.floor((now.getTime() - opDate.getTime()) / (1000 * 60 * 60 * 24)))
+		: 0;
+
+	// Derive germination duration if both seed event and emergence event exist
+	const seedEvent = safeEvents.find(
+		(e) => e.kind === "seed-planted" || e.kind === "seed-started",
+	);
+	const emergenceEv = safeEvents.find((e) => e.kind === "emergence");
+	let germinationDays: number | undefined;
+	if (seedEvent && emergenceEv) {
+		const sTime = new Date(seedEvent.occurredAt).getTime();
+		const eTime = new Date(emergenceEv.occurredAt).getTime();
+		if (!Number.isNaN(sTime) && !Number.isNaN(eTime)) {
+			germinationDays = Math.max(0, Math.floor((eTime - sTime) / (1000 * 60 * 60 * 24)));
+		}
+	}
+
+	// Find anchor event
+	const anchorEvent = safeEvents.find((e) => e.kind === dayZeroAnchor);
+
+	if (!anchorEvent) {
+		const fallbackAnchorString = isOpDateValid
+			? opDate.toISOString()
+			: opEvent
+				? opEvent.occurredAt
+				: earliestEvent
+					? earliestEvent.occurredAt
+					: !Number.isNaN(now.getTime())
+						? now.toISOString()
+						: new Date().toISOString();
+
+		return {
+			biologicalAgeDays: operationalAgeDays,
+			operationalAgeDays,
+			anchorDateString: fallbackAnchorString,
+			...(germinationDays !== undefined ? { germinationDays } : {}),
+		};
+	}
+
+	const anchorDate = new Date(anchorEvent.occurredAt);
+	const isAnchorDateValid = !Number.isNaN(anchorDate.getTime());
+	const biologicalAgeDays = isAnchorDateValid
+		? Math.max(0, Math.floor((now.getTime() - anchorDate.getTime()) / (1000 * 60 * 60 * 24)))
+		: 0;
+
+	return {
+		biologicalAgeDays,
+		operationalAgeDays,
+		anchorDateString: anchorEvent.occurredAt,
+		...(germinationDays !== undefined ? { germinationDays } : {}),
+	};
+}
+
+export interface SubstrateHydration {
+	state: "VALID" | "UNKNOWN" | "INSUFFICIENT_DATA";
+	hydrationPercent: number | null;
+	depletionPercent: number | null;
+	availableWaterGrams: number | null;
+	category: "dry" | "light" | "medium" | "heavy" | "saturated" | "unknown";
+	drybackRateGramsPerHour?: number;
+	reason?: string;
+}
+
+export function calculateSubstrateHydration(
+	currentMassGrams: number,
+	potProfile: PotProfile,
+): SubstrateHydration {
+	const emptyMass = potProfile.emptyMassGrams;
+
+	if (emptyMass === undefined || emptyMass === null) {
+		return {
+			state: "INSUFFICIENT_DATA",
+			hydrationPercent: null,
+			depletionPercent: null,
+			availableWaterGrams: null,
+			category: "unknown",
+			reason: "EMPTY_MASS_MISSING",
+		};
+	}
+
+	if (!Number.isFinite(currentMassGrams) || Number.isNaN(currentMassGrams)) {
+		return {
+			state: "UNKNOWN",
+			hydrationPercent: null,
+			depletionPercent: null,
+			availableWaterGrams: null,
+			category: "unknown",
+			reason: "INVALID_CURRENT_MASS",
+		};
+	}
+
+	if (currentMassGrams < emptyMass) {
+		return {
+			state: "UNKNOWN",
+			hydrationPercent: null,
+			depletionPercent: null,
+			availableWaterGrams: null,
+			category: "unknown",
+			reason: "MASS_BELOW_TARE",
+		};
+	}
+
+	const satMass = potProfile.saturatedMassGrams;
+
+	if (satMass === undefined || satMass === null || satMass <= emptyMass) {
+		return {
+			state: "INSUFFICIENT_DATA",
+			hydrationPercent: null,
+			depletionPercent: null,
+			availableWaterGrams: null,
+			category: "unknown",
+			reason: "SATURATION_REFERENCE_MISSING",
+		};
+	}
+
+	if (currentMassGrams > satMass * 1.05) {
+		return {
+			state: "UNKNOWN",
+			hydrationPercent: null,
+			depletionPercent: null,
+			availableWaterGrams: null,
+			category: "unknown",
+			reason: "MASS_EXCEEDS_SATURATION",
+		};
+	}
+
+	const availableWaterCapacity = satMass - emptyMass;
+	const currentWaterGrams = currentMassGrams - emptyMass;
+
+	const hydrationPercent = Math.min(
+		100,
+		Math.max(0, Math.round((currentWaterGrams / availableWaterCapacity) * 100)),
+	);
+
+	const depletionPercent = 100 - hydrationPercent;
+	const availableWaterGrams = Math.round(currentWaterGrams);
+
+	let category: "dry" | "light" | "medium" | "heavy" | "saturated" | "unknown";
+	if (hydrationPercent < 20) category = "dry";
+	else if (hydrationPercent < 40) category = "light";
+	else if (hydrationPercent < 70) category = "medium";
+	else if (hydrationPercent < 90) category = "heavy";
+	else category = "saturated";
+
+	return {
+		state: "VALID",
+		hydrationPercent,
+		depletionPercent,
+		availableWaterGrams,
+		category,
+
+	};
+}
+

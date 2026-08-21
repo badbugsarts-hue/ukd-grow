@@ -34,6 +34,73 @@ export interface TrustAssessment {
 	interpretationAllowed: boolean;
 }
 
+export type SensorCalibrationStatus = "VALID" | "DUE_SOON" | "CALIBRATION_DUE" | "FAILED" | "UNKNOWN" | "INVALID_TIMESTAMP";
+
+export function getSensorCalibrationStatus(
+	deviceId: string,
+	metric: MeasurementMetric,
+	calibrations: CalibrationRecord[],
+	now = new Date(),
+): SensorCalibrationStatus {
+	const matching = calibrations
+		.filter((c) => c.deviceId === deviceId && c.metric === metric)
+		.sort((a, b) => {
+			const timeA = new Date(a.performedAt).getTime();
+			const timeB = new Date(b.performedAt).getTime();
+			// Sort descending (newest first)
+			return timeB - timeA;
+		});
+
+	if (matching.length === 0) {
+		return "UNKNOWN";
+	}
+
+	const latest = matching.find(c => {
+		const time = new Date(c.performedAt).getTime();
+		return !Number.isNaN(time) && time <= now.getTime();
+	});
+
+	if (!latest) {
+		const first = matching[0];
+		if (first && Number.isNaN(new Date(first.performedAt).getTime())) {
+			return "INVALID_TIMESTAMP";
+		}
+		// If all matching records are in the future, we still consider it unknown
+		return "UNKNOWN";
+	}
+
+	if (latest.result === "failed") {
+		return "FAILED";
+	}
+
+	let expiryTime: number;
+	if (latest.validUntil) {
+		const parsedExpiry = new Date(latest.validUntil).getTime();
+		if (Number.isNaN(parsedExpiry)) return "INVALID_TIMESTAMP";
+		expiryTime = parsedExpiry;
+	} else {
+		// Enforce metric windows: pH = 30 days, EC = 60 days, default = 30 days
+		const validityDays =
+			metric === "water.ph" || metric === "drain.ph"
+				? 30
+				: metric === "water.ec" || metric === "drain.ec"
+					? 60
+					: 30;
+		expiryTime = new Date(latest.performedAt).getTime() + validityDays * 24 * 60 * 60 * 1000;
+	}
+
+	const dueSoonTime = expiryTime - 7 * 24 * 60 * 60 * 1000; // 7 days before expiry
+
+	if (now.getTime() > expiryTime) {
+		return "CALIBRATION_DUE";
+	}
+	if (now.getTime() > dueSoonTime) {
+		return "DUE_SOON";
+	}
+
+	return "VALID";
+}
+
 export function assessMeasurementTrust(
 	measurement: Measurement,
 	device: MeasurementDevice | undefined,
@@ -62,23 +129,29 @@ export function assessMeasurementTrust(
 			"outlier",
 			"Messwert liegt außerhalb der Plausibilitätsgrenze.",
 		);
-	const calibration = calibrations
-		.filter(
-			(entry) =>
-				entry.deviceId === measurement.deviceId &&
-				entry.metric === measurement.metric &&
-				entry.result !== "failed",
-		)
-		.sort((left, right) =>
-			right.performedAt.localeCompare(left.performedAt),
-		)[0];
-	if (policy.calibrationRequired && !calibration)
+	if (measurement.deviceId) {
+		const calStatus = getSensorCalibrationStatus(
+			measurement.deviceId,
+			measurement.metric,
+			calibrations,
+			now,
+		);
+
+		if (calStatus === "FAILED" || calStatus === "INVALID_TIMESTAMP") {
+			return blocked("suspect", "Sensorkalibrierung ist fehlgeschlagen oder ungültig.");
+		}
+		if (calStatus === "UNKNOWN" && policy.calibrationRequired) {
+			return blocked("unverified", "Erforderliche Kalibrierung fehlt.");
+		}
+		if (calStatus === "CALIBRATION_DUE") {
+			reasons.push("Kalibrierungsintervall ist abgelaufen. Messwert mit reduzierter Sicherheit.");
+		}
+		if (calStatus === "DUE_SOON") {
+			reasons.push("Kalibrierung ist demnächst fällig.");
+		}
+	} else if (policy.calibrationRequired) {
 		return blocked("unverified", "Erforderliche Kalibrierung fehlt.");
-	if (
-		calibration?.validUntil &&
-		new Date(calibration.validUntil).getTime() < now.getTime()
-	)
-		return blocked("calibration-due", "Kalibrierungsintervall ist abgelaufen.");
+	}
 	const conflict = peers.some(
 		(peer) =>
 			peer.id !== measurement.id &&
@@ -91,8 +164,13 @@ export function assessMeasurementTrust(
 			"conflicting",
 			"Parallelmessungen widersprechen sich; Interpretation ist ausgesetzt.",
 		);
-	if (reasons.length > 0)
+	if (reasons.length > 0) {
+		const isOnlyCalibrationWarning = reasons.every(r => r.includes("Kalibrierung"));
+		if (isOnlyCalibrationWarning) {
+			return { status: "calibration-due", reasons, interpretationAllowed: true };
+		}
 		return { status: "unverified", reasons, interpretationAllowed: false };
+	}
 	return { status: "valid", reasons: [], interpretationAllowed: true };
 }
 
