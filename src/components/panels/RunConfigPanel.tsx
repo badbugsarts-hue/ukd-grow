@@ -241,6 +241,40 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 		newPotting: string,
 		newEmergence: string,
 	) => {
+		// AJAX-style prediction
+		let finalEmergence = newEmergence;
+		if (newPotting && !newEmergence) {
+			import("../../prediction-engine").then(({ predictEmergenceDate }) => {
+				const predicted = predictEmergenceDate(newPotting);
+				if (predicted) {
+					onUpdateRun(
+						updatePlantMilestones(
+							run,
+							{
+								pottingDateIso: newPotting,
+								emergenceDateIso: predicted,
+								dayZeroAnchor: config.dayZeroAnchor ?? "emergence",
+							},
+							"Keimung automatisch vorausberechnet"
+						)
+					);
+				} else {
+					onUpdateRun(
+						updatePlantMilestones(
+							run,
+							{
+								pottingDateIso: newPotting,
+								emergenceDateIso: newEmergence,
+								dayZeroAnchor: config.dayZeroAnchor ?? "emergence",
+							},
+							"Pflanzen-Meilensteine aktualisiert"
+						)
+					);
+				}
+			});
+			return;
+		}
+
 		const updatedRun = updatePlantMilestones(
 			run,
 			{
@@ -248,7 +282,7 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 				emergenceDateIso: newEmergence,
 				dayZeroAnchor: config.dayZeroAnchor ?? "emergence",
 			},
-			"Setup view update",
+			"Pflanzen-Meilensteine aktualisiert",
 		);
 		onUpdateRun(updatedRun);
 	};
@@ -813,16 +847,44 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 										type="text"
 										value={plant.genetics || ""}
 										onChange={(e) => {
-											onUpdateRun(
-												updatePlantIdentity(
-													run,
-													plant.id,
-													e.target.value,
-													pIdentity,
-													config.dayZeroAnchor || "emergence",
-													pIdentity?.dayZeroAnchorDate || run.config.startDate || ""
-												)
-											);
+											const newValue = e.target.value;
+											let updatedPIdentity = pIdentity;
+											
+											// Plausibler Vorschlag (AJAX-mäßig)
+											if (newValue.length >= 3) {
+												import("../../prediction-engine").then(({ predictGeneticsMetadata }) => {
+													const prediction = predictGeneticsMetadata(newValue);
+													if (prediction) {
+														updatedPIdentity = {
+															...pIdentity,
+															breeder: prediction.breeder || pIdentity?.breeder || null,
+															seedType: prediction.seedType || pIdentity?.seedType || "unknown",
+															phenotypeNotes: pIdentity?.phenotypeNotes || prediction.phenotypeNotes || "",
+														};
+													}
+													onUpdateRun(
+														updatePlantIdentity(
+															run,
+															plant.id,
+															newValue,
+															updatedPIdentity,
+															config.dayZeroAnchor || "emergence",
+															updatedPIdentity?.dayZeroAnchorDate || run.config.startDate || ""
+														)
+													);
+												});
+											} else {
+												onUpdateRun(
+													updatePlantIdentity(
+														run,
+														plant.id,
+														newValue,
+														pIdentity,
+														config.dayZeroAnchor || "emergence",
+														pIdentity?.dayZeroAnchorDate || run.config.startDate || ""
+													)
+												);
+											}
 										}}
 										placeholder="z.B. Sweet Mandarin Zkittlez Auto"
 										required
