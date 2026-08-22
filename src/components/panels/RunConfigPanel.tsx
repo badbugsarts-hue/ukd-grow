@@ -129,6 +129,7 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 	const readiness = calculateReadinessScore(config);
 
 	// Modals state
+	const [activePlantId, setActivePlantId] = useState<string | null>(null);
 	const [isPlantIdentityModalOpen, setIsPlantIdentityModalOpen] =
 		useState(false);
 	const [isAutoflowerModalOpen, setIsAutoflowerModalOpen] = useState(false);
@@ -347,20 +348,13 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 	};
 
 	const handleSelectStrain = (strain: AutoflowerStrain) => {
-		const currentGenetics = config.genetics || "";
-		let newGenetics = strain.name;
-		
-		// Falls mehrere Pflanzen konfiguriert sind, erlaube das Anhängen mehrerer Strains
-		if (config.plantCount > 1 && currentGenetics && currentGenetics !== "Keine Genetik gewählt") {
-			if (!currentGenetics.includes(strain.name)) {
-				newGenetics = `${currentGenetics}, ${strain.name}`;
-			} else {
-				newGenetics = currentGenetics; // Already included
-			}
-		}
+		if (!activePlantId) return;
+
+		const targetPlant = run.plants.find(p => p.id === activePlantId) || run.plants[0];
+		const plantIdentity = targetPlant?.identity;
 
 		const updatedIdentity: PlantIdentity = {
-			breeder: strain.breeder, // This will store the latest selected breeder
+			breeder: strain.breeder,
 			seedType: strain.typ === "Autoflower" ? "autoflower" : "feminized",
 			seedLot: plantIdentity?.seedLot ?? null,
 			packBatch: plantIdentity?.packBatch ?? null,
@@ -372,16 +366,13 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 			dayZeroAnchorDate: plantIdentity?.dayZeroAnchorDate,
 		};
 		
-		const updatedConfig: RunConfig = {
-			...config,
-			genetics: newGenetics,
-		};
 		const updatedRun = updatePlantIdentity(
-			{ ...run, config: updatedConfig },
-			newGenetics,
+			run,
+			activePlantId,
+			strain.name,
 			updatedIdentity,
 			config.dayZeroAnchor ?? "emergence",
-			config.startDate,
+			run.config.startDate
 		);
 		onUpdateRun(updatedRun);
 	};
@@ -785,159 +776,198 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 						/>
 					</div>
 
-					<div>
-						<label
-							htmlFor="rcp-genetics"
-							style={{
-								display: "block",
-								fontSize: "12px",
-								color: "var(--muted)",
-								marginBottom: "4px",
-							}}
-						>
-							Genetik / Strain Name *
-						</label>
-						<input
-							id="rcp-genetics"
-							type="text"
-							value={config.genetics}
-							onChange={(e) => handleConfigChange("genetics", e.target.value)}
-							placeholder="z.B. Sweet Mandarin Zkittlez Auto"
-							required
-							style={{
-								width: "100%",
-								minHeight: "44px",
-								padding: "8px 12px",
-								background: "var(--surface-1)",
-								border: "1px solid var(--line)",
-								borderRadius: "4px",
-								color: "var(--text)",
-								fontSize: "13px",
-							}}
-						/>
-					</div>
-
-					{/* Genetics Metadata Display Badge */}
-					<div
-						style={{
-							background: "var(--surface-1)",
-							border: "1px solid var(--line-strong)",
-							borderRadius: "4px",
-							padding: "12px",
-							fontSize: "12px",
-							display: "flex",
-							flexDirection: "column",
-							gap: "6px",
-						}}
-					>
-						<div
-							style={{
-								display: "flex",
-								justifyContent: "space-between",
-								alignItems: "center",
-							}}
-						>
-							<span style={{ color: "var(--muted)" }}>Züchter (Breeder):</span>
-							<strong style={{ color: "var(--text)" }}>
-								{plantIdentity?.breeder || "Nicht festgelegt"}
-							</strong>
-						</div>
-						<div
-							style={{
-								display: "flex",
-								justifyContent: "space-between",
-								alignItems: "center",
-							}}
-						>
-							<span style={{ color: "var(--muted)" }}>Saatgut-Typ:</span>
-							<span
-								style={{
-									background: "rgba(91, 140, 255, 0.15)",
-									color: "var(--blue)",
-									padding: "2px 8px",
-									borderRadius: "4px",
-									fontWeight: 700,
-									textTransform: "uppercase",
-									fontSize: "11px",
-								}}
-							>
-								{plantIdentity?.seedType || "Autoflower"}
-							</span>
-						</div>
-						<div
-							style={{
-								display: "flex",
-								justifyContent: "space-between",
-								alignItems: "center",
-							}}
-						>
-							<span style={{ color: "var(--muted)" }}>Lot / Charge:</span>
-							<strong style={{ color: "var(--text-2)" }}>
-								{plantIdentity?.seedLot || "—"}
-							</strong>
-						</div>
-						{plantIdentity?.phenotypeNotes && (
+					{run.plants.slice(0, Math.max(1, config.plantCount)).map((plant, index) => {
+						const pIdentity = plant.identity;
+						return (
 							<div
+								key={plant.id}
 								style={{
-									color: "var(--muted)",
-									fontStyle: "italic",
-									fontSize: "11px",
-									marginTop: "2px",
+									border: "1px solid var(--line-strong)",
+									borderRadius: "6px",
+									padding: "12px",
+									display: "flex",
+									flexDirection: "column",
+									gap: "12px",
 								}}
 							>
-								„{plantIdentity.phenotypeNotes}“
+								<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+									<h4 style={{ margin: 0, fontSize: "14px", color: "var(--green)" }}>
+										{plant.label || `Pflanze ${index + 1}`}
+									</h4>
+								</div>
+								
+								<div>
+									<label
+										htmlFor={`rcp-genetics-${plant.id}`}
+										style={{
+											display: "block",
+											fontSize: "12px",
+											color: "var(--muted)",
+											marginBottom: "4px",
+										}}
+									>
+										Genetik / Strain Name *
+									</label>
+									<input
+										id={`rcp-genetics-${plant.id}`}
+										type="text"
+										value={plant.genetics || ""}
+										onChange={(e) => {
+											onUpdateRun(
+												updatePlantIdentity(
+													run,
+													plant.id,
+													e.target.value,
+													pIdentity,
+													config.dayZeroAnchor || "emergence",
+													pIdentity?.dayZeroAnchorDate || run.config.startDate || ""
+												)
+											);
+										}}
+										placeholder="z.B. Sweet Mandarin Zkittlez Auto"
+										required
+										style={{
+											width: "100%",
+											minHeight: "44px",
+											padding: "8px 12px",
+											background: "var(--surface-1)",
+											border: "1px solid var(--line)",
+											borderRadius: "4px",
+											color: "var(--text)",
+											fontSize: "13px",
+										}}
+									/>
+								</div>
+
+								{/* Genetics Metadata Display Badge */}
+								<div
+									style={{
+										background: "var(--surface-1)",
+										border: "1px solid var(--line-strong)",
+										borderRadius: "4px",
+										padding: "12px",
+										fontSize: "12px",
+										display: "flex",
+										flexDirection: "column",
+										gap: "6px",
+									}}
+								>
+									<div
+										style={{
+											display: "flex",
+											justifyContent: "space-between",
+											alignItems: "center",
+										}}
+									>
+										<span style={{ color: "var(--muted)" }}>Züchter (Breeder):</span>
+										<strong style={{ color: "var(--text)" }}>
+											{pIdentity?.breeder || "Nicht festgelegt"}
+										</strong>
+									</div>
+									<div
+										style={{
+											display: "flex",
+											justifyContent: "space-between",
+											alignItems: "center",
+										}}
+									>
+										<span style={{ color: "var(--muted)" }}>Saatgut-Typ:</span>
+										<span
+											style={{
+												background: "rgba(91, 140, 255, 0.15)",
+												color: "var(--blue)",
+												padding: "2px 8px",
+												borderRadius: "4px",
+												fontWeight: 700,
+												textTransform: "uppercase",
+												fontSize: "11px",
+											}}
+										>
+											{pIdentity?.seedType || "Autoflower"}
+										</span>
+									</div>
+									<div
+										style={{
+											display: "flex",
+											justifyContent: "space-between",
+											alignItems: "center",
+										}}
+									>
+										<span style={{ color: "var(--muted)" }}>Lot / Charge:</span>
+										<strong style={{ color: "var(--text-2)" }}>
+											{pIdentity?.seedLot || "—"}
+										</strong>
+									</div>
+									{pIdentity?.phenotypeNotes && (
+										<div
+											style={{
+												color: "var(--muted)",
+												fontStyle: "italic",
+												fontSize: "11px",
+												marginTop: "2px",
+											}}
+										>
+											„{pIdentity.phenotypeNotes}“
+										</div>
+									)}
+								</div>
+
+								{/* Action Buttons */}
+								<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+									<button
+										type="button"
+										onClick={() => {
+											setActivePlantId(plant.id);
+											setIsPlantIdentityModalOpen(true);
+										}}
+										style={{
+											width: "100%",
+											minHeight: "44px",
+											padding: "8px 14px",
+											background: "var(--surface-1)",
+											color: "var(--text)",
+											border: "1px solid var(--line-strong)",
+											borderRadius: "var(--radius-sm)",
+											fontWeight: 600,
+											fontSize: "12px",
+											cursor: "pointer",
+											display: "flex",
+											alignItems: "center",
+											justifyContent: "center",
+											gap: "6px",
+										}}
+									>
+										🌿 Identität anpassen
+									</button>
+									<button
+										type="button"
+										onClick={() => {
+											setActivePlantId(plant.id);
+											setIsAutoflowerModalOpen(true);
+										}}
+										style={{
+											width: "100%",
+											minHeight: "44px",
+											padding: "8px 14px",
+											background: "var(--green)",
+											color: "var(--on-green)",
+											border: "none",
+											borderRadius: "var(--radius-sm)",
+											fontWeight: 700,
+											fontSize: "13px",
+											cursor: "pointer",
+											display: "flex",
+											alignItems: "center",
+											justifyContent: "center",
+											gap: "8px",
+										}}
+									>
+										🌱 Genetik aus Katalog wählen
+									</button>
+								</div>
 							</div>
-						)}
-					</div>
-
-					{/* Action Buttons for Catalog & Identity Modal */}
-					<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-						<button
-							type="button"
-							onClick={() => setIsAutoflowerModalOpen(true)}
-							style={{
-								width: "100%",
-								minHeight: "44px",
-								padding: "8px 14px",
-								background: "var(--green)",
-								color: "var(--on-green)",
-								border: "none",
-								borderRadius: "var(--radius-sm)",
-								fontWeight: 700,
-								fontSize: "13px",
-								cursor: "pointer",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-								gap: "8px",
-							}}
-						>
-							🌱 Autoflower-Katalog öffnen
-						</button>
-
-						<button
-							type="button"
-							onClick={() => setIsPlantIdentityModalOpen(true)}
-							style={{
-								width: "100%",
-								minHeight: "44px",
-								padding: "8px 14px",
-								background: "var(--surface-1)",
-								color: "var(--text)",
-								border: "1px solid var(--line-strong)",
-								borderRadius: "var(--radius-sm)",
-								fontWeight: 600,
-								fontSize: "12px",
-								cursor: "pointer",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-								gap: "6px",
-							}}
-						>
-							🌿 Erweiterte Pflanzenidentität
-						</button>
-					</div>
+						);
+					})}
 				</section>
 
 				{/* ────────────────────────────────────────────────────────── */}
@@ -2679,10 +2709,11 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 			</section>
 
 			{/* Modals */}
-			{isPlantIdentityModalOpen && (
+			{isPlantIdentityModalOpen && activePlantId && (
 				<PlantIdentityModal
 					run={run}
 					lens={lens}
+					plantId={activePlantId}
 					onClose={() => setIsPlantIdentityModalOpen(false)}
 					onSave={(updatedRun) => {
 						onUpdateRun(updatedRun);

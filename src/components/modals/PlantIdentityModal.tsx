@@ -14,6 +14,7 @@ import TermTooltip from "../common/TermTooltip";
 export interface PlantIdentityModalProps {
 	run: RunPackage;
 	lens: ExperienceLens;
+	plantId: string;
 	onClose: () => void;
 	onSave: (updatedRun: RunPackage) => void;
 }
@@ -38,15 +39,16 @@ export const DAY_ZERO_ANCHOR_OPTIONS: Array<{
 export const PlantIdentityModal: React.FC<PlantIdentityModalProps> = ({
 	run,
 	lens,
+	plantId,
 	onClose,
 	onSave,
 }) => {
-	const primaryPlant = run.plants[0];
-	const initialIdentity = primaryPlant?.identity;
+	const targetPlant = run.plants.find((p) => p.id === plantId) || run.plants[0];
+	const initialIdentity = targetPlant?.identity;
 
 	// Initial values state setup
 	const [genetics, setGenetics] = useState<string>(
-		run.config.genetics || primaryPlant?.genetics || "",
+		targetPlant?.genetics || run.config.genetics || "",
 	);
 	const [breeder, setBreeder] = useState<string>(
 		initialIdentity?.breeder ?? "",
@@ -102,7 +104,7 @@ export const PlantIdentityModal: React.FC<PlantIdentityModalProps> = ({
 
 		const candidateEvent: GrowthEvent = {
 			id: "preview-anchor-event",
-			plantId: primaryPlant?.id ?? "plant-1",
+			plantId: targetPlant?.id ?? "plant-1",
 			kind: dayZeroAnchor,
 			occurredAt: anchorOccurredAt,
 			day: 0,
@@ -122,7 +124,7 @@ export const PlantIdentityModal: React.FC<PlantIdentityModalProps> = ({
 			syntheticGrowthEvents,
 			new Date(),
 		);
-	}, [dayZeroAnchor, anchorDate, run.growthEvents, primaryPlant?.id]);
+	}, [dayZeroAnchor, anchorDate, run.growthEvents, targetPlant?.id]);
 
 	const ageDelta = agePreview.biologicalAgeDays - agePreview.operationalAgeDays;
 
@@ -140,6 +142,7 @@ export const PlantIdentityModal: React.FC<PlantIdentityModalProps> = ({
 
 		const updatedRun = updatePlantIdentity(
 			run,
+			targetPlant?.id ?? "plant-1",
 			genetics.trim() || "Unbenannt",
 			updatedIdentity,
 			dayZeroAnchor,
@@ -186,7 +189,7 @@ export const PlantIdentityModal: React.FC<PlantIdentityModalProps> = ({
 						id="plant-identity-modal-title"
 						style={{ margin: 0, fontSize: "18px", color: "var(--text)" }}
 					>
-						🌱 Pflanzen-Identität & Day Zero Anker Bearbeiten
+						🌿 Pflanzen-Identität & Day Zero Anker Bearbeiten ({targetPlant?.label || 'Unbenannt'})
 					</h3>
 					<button
 						type="button"
