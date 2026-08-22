@@ -243,8 +243,8 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 		const updatedRun = updatePlantMilestones(
 			run,
 			{
-				pottingDateIso: newPotting || undefined,
-				emergenceDateIso: newEmergence || undefined,
+				pottingDateIso: newPotting,
+				emergenceDateIso: newEmergence,
 				dayZeroAnchor: config.dayZeroAnchor ?? "emergence",
 			},
 			"Setup view update",
@@ -2694,7 +2694,7 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
 			{isAutoflowerModalOpen && (
 				<AutoflowerCockpitModal
 					lens={lens}
-					selectedStrainId={config.genetics}
+					selectedStrainIds={run.plants.slice(0, config.plantCount).map(p => p.genetics || "")}
 					onClose={() => setIsAutoflowerModalOpen(false)}
 					onSelectStrain={handleSelectStrain}
 				/>

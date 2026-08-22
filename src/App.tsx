@@ -43,7 +43,7 @@ import {
   MasterplanOverviewPanel,
   FeedingSchedulePanel,
   EquipmentManagerPanel,
-  GlobalPlanEditorPanel,
+  
   AutoflowerCockpitPanel,
 } from "./components/panels";
 import {
@@ -1797,8 +1797,6 @@ function RouteContent({
       return (
         <MasterplanOverviewPanel navigate={navigate} run={run} plan={plan} />
       );
-    case "plan-editor":
-      return <GlobalPlanEditorPanel run={run} onUpdate={setRun} />;
     case "cockpit":
       return (
         <Cockpit
@@ -1893,7 +1891,7 @@ function RouteContent({
         <AutoflowerCockpitPanel
           lens={lens}
           navigate={navigate}
-          selectedStrainId={run.plants[0]?.genetics ?? run.config.genetics}
+          selectedStrainIds={run.plants.slice(0, run.config.plantCount).map(p => p.genetics || "")}
           onSelectStrain={(strain: AutoflowerStrain) => {
             const plantIdentity = run.plants[0]?.identity;
             const updatedIdentity: PlantIdentity = {
