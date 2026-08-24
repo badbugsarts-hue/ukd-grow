@@ -62,6 +62,7 @@ export function FeedingSchedulePanel({
         className="data-table-wrap feeding-table-wrap"
         role="region"
         aria-label="Fütterungsplan, horizontal scrollbar"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: axe requires a keyboard-focusable horizontal scroll region.
         tabIndex={0}
       >
         <table className="feeding-table">
