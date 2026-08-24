@@ -22,13 +22,9 @@ const files = execFileSync(
 const findings = [];
 for (const relativePath of files) {
   const absolutePath = path.join(root, relativePath);
-  const stat = await fs.stat(absolutePath).catch((error) => {
-    if (error?.code === "ENOENT") return null;
-    throw error;
-  });
-  if (!stat) continue;
-  if (stat.size > 2_000_000) continue;
-  const content = await fs.readFile(absolutePath, "utf8").catch(() => "");
+  const buffer = await fs.readFile(absolutePath).catch(() => null);
+  if (!buffer || buffer.byteLength > 2_000_000) continue;
+  const content = buffer.toString("utf8");
   content.split(/\r?\n/).forEach((line, index) => {
     if (patterns.some((pattern) => pattern.test(line)))
       findings.push(`${relativePath}:${index + 1}`);
