@@ -1,7 +1,7 @@
 # UKD Blueprint 2026 – Evidence-Guarded Intake
 
-Prüfstand: 24.08.2026  
-Status des Eingangsberichts: untrusted Research-Input, nicht kanonisch  
+Prüfstand: 24.08.2026
+Status des Eingangsberichts: untrusted Research-Input, nicht kanonisch
 Operative Grundlage: UKD v11.5 / RunPackage v6
 
 ## Entscheidung

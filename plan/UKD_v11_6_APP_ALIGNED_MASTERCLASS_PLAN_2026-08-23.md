@@ -1,6 +1,6 @@
 # UKD v11.6 · App-aligned Masterclass Plan
 
-Stand: 23. August 2026  
+Stand: 23. August 2026
 Status: fachlicher Integrations- und Releaseplan, keine automatische Anwendungsfreigabe
 
 ## Quellenstatus
