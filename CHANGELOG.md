@@ -4,8 +4,7 @@ Alle relevanten Änderungen an UKD werden hier dokumentiert. Versionierung folgt
 
 ## [Unreleased]
 
-- Fehlendes Alkalinitätsfeld im Run-/Global-Plan-Editor wiederhergestellt; unbekannte Wasserchemie bleibt leer und Guided fordert zuerst eine Analyse statt eines Schätzwerts.
-- Scientific-Capture-E2E-Prüfung in getrennte, parallel ausführbare Verträge für Kalibrierung/PPFD, Pflanzenidentität, fail-closed Ist-Mix und Global Plan zerlegt.
+- Noch keine Änderungen.
 
 ## [11.5.0] — 2026-08-24
 
@@ -25,6 +24,8 @@ Alle relevanten Änderungen an UKD werden hier dokumentiert. Versionierung folgt
 - Workspace-Backup exportiert den realen Workspace, alle Runs und referenzierten verschlüsselten Medien.
 - Mix-Chargen werden nur mit expliziten Ist-Dosen angelegt und vollständig über das Command-Gateway protokolliert.
 - WCAG-Tests laufen route-isoliert in Dark/Light auf Desktop und Mobile.
+- Fehlendes Alkalinitätsfeld im Run-/Global-Plan-Editor wiederhergestellt; unbekannte Wasserchemie bleibt leer und Guided fordert zuerst eine Analyse statt eines Schätzwerts.
+- Scientific-Capture-E2E-Prüfung in getrennte, parallel ausführbare Verträge für Kalibrierung/PPFD, Pflanzenidentität, fail-closed Ist-Mix und Global Plan zerlegt.
 
 ### Security
 
