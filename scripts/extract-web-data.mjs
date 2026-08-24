@@ -3,7 +3,11 @@ import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
 const source = fs.readFileSync(
-  path.join(root, "UKD_Grow_Masterplan_2026_Interactive_Masterclass.html"),
+  path.join(
+    root,
+    "plan",
+    "UKD_Grow_Masterplan_2026_Interactive_Masterclass.html",
+  ),
   "utf8",
 );
 const match = source.match(

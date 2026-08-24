@@ -32,7 +32,12 @@ import {
 } from "./backup-vault";
 import { applyRunCommand } from "./run-commands";
 import { evaluateLiveClock } from "./live-run";
-import { LensBadge, TermTooltip } from "./components/common";
+import {
+  LensBadge,
+  TermTooltip,
+  InlineMetricCard,
+  InlineEditable,
+} from "./components/common";
 import { Icon } from "./components/common/Icon";
 import {
   DailyOperatorPanel,
@@ -42,8 +47,8 @@ import {
   VpdDliCalculatorPanel,
   MasterplanOverviewPanel,
   FeedingSchedulePanel,
+  BatchResolverDashboard,
   EquipmentManagerPanel,
-  
   AutoflowerCockpitPanel,
 } from "./components/panels";
 import {
@@ -56,7 +61,10 @@ import {
 } from "./domain";
 import {
   acknowledgeAlert,
+  addObservation,
+  addRunOverride,
   createDefaultRunPackage,
+  createObservation,
   deriveRunAlerts,
   effectiveRunConfig,
   latestObservation,
@@ -64,6 +72,10 @@ import {
   updateExecutionMode,
   updatePlantIdentity,
 } from "./run-state";
+import {
+  getLiveFieldSuggestions,
+  predictGeneticsMetadata,
+} from "./prediction-engine";
 import {
   classifyStorageFailure,
   loadActiveRun,
@@ -73,6 +85,7 @@ import type {
   AuditFinding,
   AutoflowerStrain,
   CellValue,
+  DailyObservation,
   ExperienceLens,
   KnowledgeBase,
   LegalProfile,
@@ -80,6 +93,7 @@ import type {
   RouteId,
   RunConfig,
   RunExecutionMode,
+  RunOverride,
   RunPackage,
   RunTask,
   Workbook,
@@ -329,7 +343,7 @@ const NAV: NavItem[] = [
     short: "Daten",
     icon: <Icon name="settings" animate="none" />,
     group: "System",
-    description: "29 Blätter, Werte und Formeln",
+    description: "56 Blätter, Werte und Formeln",
   },
   {
     id: "legal",
@@ -424,7 +438,7 @@ const HELP: Record<
   },
   "plan-editor": {
     what: "Editor für ausgewählte Metadaten des aktiven Runs mit Abhängigkeitsprüfung.",
-    why: "Er dokumentiert Kontextänderungen, ohne den kanonischen v8-Tagesplan still neu zu berechnen.",
+    why: "Er dokumentiert Kontextänderungen, ohne den kanonischen v11.5-Tagesplan still neu zu berechnen.",
     how: "Bearbeite nur erfasste Setupwerte und begründe jede Änderung. Der Nährstoffsystemwechsel bleibt gesperrt.",
     interpret:
       "Warnungen sind regelbasierte Hinweise; sie ersetzen weder Messung noch Fachprüfung.",
@@ -441,7 +455,7 @@ const HELP: Record<
     why: "Planwerte sind nur mit dokumentiertem Setup und Wasserprofil interpretierbar.",
     how: "Felder prüfen, Wasser-Baseline messen und Änderungen bewusst speichern.",
     interpret:
-      "Eine Konfigurationsänderung erzeugt ein Ereignis; der kanonische v8-Plan bleibt als Referenz unverändert.",
+      "Eine Konfigurationsänderung erzeugt ein Ereignis; der kanonische v11.5-Plan bleibt als Referenz unverändert.",
   },
   log: {
     what: "Manuelle Soll/Ist-Messungen, Aktionen und persistente Alerts.",
@@ -531,7 +545,7 @@ const HELP: Record<
       "Ein vorhandenes Produkt ist dadurch weder empfohlen noch kompatibel.",
   },
   autoflower: {
-    what: "Die kanonische v8-Strain-Vergleichstabelle.",
+    what: "Die kanonische v11.5-Strain- und Mixed-Cultivar-Vergleichsbasis.",
     why: "Sie trennt dokumentierte Vergleichsattribute von individuellen Pflanzenbeobachtungen.",
     how: "Tabelle filtern und Herkunft, Scope sowie Unsicherheit der Angaben prüfen.",
     interpret:
@@ -565,11 +579,11 @@ const HELP: Record<
       "FIXED heißt im geprüften Workbook korrigiert, nicht wissenschaftlich endgültig bewiesen.",
   },
   raw: {
-    what: "Die vollständige kanonische v8-Datenbasis mit 29 Blättern.",
+    what: "Die vollständige kanonische v11.5-Datenbasis mit 56 Blättern.",
     why: "Nichts wird durch die neue Darstellung unsichtbar oder gelöscht.",
     how: "Blatt wählen, Werte prüfen; im Expert-Modus Formeln einblenden.",
     interpret:
-      "Berechnete Werte stammen aus dem Evidence-Guarded-v8-Workbook und werden hier nicht still neu erfunden.",
+      "Berechnete Werte stammen aus dem Evidence-Guarded-v11.5-Workbook und werden hier nicht still neu erfunden.",
   },
   legal: {
     what: "Ein sitzungsgebundener Import geprüfter Rechtsprofile plus getrenntes Bestandslog.",
@@ -665,10 +679,13 @@ function App() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`${import.meta.env.BASE_URL}data/evidence-guarded-workbook-v8.json`, {
-      signal: controller.signal,
-      cache: "no-store",
-    })
+    fetch(
+      `${import.meta.env.BASE_URL}data/evidence-guarded-workbook-v11_5.json`,
+      {
+        signal: controller.signal,
+        cache: "no-store",
+      },
+    )
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json() as Promise<Workbook>;
@@ -725,7 +742,7 @@ function App() {
     return (
       <DataState
         title="Operator Workspace wird vorbereitet"
-        detail={`29 Blätter und ${AUDIT_COUNT} Audit-Findings werden geladen…`}
+        detail={`56 Blätter und ${AUDIT_COUNT} Legacy-Audit-Findings werden geladen…`}
       />
     );
   workbook = data;
@@ -737,6 +754,7 @@ function Workspace() {
   const [lens, setLens] = useState<ExperienceLens>(readLens);
   const [day, setDay] = useState(readDay);
   const [followLiveDay, setFollowLiveDay] = useState(true);
+  const [clockNow, setClockNow] = useState(() => new Date());
   const [theme, setTheme] = useState<"light" | "dark">(() =>
     localStorage.getItem("ukd:theme") === "light" ? "light" : "dark",
   );
@@ -860,41 +878,53 @@ function Workspace() {
       );
       return;
     }
-		const isCheckpoint = next.domainEvents[0]?.type === "backup.checkpoint";
-		setRun((current) => {
-			if (isCheckpoint && current.id === next.id) {
-				const domain = next.domainEvents[0];
-				const auditEntry = next.auditEvents[0];
-				const timeline = next.events[0];
-				return {
-					...current,
-					updatedAt: next.updatedAt,
-					backupState: { ...next.backupState, pending: false },
-					backupCheckpoints: [
-						...next.backupCheckpoints.filter(
-							(entry) => !current.backupCheckpoints.some((item) => item.id === entry.id),
-						),
-						...current.backupCheckpoints,
-					].slice(0, 120),
-					domainEvents:
-						domain && !current.domainEvents.some((entry) => entry.id === domain.id)
-							? [domain, ...current.domainEvents]
-							: current.domainEvents,
-					auditEvents:
-						auditEntry && !current.auditEvents.some((entry) => entry.id === auditEntry.id)
-							? [auditEntry, ...current.auditEvents]
-							: current.auditEvents,
-					events:
-						timeline && !current.events.some((entry) => entry.id === timeline.id)
-							? [timeline, ...current.events]
-							: current.events,
-				};
-			}
-			return {
-				...next,
-				backupState: { ...next.backupState, pending: !isCheckpoint },
-			};
-		});
+    const nextHeadEvent = next.domainEvents[0];
+    // A direct scientific editor can legitimately return a run
+    // whose newest existing event is still a backup checkpoint.
+    // Treat it as a checkpoint merge only when that event is new;
+    // otherwise configuration edits (for example a PPFD map)
+    // would be silently discarded.
+    const isCheckpoint =
+      nextHeadEvent?.type === "backup.checkpoint" &&
+      !run.domainEvents.some((event) => event.id === nextHeadEvent.id);
+    setRun((current) => {
+      if (isCheckpoint && current.id === next.id) {
+        const domain = next.domainEvents[0];
+        const auditEntry = next.auditEvents[0];
+        const timeline = next.events[0];
+        return {
+          ...current,
+          updatedAt: next.updatedAt,
+          backupState: { ...next.backupState, pending: false },
+          backupCheckpoints: [
+            ...next.backupCheckpoints.filter(
+              (entry) =>
+                !current.backupCheckpoints.some((item) => item.id === entry.id),
+            ),
+            ...current.backupCheckpoints,
+          ].slice(0, 120),
+          domainEvents:
+            domain &&
+            !current.domainEvents.some((entry) => entry.id === domain.id)
+              ? [domain, ...current.domainEvents]
+              : current.domainEvents,
+          auditEvents:
+            auditEntry &&
+            !current.auditEvents.some((entry) => entry.id === auditEntry.id)
+              ? [auditEntry, ...current.auditEvents]
+              : current.auditEvents,
+          events:
+            timeline &&
+            !current.events.some((entry) => entry.id === timeline.id)
+              ? [timeline, ...current.events]
+              : current.events,
+        };
+      }
+      return {
+        ...next,
+        backupState: { ...next.backupState, pending: !isCheckpoint },
+      };
+    });
   };
 
   useEffect(() => {
@@ -909,18 +939,18 @@ function Workspace() {
             checkpointKind: "automatic",
             verified: checkpoint.verified,
           });
-				if (recorded.ok)
-					setRun((current) => {
-						if (current.id !== run.id) return current;
-						const fresh = applyRunCommand(current, {
-							kind: "backup.checkpoint",
-							checkpointId: checkpoint.id,
-							sha256: checkpoint.sha256,
-							checkpointKind: "automatic",
-							verified: checkpoint.verified,
-						});
-						return fresh.ok ? fresh.value : current;
-					});
+          if (recorded.ok)
+            setRun((current) => {
+              if (current.id !== run.id) return current;
+              const fresh = applyRunCommand(current, {
+                kind: "backup.checkpoint",
+                checkpointId: checkpoint.id,
+                sha256: checkpoint.sha256,
+                checkpointKind: "automatic",
+                verified: checkpoint.verified,
+              });
+              return fresh.ok ? fresh.value : current;
+            });
         })
         .catch((error) =>
           setStorageError(
@@ -944,6 +974,8 @@ function Workspace() {
   useEffect(() => {
     if (run.executionMode !== "live") return;
     const updateClock = () => {
+      const now = new Date();
+      setClockNow(now);
       const observedRun = lastClockObservedRef.current
         ? {
             ...run,
@@ -953,7 +985,7 @@ function Workspace() {
             },
           }
         : run;
-      const result = evaluateLiveClock(observedRun);
+      const result = evaluateLiveClock(observedRun, now);
       if (followLiveDay) setDay(result.day);
       if (!result.blocked)
         lastClockObservedRef.current = result.health.lastObservedAtUtc;
@@ -961,7 +993,7 @@ function Workspace() {
         ? Date.parse(run.clockHealth.lastObservedAtUtc)
         : 0;
       const persistHeartbeat =
-        !result.blocked && Date.now() - persistedAt >= 60 * 60_000;
+        !result.blocked && now.getTime() - persistedAt >= 60 * 60_000;
       if (result.health.status !== run.clockHealth.status || persistHeartbeat)
         setRun((current) => ({ ...current, clockHealth: result.health }));
     };
@@ -1097,12 +1129,13 @@ function Workspace() {
           <ExecutionModeControl
             run={run}
             day={day}
+            now={clockNow}
             onToggleMode={(mode) => {
               const updated = updateExecutionMode(run, mode);
               if (mode === "live") {
                 setFollowLiveDay(true);
-                const liveRes = evaluateLiveClock(updated);
-                setDay(Math.max(0, Math.min(80, liveRes.day)));
+                const liveRes = evaluateLiveClock(updated, clockNow);
+                setDay(liveRes.day);
               } else {
                 setFollowLiveDay(false);
               }
@@ -1144,6 +1177,7 @@ function Workspace() {
           run={run}
           lens={lens}
           day={day}
+          now={clockNow}
           plan={plan}
           knowledge={knowledge}
           capabilities={{ aiContext, skills: skillsData.skills }}
@@ -1210,6 +1244,7 @@ function Workspace() {
               lens={lens}
               plan={plan}
               day={day}
+              now={clockNow}
               setDay={setViewDay}
               navigate={navigate}
               run={run}
@@ -1352,7 +1387,7 @@ function Sidebar({
                 marginTop: "2px",
               }}
             >
-              <span>Grow Workspace · v8</span>
+              <span>Grow Workspace · v11.5</span>
               <LensBadge lens={lens} size="sm" />
             </small>
           </div>
@@ -1366,7 +1401,7 @@ function Sidebar({
           </button>
         </div>
         <div className="system-badge">
-          <span className="status-dot" /> Datenstand 07.08.2026 · v8
+          <span className="status-dot" /> Datenstand 23.08.2026 · v11.5
         </div>
         <nav>
           {groups.map((group) => {
@@ -1443,9 +1478,9 @@ function Sidebar({
         </nav>
         <div className="sidebar-foot">
           <span>
-            29 Blätter · {formulaCount.toLocaleString("de-DE")} Formeln
+            56 Blätter · {formulaCount.toLocaleString("de-DE")} Formeln
           </span>
-          <span>Evidence-Guarded v8 · geprüft 07.08.2026</span>
+          <span>Evidence-Guarded v11.5 · geprüft 23.08.2026</span>
         </div>
       </aside>
       {open && (
@@ -1463,17 +1498,19 @@ function Sidebar({
 function ExecutionModeControl({
   run,
   day,
+  now,
   onToggleMode,
   onSetDay,
 }: {
   run: RunPackage;
   day: number;
+  now: Date;
   onToggleMode: (mode: RunExecutionMode) => void;
   onSetDay: (day: number) => void;
 }) {
   const isLive = run.executionMode === "live";
-  const liveClock = evaluateLiveClock(run);
-  const liveDay = Math.max(0, Math.min(80, liveClock.day));
+  const liveClock = evaluateLiveClock(run, now);
+  const liveDay = liveClock.day;
 
   return (
     <div
@@ -1525,7 +1562,10 @@ function ExecutionModeControl({
           background: isLive
             ? "color-mix(in srgb, var(--green) 16%, var(--surface-2))"
             : "transparent",
-          color: isLive ? "var(--green)" : "var(--muted)",
+          // The inactive label remains operationally important. Using the
+          // normal text token keeps it readable on every command-bar surface;
+          // state is still communicated by the dot, fill and aria-pressed.
+          color: isLive ? "var(--green)" : "var(--text)",
           fontSize: "11px",
           fontWeight: isLive ? 800 : 600,
           cursor: "pointer",
@@ -1544,9 +1584,7 @@ function ExecutionModeControl({
             flexShrink: 0,
           }}
         />
-        <span>
-          {isLive ? `LIVE: Tag ${liveDay} (UTC)` : "LIVE"}
-        </span>
+        <span>{isLive ? `LIVE: Tag ${liveDay} (UTC)` : "LIVE"}</span>
       </button>
 
       <button
@@ -1595,9 +1633,7 @@ function ExecutionModeControl({
             flexShrink: 0,
           }}
         />
-        <span>
-          {!isLive ? `SIMULATION: Tag ${day}` : "SIMULATION"}
-        </span>
+        <span>{!isLive ? `SIMULATION: Tag ${day}` : "SIMULATION"}</span>
       </button>
 
       {!isLive && (
@@ -1770,6 +1806,7 @@ function RouteContent({
   lens,
   plan,
   day,
+  now,
   setDay,
   navigate,
   run,
@@ -1783,6 +1820,7 @@ function RouteContent({
   lens: ExperienceLens;
   plan: ReturnType<typeof getDayPlan>;
   day: number;
+  now: Date;
   setDay: (day: number) => void;
   navigate: (route: RouteId) => void;
   run: RunPackage;
@@ -1797,10 +1835,21 @@ function RouteContent({
       return (
         <MasterplanOverviewPanel navigate={navigate} run={run} plan={plan} />
       );
+    case "plan-editor":
+      return (
+        <RunConfigPanel
+          run={run}
+          lens={lens}
+          now={now}
+          onUpdateRun={setRun}
+          navigate={navigate}
+        />
+      );
     case "cockpit":
       return (
         <Cockpit
           plan={plan}
+          day={day}
           lens={lens}
           setDay={setDay}
           navigate={navigate}
@@ -1815,6 +1864,7 @@ function RouteContent({
         <RunConfigPanel
           run={run}
           lens={lens}
+          now={now}
           onUpdateRun={setRun}
           navigate={navigate}
         />
@@ -1879,7 +1929,9 @@ function RouteContent({
         />
       );
     case "nutrients":
-      return <Nutrients plan={plan} lens={lens} navigate={navigate} />;
+      return (
+        <Nutrients plan={plan} lens={lens} navigate={navigate} run={run} />
+      );
     case "products":
       return <LibraryPage sheetName="17_All_Products" lens={lens} />;
     case "inventory":
@@ -1891,12 +1943,15 @@ function RouteContent({
         <AutoflowerCockpitPanel
           lens={lens}
           navigate={navigate}
-          selectedStrainIds={run.plants.slice(0, run.config.plantCount).map(p => p.genetics || "")}
+          selectedStrainIds={run.plants
+            .slice(0, run.config.plantCount)
+            .map((p) => p.genetics || "")}
           onSelectStrain={(strain: AutoflowerStrain) => {
             const plantIdentity = run.plants[0]?.identity;
             const updatedIdentity: PlantIdentity = {
               breeder: strain.breeder,
-              seedType: strain.typ === "Autoflower" ? "autoflower" : "feminized",
+              seedType:
+                strain.typ === "Autoflower" ? "autoflower" : "feminized",
               seedLot: plantIdentity?.seedLot ?? null,
               packBatch: plantIdentity?.packBatch ?? null,
               sourceDate: plantIdentity?.sourceDate ?? null,
@@ -1975,6 +2030,7 @@ function RouteContent({
       return (
         <Cockpit
           plan={plan}
+          day={day}
           lens={lens}
           setDay={setDay}
           navigate={navigate}
@@ -1989,6 +2045,7 @@ function RouteContent({
 
 function Cockpit({
   plan,
+  day,
   lens,
   setDay,
   navigate,
@@ -1998,6 +2055,7 @@ function Cockpit({
   onDismissWelcome,
 }: {
   plan: ReturnType<typeof getDayPlan>;
+  day: number;
   lens: ExperienceLens;
   setDay: (day: number) => void;
   navigate: (route: RouteId) => void;
@@ -2006,10 +2064,69 @@ function Cockpit({
   showWelcome: boolean;
   onDismissWelcome: () => void;
 }) {
-  const day = plan.day;
   const config = effectiveRunConfig(run);
   const observation = latestObservation(run, day);
   const alerts = deriveRunAlerts(run, plan);
+
+  const handleSaveMeasurement = (fieldKey: string, value: number | string) => {
+    const currentObs = latestObservation(run, day) ?? createObservation(day);
+    const num =
+      typeof value === "number" ? value : Number.parseFloat(String(value));
+    const validNum = Number.isNaN(num) ? null : num;
+    const values = { ...currentObs.values };
+
+    if (fieldKey === "ppfd") {
+      values.ppfd = validNum;
+    } else if (
+      fieldKey === "temp" ||
+      fieldKey === "temperature" ||
+      fieldKey === "tempLight"
+    ) {
+      values.tempMax = validNum;
+    } else if (fieldKey === "humidity") {
+      values.humidityMax = validNum;
+    } else if (fieldKey === "vpd" || fieldKey === "leafVpd") {
+      values.leafTemp = validNum;
+    } else if (fieldKey === "ec") {
+      values.ecIn = validNum;
+    } else if (fieldKey === "ph") {
+      values.phIn = validNum;
+    } else if (fieldKey === "potMass" || fieldKey === "potWeight") {
+      values.potMassGrams = validNum;
+    }
+
+    const updatedObs: DailyObservation = {
+      ...currentObs,
+      recordedAt: new Date().toISOString(),
+      status: "measured",
+      values,
+    };
+
+    const updatedRun = addObservation(run, updatedObs);
+    setRun(updatedRun);
+  };
+
+  const handleSaveTarget = (
+    fieldKey: string,
+    value: number | string,
+    meta?: { reason?: string },
+  ) => {
+    const override: RunOverride = {
+      id: crypto.randomUUID(),
+      field: fieldKey,
+      canonicalValue:
+        (config as unknown as Record<string, unknown>)[fieldKey] ?? null,
+      overrideValue: value,
+      evidenceConflict: "manual-override",
+      reason:
+        meta?.reason?.trim() || `In-Place Sollwertanpassung für ${fieldKey}`,
+      createdAt: new Date().toISOString(),
+      reversible: true,
+    };
+    const updatedRun = addRunOverride(run, override);
+    setRun(updatedRun);
+  };
+
   return (
     <div className="page-stack">
       {showWelcome && <WelcomeCard onDismiss={onDismissWelcome} />}
@@ -2023,67 +2140,177 @@ function Cockpit({
         </div>
         <div>
           <small>Genetik</small>
-          <strong>{config.genetics}</strong>
+          <div style={{ marginTop: "2px" }}>
+            <InlineEditable
+              value={config.genetics}
+              label="Genetik"
+              fieldKey="genetics"
+              getSuggestions={(query) =>
+                getLiveFieldSuggestions("genetics", query, {
+                  day,
+                  genetics: config.genetics,
+                })
+              }
+              onSave={(newGenetics) => {
+                const strainMeta = predictGeneticsMetadata(String(newGenetics));
+                const updated = updatePlantIdentity(
+                  run,
+                  String(newGenetics),
+                  {
+                    breeder: strainMeta?.breeder ?? null,
+                    seedType: strainMeta?.seedType ?? "autoflower",
+                    seedLot: null,
+                    packBatch: null,
+                    sourceDate: null,
+                    phenotypeNotes: strainMeta?.phenotypeNotes ?? "",
+                  },
+                  run.config.dayZeroAnchor ?? "emergence",
+                  run.config.startDate ?? new Date().toISOString().slice(0, 10),
+                );
+                setRun(updated);
+              }}
+              lens={lens}
+            />
+          </div>
         </div>
         <div>
           <small>Ziel</small>
           <strong>{textAt(plan, DAILY_COLUMNS.goal)}</strong>
         </div>
         <div className="progress-cell">
-          <small>Tag {day} von 80</small>
+          <small>
+            {run.executionMode === "live" ? "Live-Tag" : "Tag"} {day}
+            {day <= 80 ? " von 80" : " · Plan endete an Tag 80"}
+          </small>
           <div className="progress">
-            <span style={{ width: `${(day / 80) * 100}%` }} />
+            <span
+              style={{
+                width: `${Math.min(100, Math.max(0, (day / 80) * 100))}%`,
+              }}
+            />
           </div>
         </div>
       </section>
       <section className="metric-grid">
-        <Metric
+        <InlineMetricCard
           label="PPFD"
-          value={numberAt(plan, DAILY_COLUMNS.ppfd)}
+          targetValue={numberAt(plan, DAILY_COLUMNS.ppfd)}
+          measuredValue={observation?.values.ppfd ?? null}
           unit="µmol/m²/s"
           tone="blue"
           note="Lichtdichte am Canopy"
           lens={lens}
+          fieldKey="ppfd"
+          context={{
+            day,
+            lightIntensityPpfd: numberAt(plan, DAILY_COLUMNS.ppfd),
+          }}
+          onSaveMeasurement={(val) => handleSaveMeasurement("ppfd", val)}
+          onSaveTarget={(val, meta) => handleSaveTarget("ppfd", val, meta)}
         />
-        <Metric
+        <InlineMetricCard
           label="DLI"
-          value={numberAt(plan, DAILY_COLUMNS.dli).toFixed(1)}
+          targetValue={numberAt(plan, DAILY_COLUMNS.dli).toFixed(1)}
+          measuredValue={
+            observation?.values.ppfd
+              ? (
+                  (observation.values.ppfd *
+                    (run.config.lightHours ?? 18) *
+                    3600) /
+                  1_000_000
+                ).toFixed(1)
+              : null
+          }
           unit="mol/m²/d"
           tone="blue"
           note="Tägliche Lichtmenge"
           lens={lens}
+          fieldKey="dli"
+          context={{ day, lightHours: run.config.lightHours ?? 18 }}
+          onSaveMeasurement={(val) => handleSaveMeasurement("dli", val)}
+          onSaveTarget={(val, meta) => handleSaveTarget("dli", val, meta)}
         />
-        <Metric
+        <InlineMetricCard
           label="Klima"
-          value={`${numberAt(plan, DAILY_COLUMNS.tempLight)}°`}
+          targetValue={`${numberAt(plan, DAILY_COLUMNS.tempLight)}°`}
+          measuredValue={
+            observation?.values.tempMax !== null &&
+            observation?.values.tempMax !== undefined
+              ? `${observation.values.tempMax}°`
+              : null
+          }
           unit={`${numberAt(plan, DAILY_COLUMNS.humidity)} % rF`}
           tone="amber"
           note="Lichtphase"
           lens={lens}
+          fieldKey="temperature"
+          context={{
+            day,
+            airTempC: numberAt(plan, DAILY_COLUMNS.tempLight),
+            relativeHumidityPct: numberAt(plan, DAILY_COLUMNS.humidity),
+          }}
+          onSaveMeasurement={(val) => handleSaveMeasurement("temp", val)}
+          onSaveTarget={(val, meta) =>
+            handleSaveTarget("temperature", val, meta)
+          }
         />
-        <Metric
+        <InlineMetricCard
           label="Leaf-VPD"
-          value={numberAt(plan, DAILY_COLUMNS.leafVpd).toFixed(2)}
+          targetValue={numberAt(plan, DAILY_COLUMNS.leafVpd).toFixed(2)}
+          measuredValue={
+            observation?.values.leafTemp !== null &&
+            observation?.values.leafTemp !== undefined
+              ? Number(observation.values.leafTemp).toFixed(2)
+              : null
+          }
           unit="kPa est."
           tone="amber"
           note="mit Blatt-ΔT-Schätzung"
           lens={lens}
+          fieldKey="vpd"
+          context={{
+            day,
+            airTempC: numberAt(plan, DAILY_COLUMNS.tempLight),
+            relativeHumidityPct: numberAt(plan, DAILY_COLUMNS.humidity),
+          }}
+          onSaveMeasurement={(val) => handleSaveMeasurement("vpd", val)}
+          onSaveTarget={(val, meta) => handleSaveTarget("vpd", val, meta)}
         />
-        <Metric
+        <InlineMetricCard
           label="EC"
-          value={numberAt(plan, DAILY_COLUMNS.ec).toFixed(2)}
+          targetValue={numberAt(plan, DAILY_COLUMNS.ec).toFixed(2)}
+          measuredValue={
+            observation?.values.ecIn !== null &&
+            observation?.values.ecIn !== undefined
+              ? Number(observation.values.ecIn).toFixed(2)
+              : null
+          }
           unit="mS/cm"
           tone="green"
           note="Ziel Endmix"
           lens={lens}
+          fieldKey="ec"
+          context={{ day, targetEc: numberAt(plan, DAILY_COLUMNS.ec) }}
+          onSaveMeasurement={(val) => handleSaveMeasurement("ec", val)}
+          onSaveTarget={(val, meta) => handleSaveTarget("ec", val, meta)}
         />
-        <Metric
+        <InlineMetricCard
           label="pH"
-          value={numberAt(plan, DAILY_COLUMNS.ph).toFixed(1)}
+          targetValue={numberAt(plan, DAILY_COLUMNS.ph).toFixed(1)}
+          measuredValue={
+            observation?.values.phIn !== null &&
+            observation?.values.phIn !== undefined
+              ? Number(observation.values.phIn).toFixed(1)
+              : null
+          }
           unit="Ziel"
           tone="green"
           note="nach vollständigem Mix"
           lens={lens}
+          fieldKey="ph"
+          context={{ day, targetPh: numberAt(plan, DAILY_COLUMNS.ph) }}
+          onSaveMeasurement={(val) => handleSaveMeasurement("ph", val)}
+          onSaveTarget={(val, meta) => handleSaveTarget("ph", val, meta)}
         />
       </section>
       <div className="two-column wide-left">
@@ -2842,10 +3069,12 @@ function Nutrients({
   plan,
   lens,
   navigate,
+  run,
 }: {
   plan: ReturnType<typeof getDayPlan>;
   lens: ExperienceLens;
   navigate: (route: RouteId) => void;
+  run: RunPackage;
 }) {
   const doses = [
     [
@@ -2858,9 +3087,11 @@ function Nutrients({
     ["HESI Boost", "Blüte", numberAt(plan, DAILY_COLUMNS.boost)],
     ["PK13/14", "PK", numberAt(plan, DAILY_COLUMNS.pk)],
     ["Voodoo Juice", "Mikroben", numberAt(plan, DAILY_COLUMNS.voodoo)],
+    ["Tarantula", "Mikroben", numberAt(plan, DAILY_COLUMNS.tarantula)],
   ] as const;
   return (
     <div className="page-stack">
+      <BatchResolverDashboard run={run} navigate={navigate} />
       <section className="system-banner">
         <div>
           <span className="status-dot" />
@@ -2868,7 +3099,8 @@ function Nutrients({
           <h2>UKD HESI Conservative</h2>
           <p>
             Herstellerlabel und bewusst reduzierter Custom Plan bleiben
-            getrennt.
+            getrennt. Die Karten darunter zeigen Kalender-Eligibility, nicht
+            automatisch freigegebene Dosierungen.
           </p>
         </div>
         <button
@@ -2891,7 +3123,10 @@ function Nutrients({
         ))}
       </div>
       <div style={{ marginTop: "32px", marginBottom: "32px" }}>
-        <FeedingSchedulePanel />
+        <FeedingSchedulePanel
+          sheet={workbook["31_FEED_SCHEMA"] ?? EMPTY_SHEET}
+          lens={lens}
+        />
       </div>
       <div className="two-column">
         <Panel title="Nicht stapeln" kicker="REFERENCE-REGELN">
@@ -3263,7 +3498,7 @@ function AuditPage({ lens }: { lens: ExperienceLens }) {
         <div>
           <small>STATUS</small>
           <strong className="status-fixed">FIXED</strong>
-          <span>Evidence-Guarded v8</span>
+          <span>Evidence-Guarded v11.5</span>
         </div>
       </section>
       <fieldset className="filter-tabs audit-filter">
@@ -4033,7 +4268,7 @@ function CommandPalette({
         <footer>
           <span>↑↓ navigieren</span>
           <span>↵ öffnen</span>
-          <span>29 Blätter · {knowledge.claims.length} Claims</span>
+          <span>56 Blätter · {knowledge.claims.length} Claims</span>
         </footer>
       </section>
     </div>

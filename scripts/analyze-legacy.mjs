@@ -1,7 +1,7 @@
 import fs from "node:fs";
 
 const htmlPath = new URL(
-  "../UKD_Grow_Masterplan_2026_Interactive_Masterclass.html",
+  "../plan/UKD_Grow_Masterplan_2026_Interactive_Masterclass.html",
   import.meta.url,
 );
 const markdownPath = new URL(

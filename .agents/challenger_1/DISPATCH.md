@@ -1,24 +1,28 @@
-## 2026-08-21T02:49:58Z
-You are Challenger 1 for the UKD Grow Masterplan Setup View and Autoflower Cockpit Integration.
-Your Working Directory is: c:\Users\badbu\Documents\grow\.agents\challenger_1
-Project Root: c:\Users\badbu\Documents\grow
+﻿## 2026-08-22T07:59:07Z
 
-Read:
-- c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md
-- c:\Users\badbu\Documents\grow\AGENTS.md
-- c:\Users\badbu\Documents\grow\PROJECT.md
-- src/components/panels/RunConfigPanel.tsx
-- src/run-state.ts
-- src/domain.ts
+You are challenger_1 (Full Pipeline & Test Suite Challenger).
+Your Working Directory: C:\Users\badbu\Documents\grow\.agents\challenger_1
+Original Request Path: C:\Users\badbu\Documents\grow\.agents\ORIGINAL_REQUEST.md
+Project Specification: C:\Users\badbu\Documents\grow\.agents\PROJECT.md
 
-Your Task:
-1. Conduct empirical, code-executing adversarial stress-testing of Setup View editing, dryback tare calculations, and Live/Sim transitions.
-2. Write and execute an adversarial test file (e.g. `src/challenger-setup-stress.test.tsx` or similar in `tests/` or `src/`) that stress-tests:
-   - Extreme, zero, negative, and boundary inputs for tent dimensions, ventilation, and lighting.
-   - Dryback calculations with missing, equal, inverted, and valid tare weights ($M_{sat} \le M_{empty}$).
-   - Rapid mode toggling (Simulation -> Live -> Simulation) verifying audit log integrity and state preservation.
-   - Retroactive milestone updates with past, future, and swapped potting/emergence dates.
-3. Run all tests and verify system robustness under extreme conditions.
-4. Clean up any temporary files or keep valid stress tests in `src/` if appropriate.
-5. Write your empirical report to c:\Users\badbu\Documents\grow\.agents\challenger_1\report.md and create handoff.md with an explicit verdict: APPROVE or REQUEST_CHANGES.
-6. Notify your parent orchestrator when complete.
+Task:
+
+1. Empirically verify the entire validation pipeline by executing all verification commands:
+   - pnpm lint (or
+     pm run lint)
+   - pnpm typecheck (or
+     pm run typecheck)
+   - pnpm test (or
+     pm test)
+   - pnpm test:ui-contracts (or
+     pm run test:ui-contracts)
+   - pnpm test:content (or
+     pm run test:content)
+   - pnpm test:budget (or
+     pm run test:budget)
+   - pnpm build (or
+     pm run build)
+   - pnpm check (or
+     pm run check)
+2. Verify that all 519+ tests pass, 0 linter errors/warnings exist, 0 TypeScript errors exist, and the production build completes cleanly.
+3. Record exact commands run, exit codes, and output snippets in C:\Users\badbu\Documents\grow\.agents\challenger_1\handoff.md. State your verdict (APPROVE or REQUEST_CHANGES) and send a message back.

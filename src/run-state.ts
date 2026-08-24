@@ -12,6 +12,7 @@ import type {
   Measurement,
   MeasurementMetric,
   ObservationValues,
+  Plant,
   PlantIdentity,
   PlantMilestones,
   PotProfile,
@@ -75,12 +76,12 @@ export function createDefaultRunPackage(now = new Date()): RunPackage {
   const zoneId = crypto.randomUUID();
   const plantId = crypto.randomUUID();
   const config: RunConfig = {
-    name: "UKD Masterplan v11 Variante B (LST)",
+    name: "UKD Masterplan v11.5 · Mixed Auto 3×9L",
     genetics: "Double Grape",
     startDate: timestamp.slice(0, 10),
     endDay: 80,
     plantCount: 3,
-    dayZeroAnchor: "run-operational-start",
+    dayZeroAnchor: "emergence",
     tentWidthCm: 60,
     tentDepthCm: 60,
     tentHeightCm: 180,
@@ -114,7 +115,7 @@ export function createDefaultRunPackage(now = new Date()): RunPackage {
       version: 1,
       capturedAt: timestamp,
       config: copyConfig(config),
-      evidenceVersion: "v8 Evidence-Guarded",
+      evidenceVersion: "v11.5 Evidence-Guarded · app-aligned 2026-08-23",
       immutable: true,
     },
     zones: [
@@ -336,7 +337,7 @@ export function updateRunConfig(
   return touch({
     ...run,
     config,
-    ...(run.status === "draft" ? synchronizedAssets(run, config) : {}),
+    ...synchronizedAssets(run, config),
     events: [
       {
         id: crypto.randomUUID(),
@@ -377,39 +378,64 @@ export function updateRunConfig(
 
 export function updatePlantIdentity(
   run: RunPackage,
-  genetics: string,
-  identity: PlantIdentity,
-  dayZeroAnchor: DayZeroAnchor,
-  anchorDate: string,
+  arg2: string,
+  arg3: string | PlantIdentity,
+  arg4?: PlantIdentity | DayZeroAnchor,
+  arg5?: DayZeroAnchor | string,
+  arg6?: string,
 ): RunPackage {
-  const occurredAt = new Date().toISOString();
-  const primaryPlant = run.plants[0];
-  const plantId = primaryPlant?.id ?? crypto.randomUUID();
+  // Backwards compatibility for tests that don't pass targetPlantId
+  const isV12Call = typeof arg3 === "string";
 
-  const updatedPlants = (
-    run.plants.length > 0
-      ? run.plants
-      : [
+  const targetPlantId = isV12Call
+    ? arg2
+    : (run.plants[0]?.id ?? crypto.randomUUID());
+  const genetics = isV12Call ? arg3 : arg2;
+  const identity = (isV12Call ? arg4 : arg3) as PlantIdentity;
+  const dayZeroAnchor = (isV12Call ? arg5 : arg4) as DayZeroAnchor;
+  const anchorDate = (isV12Call ? arg6 : arg5) as string;
+
+  const occurredAt = new Date().toISOString();
+
+  const basePlants: Plant[] =
+    run.plants.length === 0
+      ? [
           {
-            id: plantId,
-            zoneId: run.zones[0]?.id ?? "unassigned-zone",
-            label: "Pflanze A1",
+            id: targetPlantId,
+            zoneId: run.zones[0]?.id ?? crypto.randomUUID(),
+            label: "Pflanze 1",
             genetics,
-            status: "planned" as const,
-            identity,
+            status: "planned",
+            identity: defaultPlantIdentity(),
           },
         ]
-  ).map((plant) => ({
-    ...plant,
-    genetics,
-    identity: {
-      ...plant.identity,
-      ...identity,
-    },
-  }));
+      : run.plants;
+
+  const updatedPlants = isV12Call
+    ? basePlants.map((plant) => {
+        if (plant.id === targetPlantId) {
+          return {
+            ...plant,
+            genetics,
+            identity: {
+              ...plant.identity,
+              ...identity,
+            },
+          };
+        }
+        return plant;
+      })
+    : basePlants.map((plant) => ({
+        ...plant,
+        genetics,
+        identity: {
+          ...plant.identity,
+          ...identity,
+        },
+      }));
 
   const existingGrowthEvents = (run.growthEvents || []).filter(
-    (e) => e.kind !== dayZeroAnchor,
+    (e) => !(e.plantId === targetPlantId && e.kind === dayZeroAnchor),
   );
 
   const anchorOccurredAt = anchorDate
@@ -418,7 +444,7 @@ export function updatePlantIdentity(
 
   const newAnchorEvent: GrowthEvent = {
     id: crypto.randomUUID(),
-    plantId,
+    plantId: targetPlantId,
     kind: dayZeroAnchor,
     occurredAt: anchorOccurredAt,
     day: 0,
@@ -432,7 +458,8 @@ export function updatePlantIdentity(
 
   const updatedConfig: RunConfig = {
     ...run.config,
-    genetics,
+    genetics:
+      !isV12Call || run.plants.length <= 1 ? genetics : run.config.genetics,
     dayZeroAnchor,
   };
 
@@ -445,7 +472,7 @@ export function updatePlantIdentity(
       auditEvent(
         "configuration-changed",
         "plant-identity",
-        plantId,
+        targetPlantId,
         `Pflanzenidentität aktualisiert: Genetik '${genetics}', Breeder '${identity.breeder ?? "—"}', Day Zero Anker '${dayZeroAnchor}' am ${anchorDate}.`,
         occurredAt,
       ),
@@ -456,10 +483,10 @@ export function updatePlantIdentity(
         run.id,
         "configuration.changed",
         {
-          plantId,
+          plantId: targetPlantId,
           genetics,
-          breeder: identity.breeder,
-          seedLot: identity.seedLot,
+          breeder: identity.breeder ?? null,
+          seedLot: identity.seedLot ?? null,
           dayZeroAnchor,
           anchorDate,
         },
@@ -473,25 +500,36 @@ export function updatePlantIdentity(
 export function updateExecutionMode(
   run: RunPackage,
   mode: RunExecutionMode,
+  now = new Date(),
 ): RunPackage {
   if (run.executionMode === mode) {
     return run;
   }
-  const occurredAt = new Date().toISOString();
+  const occurredAt = now.toISOString();
 
   let liveAnchor = run.liveAnchor;
   let clockHealth = run.clockHealth;
 
   if (mode === "live") {
     if (!liveAnchor) {
-      const anchorDate = run.config.startDate
-        ? (run.config.startDate.includes("T")
-            ? run.config.startDate
-            : new Date(`${run.config.startDate}T00:00:00Z`).toISOString())
+      const anchorKind =
+        run.config.dayZeroAnchor === "seed-planted"
+          ? "seed-planted"
+          : "emergence";
+      const configuredMilestone = run.growthEvents.find(
+        (event) =>
+          event.kind === anchorKind && event.confidence === "confirmed",
+      );
+      const configuredAnchor =
+        configuredMilestone?.occurredAt ?? run.config.startDate;
+      const anchorDate = configuredAnchor
+        ? configuredAnchor.includes("T")
+          ? new Date(configuredAnchor).toISOString()
+          : new Date(`${configuredAnchor}T00:00:00Z`).toISOString()
         : occurredAt;
       liveAnchor = {
         id: crypto.randomUUID(),
-        kind: "seed-planted",
+        kind: anchorKind,
         startedAtUtc: anchorDate,
         confirmedAtUtc: occurredAt,
         timeZoneAtConfirmation:
@@ -557,8 +595,9 @@ export function updatePlantMilestones(
   run: RunPackage,
   milestones: PlantMilestones,
   reason = "Pflanzen-Meilensteine aktualisiert",
+  now = new Date(),
 ): RunPackage {
-  const occurredAt = new Date().toISOString();
+  const occurredAt = now.toISOString();
   const primaryPlant = run.plants[0];
   const plantId = primaryPlant?.id ?? crypto.randomUUID();
   const dayZeroAnchor: DayZeroAnchor =
@@ -624,13 +663,18 @@ export function updatePlantMilestones(
     effectiveAnchorDateIso = emergenceIso;
   } else if (pottingIso) {
     effectiveAnchorDateIso = pottingIso;
+  } else if (
+    milestones.pottingDateIso === "" &&
+    milestones.emergenceDateIso === ""
+  ) {
+    effectiveAnchorDateIso = null;
   } else if (run.config.startDate) {
     effectiveAnchorDateIso = normalizeIso(run.config.startDate);
   }
 
   const effectiveAnchorDayStr = effectiveAnchorDateIso
     ? effectiveAnchorDateIso.slice(0, 10)
-    : run.config.startDate;
+    : "";
 
   const updatedPlants = (
     run.plants.length > 0
@@ -649,7 +693,8 @@ export function updatePlantMilestones(
     ...plant,
     identity: {
       ...plant.identity,
-      pottingDateIso: milestones.pottingDateIso ?? plant.identity.pottingDateIso,
+      pottingDateIso:
+        milestones.pottingDateIso ?? plant.identity.pottingDateIso,
       emergenceDateIso:
         milestones.emergenceDateIso ?? plant.identity.emergenceDateIso,
       dayZeroAnchorDate: effectiveAnchorDayStr,
@@ -816,7 +861,7 @@ export function activateRun(run: RunPackage, now = new Date()): RunPackage {
     version: run.configurationSnapshot.version + 1,
     capturedAt: occurredAt,
     config: copyConfig(run.config),
-    evidenceVersion: "v8 Evidence-Guarded",
+    evidenceVersion: "v11.5 Evidence-Guarded · app-aligned 2026-08-23",
     immutable: true as const,
   };
   return touch({
@@ -1398,7 +1443,10 @@ export function migrateRunPackage(value: unknown): RunPackage | null {
   let candidate = value as Record<string, unknown>;
 
   if (candidate.schemaVersion === RUN_SCHEMA_VERSION) {
-    if (candidate.config && (candidate.config as any).genetics === "Double Grape Auto") {
+    if (
+      candidate.config &&
+      (candidate.config as any).genetics === "Double Grape Auto"
+    ) {
       (candidate.config as any).genetics = "Double Grape";
     }
     return candidate as unknown as RunPackage;
@@ -1817,13 +1865,14 @@ function synchronizedAssets(
       ? {
           ...existing,
           zoneId: primaryZone.id,
-          genetics: config.genetics,
+          // Preserve individual plant genetics! v12 Domain Corrected.
+          genetics: existing.genetics || "Unbekannt",
         }
       : {
           id: crypto.randomUUID(),
           zoneId: primaryZone.id,
           label: `Pflanze ${String.fromCharCode(65 + (index % 26))}${Math.floor(index / 26) + 1}`,
-          genetics: config.genetics,
+          genetics: "Unbekannt",
           status: "planned" as const,
           identity: defaultPlantIdentity(),
         };

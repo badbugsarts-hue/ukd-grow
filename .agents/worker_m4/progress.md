@@ -3,6 +3,7 @@
 Last visited: 2026-08-21T04:49:30+02:00
 
 ## Status
+
 - [x] Initial briefing & workspace setup
 - [x] Codebase & context investigation
 - [x] Plan formulation

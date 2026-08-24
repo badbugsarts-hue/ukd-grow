@@ -102,7 +102,7 @@ const provenance = {
       },
       resolvedDependencies: [
         {
-          uri: "git+https://github.com/badbugsarts-hue/ukd-grow-masterplan-2026",
+          uri: "git+https://github.com/badbugsarts-hue/ukd-grow",
         },
         { uri: "file:pnpm-lock.yaml", digest: { sha256: lockHash } },
         {

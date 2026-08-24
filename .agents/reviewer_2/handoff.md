@@ -1,53 +1,111 @@
-﻿# Handoff Report: Reviewer 2 (Reviewer & Critic)
+# Handoff Report — In-Place Editing, Prediction Engine & Invariants Review
 
 ## 1. Observation
-1. **State Management & Transitions** (src/run-state.ts):
-   - updateExecutionMode (lines 473–554): Accurately switches between simulation and live, creates liveAnchor if missing, sets clockHealth to healthy, updates status to active if previously draft, and logs AuditEvent (live-started / configuration-changed) and DomainEvent (live.started / configuration.changed).
-   - updatePlantMilestones (lines 556–734): Ingests pottingDateIso and emergenceDateIso, normalizes date strings, creates GrowthEvent records with kind: seed-planted and kind: emergence, computes effectiveAnchorDateIso, updates plant identity metadata, and records a LiveAnchorRevision in un.anchorRevisions whenever un.liveAnchor.startedAtUtc changes.
-   - configurationSnapshot immutability (lines 331–376, 811–866): Modifying configuration on an active run retains the captured snapshot unchanged (Snapshot  nicht verändert).
-2. **Domain Recalculation & Clock Evaluation** (src/domain.ts, src/live-run.ts):
-   - calculateBiologicalPlantAge (src/domain.ts, lines 313–396): Evaluates biological age vs operational age relative to dayZeroAnchor, deriving germinationDays when both potting and emergence events exist, and safely guarding against negative values via Math.max(0, ...).
-   - evaluateLiveClock (src/live-run.ts, lines 13–68): Enforces fail-closed blocking when 
-ow < anchor (status: blocked-before-anchor) and detects backwards clock jumps beyond 5 minutes (status: blocked-clock-rollback).
-   - calculateSubstrateHydration (src/domain.ts, lines 408–497): Enforces emptyMassGrams and saturatedMassGrams requirements, safely failing closed with INSUFFICIENT_DATA on missing tare/saturation or satMass <= emptyMass (avoiding zero-division), and returning hydration/depletion metrics and category bins.
-3. **Persistence & Integrity** (src/run-storage.ts):
-   - IndexedDB v8 multi-store repository (ukd-operator-workspace) with ResilientRunRepository memory fallback, sync outbox event queue, and schema-validated restore staging (stageAndActivateRestoredRun).
-4. **Automated Verification**:
-   - 
-px vitest run: 39 test files passed (100%), 431 tests passed (100%), 0 failed.
-   - 
-px tsc --noEmit: 0 TypeScript errors.
+
+### Codebase Inspection
+
+- **`src/prediction-engine.ts`** (Lines 1–1047):
+  - `predictGeneticsMetadata` (Lines 132–238): Performs exact catalog lookup, substring/fuzzy matching, token matching, and heuristic breeder/autoflower classification over `autoflowerData`.
+  - `predictEmergenceDate` (Lines 244–253): Implements baseline +3 calendar days rule with Date math and input validation.
+  - `predictEnvironmentalCorridor` (Lines 368–445): Maps stages (`seedling`, `early_veg`, `vegetative`, `early_bloom`, `peak_bloom`, `late_bloom`, `flush`) and day numbers to comprehensive target bounds (`tempLightC`, `tempDarkC`, `humidityPct`, `ppfd`, `dli`, `leafVpdKpa`, `airVpdKpa`) and issues dynamic light corridor warnings.
+  - `calculateLiveVpd` & `calculateLiveVpdDetailed` (Lines 451–528): Implements the scientific Magnus-Tetens formula ($e_s(T) = 0.61078 \times \exp((17.27 \times T)/(T + 237.3))$), leaf cooling offset (default -1.0 °C), lower bound protection (`Math.max(0, ...)`), and 5-tier classification (`danger-low`, `low`, `optimal`, `high`, `danger-high`).
+  - `predictNutrientTitration` (Lines 534–616): Computes EC/pH deltas, base nutrient dosages, RO water dilution volumes, and small reservoir (<3 L) sensitivity warnings.
+  - `predictDrybackDuration` (Lines 622–667): Computes substrate dryback percentage, hydration status, irrigation volume recommendation, and 4-tier urgency classification (`wait`, `approaching`, `water_now`, `overdry`).
+  - `getLiveFieldSuggestions` (Lines 673–1046): In-memory synchronous query engine across 12 field categories (`genetics`, `ppfd`, `dli`, `temp`, `rh`, `vpd`, `ec`, `ph`, `potWeight`, `irrigation`, `runName`, `date`).
+
+- **`src/components/common/InlineEditable.tsx`** (Lines 1–625):
+  - Accessible touch target minimums (default 44px $\times$ 44px min-height/min-width via `minTouchTarget`).
+  - Keyboard interactions (Enter to commit/select suggestion, Esc to cancel, Tab to commit & advance, Up/Down arrows to navigate dropdown suggestions).
+  - Multi-tier validation support: boolean, string message, and structured `{ valid: boolean; error?: string; warning?: string }`.
+  - Outside click handling with validation auto-commit and clean unmount listeners.
+  - ARIA attributes (`role="listbox"`, `role="option"`, `role="alert"`, `role="status"`, `aria-selected`, `aria-label`).
+
+- **`src/components/common/InlineMetricCard.tsx`** (Lines 1–235):
+  - Segregated tabs for "Ist" (measured value) and "Soll" (target value) with independent callbacks (`onSaveMeasurement` and `onSaveTarget`).
+  - Visual differentiation with "IST-WERT" badge and target reference notes.
+  - Integration with `TermTooltip` respecting the active `ExperienceLens` without modifying calculation logic.
+
+- **`src/App.tsx`** (Lines 2010–2240):
+  - `handleSaveMeasurement` (Lines 2023–2057): Encapsulates updates into `DailyObservation` (`status: "measured"`), invoking `addObservation(run, updatedObs)` which logs `measurement-recorded` audit events and maintains an append-only measurement history.
+  - `handleSaveTarget` (Lines 2059–2076): Encapsulates target modifications into audited `RunOverride` objects (`evidenceConflict: "manual-override"`, unique UUID, ISO timestamp, audit event `override-created`, domain event `override.created`), invoking `addRunOverride(run, override)`.
+  - Genetics editing (Lines 2092–2120): Uses `InlineEditable` with `predictGeneticsMetadata` to safely update plant identity.
+  - Metrics grid (Lines 2136–2238): Implements `InlineMetricCard` for PPFD, DLI, Klima, Leaf-VPD, EC, and pH.
+
+### Automated Test & Verification Output
+
+- `npx vitest run src/prediction-engine.test.ts src/components/common/InlineEditable.test.tsx`:
+  - Result: 2 test files passed, 34 tests passed, 0 failures.
+  - Average latency benchmark in `prediction-engine.test.ts` (150 in-memory suggestion calls under load): <0.05 ms per call (target: <5 ms).
+- `npx tsc --noEmit`: Exited with code 0 (zero type errors).
+- Full test suite (`npx vitest run`): 43 test suites passed, 519 unit and integration tests passed, 0 failures.
+
+---
 
 ## 2. Logic Chain
-- Step 1 (State immutability and event lineage): From Observation 1, state updater functions return new objects via 	ouch(), preserve active configurationSnapshot, and write to both uditEvents and domainEvents. Therefore, the snapshot immutability invariant and event sourcing requirements from AGENTS.md are fully satisfied.
-- Step 2 (Milestone recalculation and live clock): From Observations 1 & 2, updating milestones in live mode recalculates liveAnchor and records a revision in nchorRevisions. evaluateLiveClock and calculateBiologicalPlantAge compute current operational day and biological age deterministically with anti-rollback and future-anchor protection.
-- Step 3 (Substrate dryback math): From Observation 2, calculateSubstrateHydration handles all boundary conditions (missing tare, tare exceeding saturation, mass exceeding saturation, invalid current mass) without throwing runtime exceptions or returning invalid hydration percentages.
-- Step 4 (Storage resilience): From Observation 3, active runs are validated before activation and protected in memory during I/O degradation.
-- Step 5 (Empirical and static verification): From Observation 4, all 431 unit, integration, and fuzz tests pass without error, and TypeScript typechecking succeeds cleanly.
+
+1. **Integrity & Authenticity**:
+   - Source code analysis confirms that the prediction engine and inline editing components implement genuine mathematical calculations (Magnus-Tetens, dryback mass calculations, volumetric dilution formulas) and real state management rather than hardcoded mock stubs or facades.
+   - All tests run against actual implementation code without artificial bypasses.
+
+2. **Domain Correctness & Performance**:
+   - Environmental corridor thresholds conform to established photobiological standards for cannabis autoflowers across all 7 growth stages.
+   - Magnus-Tetens VPD correctly calculates saturated vapor pressure for air and leaf temperatures and protects against negative VPD anomalies.
+   - Live field suggestions execute purely in memory against pre-compiled static structures, guaranteeing sub-millisecond response times (<5 ms requirement met with >90x margin).
+
+3. **AGENTS.md Invariants Compliance**:
+   - _Measurement vs. Target Segregation_: Measurements and plan targets are strictly separated in both the UI (`InlineMetricCard` Ist/Soll tabs) and the state layer (`DailyObservation` vs. `RunOverride`).
+   - _Append-Only & Auditability_: In-place measurement edits trigger `addObservation` creating `auditEvents`, while target changes trigger `addRunOverride` creating structured `RunOverride`, `auditEvents`, and `domainEvents`. Active run snapshots are never destructively mutated in place.
+   - _Experience Lens Purity_: Experience modes (`guided`, `advanced`, `expert`) modulate terminology and explanation depth through `TermTooltip` and badges, with zero interference in underlying calculations.
+   - _Accessibility & UX_: 44px touch targets are enforced on mobile; full keyboard navigation (Enter, Esc, Tab, Arrows) is fully functional and covered by tests.
+
+---
 
 ## 3. Caveats
-- No caveats. The implementation covers all domain requirements, fail-closed guards, and data integrity specifications without any shortcuts or facade mocks.
+
+- In-place editing currently supports single-value inputs, numeric steppers, and dropdown selections. Multi-variable combinatorial solvers (e.g. multi-part fertilizer matrix solvers) remain handled in dedicated modal dialogs.
+- Leaf temperature offset defaults to -1.0 °C under LED lighting; growers using dedicated infrared IR sensors can supply exact leaf temperatures directly via the measurement input.
+- No other caveats identified.
+
+---
 
 ## 4. Conclusion
-The implementation of the state management, retroactive milestones, biological age calculation, dryback hydration, and persistence layer complies fully with the project specification and domain invariants.
 
-**Verdict**: **APPROVE**
+**Verdict: APPROVE**
+
+The In-Place Editing UI primitives (`InlineEditable`, `InlineMetricCard`), the prediction engine (`prediction-engine.ts`), and their integration in `App.tsx` fully satisfy all functional, photobiological, architectural, and AGENTS.md invariant requirements. All 34 targeted tests and all 519 suite-wide tests pass with zero errors.
+
+---
 
 ## 5. Verification Method
-To independently verify:
-1. Run Vitest suite:
-   `powershell
-   npx vitest run
-   `
-   (Verify 39 files and 431 tests pass)
-2. Run TypeScript compiler:
-   `powershell
+
+To independently verify this evaluation:
+
+1. **Run Targeted Unit Tests**:
+
+   ```powershell
+   npx vitest run src/prediction-engine.test.ts src/components/common/InlineEditable.test.tsx
+   ```
+
+   _Expected result_: 34 passed across 2 test files.
+
+2. **Run TypeScript Typecheck**:
+
+   ```powershell
    npx tsc --noEmit
-   `
-   (Verify 0 errors)
-3. Inspect state transitions:
-   - Check updateExecutionMode in src/run-state.ts (lines 473–554)
-   - Check updatePlantMilestones in src/run-state.ts (lines 556–734)
-   - Check calculateBiologicalPlantAge in src/domain.ts (lines 313–396)
-   - Check calculateSubstrateHydration in src/domain.ts (lines 408–497)
-   - Check evaluateLiveClock in src/live-run.ts (lines 13–68)
+   ```
+
+   _Expected result_: Exit code 0, 0 errors.
+
+3. **Run Full Project Test Gate**:
+
+   ```powershell
+   npx vitest run
+   ```
+
+   _Expected result_: 519 passed across 43 test suites.
+
+4. **Inspect Source Files**:
+   - `src/prediction-engine.ts`
+   - `src/components/common/InlineEditable.tsx`
+   - `src/components/common/InlineMetricCard.tsx`
+   - `src/App.tsx` (Lines 2010–2240)

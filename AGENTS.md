@@ -10,10 +10,10 @@
 - `src/backup.ts`: SHA-256-verifiziertes Backup-/Recovery-Gate.
 - `src/styles.css`: semantische Design-Tokens und responsive Regeln.
 - `src/data/`: Knowledge Base, Audit, Skills und AI Context.
-- `public/data/evidence-guarded-workbook-v8.json`: kanonischer, generierter v8-Snapshot.
+- `public/data/evidence-guarded-workbook-v11_5.json`: kanonischer, generierter v11.5-Snapshot.
 - `public/data/data-manifest.json`: Release, Hashes und Provenienz.
 - `public/data/legacy-workbook.json`: archivierter v5-Snapshot, nicht mehr operativ.
-- `sources/evidence-v6/`: unveränderte v6-Quellen und untrusted Research-Input. (Hinweis: Aktuelle v8 xlsx liegt im Root)
+- `sources/evidence-v6/`: unveränderte v6-Quellen und untrusted Research-Input; aktuelle operative und reviewpflichtige Pläne liegen unter `plan/`.
 - `docs/`: Architektur, Faktencheck, Design, Migration, Sicherheit und Tests.
 
 ## Commands
@@ -28,7 +28,7 @@
 
 ## Sources of truth
 
-1. Für operative Tageswerte: `02_Daily_Master` in `public/data/evidence-guarded-workbook-v8.json`.
+1. Für operative Tageswerte: `02_Daily_Master` in `public/data/evidence-guarded-workbook-v11_5.json`.
 2. Für validierte Aussagen: `src/data/knowledge-base.json`.
 3. Für bekannte Legacy-Korrekturen: `src/data/legacy-audit.json`.
 4. Für KI-Verhalten und Guardrails: `src/data/ai-context.json` und `src/data/skills.json`.
@@ -75,7 +75,7 @@
 ## Migration
 
 - Legacy-Dateien niemals still ersetzen oder löschen (alte Snapshots bleiben erhalten).
-- Den v8-Snapshot nur reproduzierbar aus der unveränderten XLSX erzeugen; Manifest-Hash und Audit-Count gemeinsam aktualisieren.
+- Den v11.5-Snapshot nur reproduzierbar aus der unveränderten XLSX erzeugen; Manifest-Hash und Audit-Count gemeinsam aktualisieren.
 - Deep-Research-Input durch `research-import-gate` prüfen, bevor Claims oder operative Zahlen übernommen werden.
 - Neue Claims benötigen Status, Evidenz, Scope, Unsicherheit, Prüftag und mindestens eine Quelle.
 - Neue fachliche Berechnung benötigt deterministischen Unit-Test.

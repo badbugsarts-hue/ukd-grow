@@ -50,7 +50,8 @@ export function ModalDialog({
 
   useLayoutEffect(() => {
     if (!open) return;
-    capturedReturnFocusRef.current = explicitReturnTarget ??
+    capturedReturnFocusRef.current =
+      explicitReturnTarget ??
       (document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null);
@@ -98,12 +99,14 @@ export function ModalDialog({
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       openDialogCount = Math.max(0, openDialogCount - 1);
-      if (openDialogCount === 0) document.body.style.overflow = previousBodyOverflow;
+      if (openDialogCount === 0)
+        document.body.style.overflow = previousBodyOverflow;
       const returnTarget = capturedReturnFocusRef.current;
       // WebKit may move focus back to <body> while the portal is being
       // detached. Restore it after that DOM commit, not during cleanup.
       setTimeout(() => {
-        if (returnTarget?.isConnected) returnTarget.focus({ preventScroll: true });
+        if (returnTarget?.isConnected)
+          returnTarget.focus({ preventScroll: true });
       }, 0);
     };
   }, [open, explicitReturnTarget]);

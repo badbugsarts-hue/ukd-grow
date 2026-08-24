@@ -1,4 +1,5 @@
 ﻿## 2026-08-21T09:51:12Z
+
 You are worker_gen2_verify.
 Working Directory: c:\Users\badbu\Documents\grow\.agents\worker_gen2_verify
 Project Root: c:\Users\badbu\Documents\grow
@@ -12,23 +13,24 @@ Your Mission:
 Perform a full, rigorous execution of all verification and build commands on the repository to verify that the implementation is 100% functional, fully typed, linted, passing all tests, and meeting build budgets.
 
 Run and record exact outputs of:
-1. TypeScript check: 
-px tsc -b --pretty false and 
-px tsc --noEmit
-2. Linter: 
-px @biomejs/biome lint src tests
-3. UI contracts: 
-ode scripts/check-ui-contracts.mjs
-4. Content validation: 
-ode scripts/validate-content.mjs
-5. Secret scan: 
-ode scripts/scan-secrets.mjs
-6. Production build: 
-px vite build
-7. Build budget: 
-ode scripts/check-build-budget.mjs
-8. Full test suite: 
-px vitest run --testTimeout=15000
+
+1. TypeScript check:
+   px tsc -b --pretty false and
+   px tsc --noEmit
+2. Linter:
+   px @biomejs/biome lint src tests
+3. UI contracts:
+   ode scripts/check-ui-contracts.mjs
+4. Content validation:
+   ode scripts/validate-content.mjs
+5. Secret scan:
+   ode scripts/scan-secrets.mjs
+6. Production build:
+   px vite build
+7. Build budget:
+   ode scripts/check-build-budget.mjs
+8. Full test suite:
+   px vitest run --testTimeout=15000
 
 Document all command outputs, passed tests count, bundle sizes, and any warnings in c:\Users\badbu\Documents\grow\.agents\worker_gen2_verify\handoff.md.
 Send a message back to your parent when complete.

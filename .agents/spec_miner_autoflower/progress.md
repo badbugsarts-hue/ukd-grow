@@ -4,6 +4,7 @@
 - **Status**: Completed specification mining, dataset extraction, and report creation.
 
 ## Tasks
+
 - [x] Initialize dispatch, briefing, and progress tracking
 - [x] Read ORIGINAL_REQUEST.md and AGENTS.md
 - [x] Inspect UKD_Grow_Masterplan_2026_Interactive_Masterclass.html, plan/Autoflower-Cockpit-v3.html, and related files

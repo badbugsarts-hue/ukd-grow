@@ -18,10 +18,21 @@ export function StatusCard({
 }
 
 export function InlineWorkflow(props: HTMLAttributes<HTMLElement>) {
-  return <section {...props} className={`inline-workflow ${props.className ?? ""}`.trim()} />;
+  return (
+    <section
+      {...props}
+      className={`inline-workflow ${props.className ?? ""}`.trim()}
+    />
+  );
 }
 
-export function DangerZone({ summary, children }: { summary: string; children: ReactNode }) {
+export function DangerZone({
+  summary,
+  children,
+}: {
+  summary: string;
+  children: ReactNode;
+}) {
   return (
     <details className="danger-zone">
       <summary>{summary}</summary>
@@ -36,7 +47,10 @@ export function GuidancePanel({
   ...props
 }: HTMLAttributes<HTMLElement> & { title: string; children: ReactNode }) {
   return (
-    <aside {...props} className={`guidance-panel ${props.className ?? ""}`.trim()}>
+    <aside
+      {...props}
+      className={`guidance-panel ${props.className ?? ""}`.trim()}
+    >
       <h3>{title}</h3>
       {children}
     </aside>
@@ -51,7 +65,10 @@ export function FieldMessage({
   children: ReactNode;
 }) {
   return (
-    <p className={`field-message field-message-${tone}`} role={tone === "error" ? "alert" : "status"}>
+    <p
+      className={`field-message field-message-${tone}`}
+      role={tone === "error" ? "alert" : "status"}
+    >
       {children}
     </p>
   );

@@ -1,6 +1,7 @@
 # Handoff Report — Milestone 3: Setup View Parameter Visibility, Editing & Missing Elements
 
 ## 1. Observation
+
 - **Scope & Assignment**: Upgrade `src/components/panels/RunConfigPanel.tsx` to a comprehensive 8-card 2026 Master Class Setup view with full parameter visibility, direct editing with validation, retroactive milestones, tare weights, persistent ventilation, Autoflower Cockpit integration, and write a thorough test suite in `src/components/panels/RunConfigPanel.test.tsx`.
 - **Files Modified / Created**:
   1. `src/components/modals/AutoflowerCockpitModal.tsx`: Implemented complete 2026 Master Class modal for searching, filtering, and 1-click selecting from 61 autoflower strains into the run configuration.
@@ -22,6 +23,7 @@
   - `npx tsc --noEmit`: Exited with code 0 (0 TypeScript errors).
 
 ## 2. Logic Chain
+
 1. **Parameter Visibility & Direct Editing**:
    - Every physical and biological parameter in `RunPackage.config` now has a dedicated, accessible input (with min 44px touch targets and associated `<label htmlFor="...">`).
    - Editing any input produces an immutable update using canonical helpers (`updateRunConfig`, `updatePotProfile`, `updatePlantMilestones`, `updateExecutionMode`, `updatePlantIdentity`), preserving audit trails and domain events without mutating active snapshots.
@@ -39,14 +41,17 @@
    - Selecting a strain automatically updates `run.config.genetics` and `run.plants[0].identity` with breeder, seed type, and lot information.
 
 ## 3. Caveats
+
 - No caveats. All 8 cards, modal integrations, retroactive milestones, tare weights, city water presets, and readiness gate requirements are genuinely implemented with zero dummy/facade implementations and complete type safety.
 
 ## 4. Conclusion
+
 - Milestone 3 Setup View implementation is complete and verified.
 - All 17 unit tests in `src/components/panels/RunConfigPanel.test.tsx` pass cleanly.
 - Full typecheck (`npx tsc --noEmit`) passes with 0 errors.
 
 ## 5. Verification Method
+
 - **Unit Tests**:
   ```powershell
   npx vitest run src/components/panels/RunConfigPanel.test.tsx

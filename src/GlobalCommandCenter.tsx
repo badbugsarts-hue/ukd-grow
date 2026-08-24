@@ -66,6 +66,7 @@ interface Props {
   run: RunPackage;
   lens: ExperienceLens;
   day: number;
+  now: Date;
   plan: unknown;
   knowledge: unknown;
   capabilities: unknown;
@@ -91,14 +92,27 @@ export function GlobalCommandCenter(props: Props) {
     useState<ValidatedAiProposalFile | null>(null);
   const [quickLogOpen, setQuickLogOpen] = useState(false);
   const [quickKind, setQuickKind] = useState<QuickLogKind>("measurement");
-  const [quickMetric, setQuickMetric] = useState<keyof ObservationValues>("phIn");
+  const [quickMetric, setQuickMetric] =
+    useState<keyof ObservationValues>("phIn");
   const [quickValue, setQuickValue] = useState("");
   const [quickText, setQuickText] = useState("");
   const [quickSeverity, setQuickSeverity] =
     useState<StructuredObservation["severity"]>("info");
   const importRef = useRef<HTMLInputElement>(null);
   const commandCenterReturnFocusRef = useRef<HTMLElement | null>(null);
-  const clock = useMemo(() => evaluateLiveClock(run), [run]);
+  const clock = useMemo(
+    () => evaluateLiveClock(run, props.now),
+    [run, props.now],
+  );
+  const anchorLabel =
+    run.config.dayZeroAnchor === "seed-planted" ? "Aussaat" : "Durchstoß";
+  const nextDayAt =
+    run.liveAnchor && !clock.blocked
+      ? new Date(
+          Date.parse(run.liveAnchor.startedAtUtc) +
+            (clock.day + 1) * 86_400_000,
+        )
+      : null;
   const alertCount = deriveRunAlerts(run, props.plan as never).filter(
     (entry) => !run.acknowledgedAlertIds.includes(entry.id),
   ).length;
@@ -189,6 +203,10 @@ export function GlobalCommandCenter(props: Props) {
       const started = applyRunCommand(run, {
         kind: "live.clone-and-start",
         startedAtUtc: new Date(anchorUtc).toISOString(),
+        anchorKind:
+          run.config.dayZeroAnchor === "seed-planted"
+            ? "seed-planted"
+            : "emergence",
         timeZoneAtConfirmation:
           Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
       });
@@ -418,6 +436,7 @@ export function GlobalCommandCenter(props: Props) {
     },
     {
       "live.start": () => {
+        setAnchorUtc(toLocalInput(configuredAnchorDate(run)));
         setOpen(false);
         setLiveOpen(true);
       },
@@ -453,6 +472,37 @@ export function GlobalCommandCenter(props: Props) {
             ? `● LIVE · Tag ${clock.day}`
             : "◇ SIMULATION"}
         </button>
+        {run.executionMode === "live" && (
+          <div
+            className={`live-status-strip ${clock.blocked ? "is-blocked" : "is-healthy"}`}
+            role={clock.blocked ? "alert" : "status"}
+            aria-live="polite"
+          >
+            <span className="live-status-pulse" aria-hidden="true" />
+            <span className="live-status-copy">
+              <strong>
+                {props.now.toLocaleDateString("de-DE", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })}
+              </strong>
+              <small>
+                {clock.blocked
+                  ? "Zeitprüfung erforderlich"
+                  : `Nächster Tag ${nextDayAt?.toLocaleString("de-DE", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}`}
+              </small>
+            </span>
+            {props.day !== clock.day && (
+              <span className="live-view-day">Ansicht D{props.day}</span>
+            )}
+          </div>
+        )}
         {run.executionMode === "live" && (
           <button
             type="button"
@@ -500,11 +550,16 @@ export function GlobalCommandCenter(props: Props) {
           AI / Mehr
         </button>
       </div>
-      {displayMessage && !open && !liveOpen && !quickLogOpen && !proposalReview && !correctionFindings && (
-        <p className="command-global-status" role="status">
-          {displayMessage}
-        </p>
-      )}
+      {displayMessage &&
+        !open &&
+        !liveOpen &&
+        !quickLogOpen &&
+        !proposalReview &&
+        !correctionFindings && (
+          <p className="command-global-status" role="status">
+            {displayMessage}
+          </p>
+        )}
 
       {open && !liveOpen && !proposalReview && !correctionFindings && (
         <ModalDialog
@@ -515,203 +570,227 @@ export function GlobalCommandCenter(props: Props) {
           closeLabel="Command Center schließen"
           returnFocusTargetRef={commandCenterReturnFocusRef}
         >
-            <div className="status-grid">
-              <StatusCard
-                label="Betrieb"
-                tone={run.executionMode === "live" ? "warning" : "success"}
-                value={run.executionMode === "live" ? `Live · Tag ${clock.day}` : `Simulation · Ansichtstag ${props.day}`}
-              />
-              <StatusCard
-                label="Uhr"
-                tone={clock.blocked ? "danger" : "success"}
-                value={clock.blocked ? "BLOCKIERT" : "Verifiziert"}
-              />
-              <StatusCard
-                label="Backup"
-                tone={run.backupState.lastCheckpointAtUtc ? "success" : "warning"}
-                value={run.backupState.lastCheckpointAtUtc
-                  ? new Date(run.backupState.lastCheckpointAtUtc).toLocaleString("de-DE")
-                  : "Noch offen"}
-              />
-              <StatusCard
-                label="Speicher"
-                tone={pressure && pressure >= 85 ? "danger" : pressure ? "warning" : "neutral"}
-                value={pressure ? `${pressure}% Warnstufe` : run.backupState.persistentStorage}
-              />
-            </div>
-            {clock.blocked && (
-              <p className="inline-error" role="alert">
-                {clock.health.detail}
-              </p>
-            )}
-            <div className="command-action-grid">
-              {run.executionMode === "simulation" && (
-                <button
-                  type="button"
-                  className="primary"
-                  onClick={() => void actions["live.start"].execute()}
-                  aria-description={actions["live.start"].help}
-                >
-                  ● {actions["live.start"].label}
-                </button>
-              )}
-              {run.executionMode === "live" && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAnchorUtc(
-                      toLocalInput(
-                        new Date(run.liveAnchor?.startedAtUtc ?? Date.now()),
-                      ),
-                    );
-                    setAnchorCorrectionOpen((value) => !value);
-                  }}
-                >
-                  Aussaatanker korrigieren
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => void actions["log.quick"].execute()}
-                disabled={!actions["log.quick"].availability.enabled}
-              >
-                {actions["log.quick"].label} öffnen
-              </button>
-              <button
-                type="button"
-                onClick={() => void actions["backup.now"].execute()}
-                disabled={busy}
-              >
-                Sofortbackup
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  void chooseBackupDirectory().then((handle) =>
-                    setMessage(
-                      handle
-                        ? `Backup-Ordner „${handle.name}“ verbunden.`
-                        : "Dieser Browser unterstützt keinen direkten Ordnerzugriff.",
-                    ),
-                  )
-                }
-              >
-                Backup-Ordner wählen
-              </button>
-              <button
-                type="button"
-                onClick={() => void actions["ai.export"].execute()}
-                aria-description={actions["ai.export"].help}
-              >
-                {actions["ai.export"].label}
-              </button>
-              <button
-                type="button"
-                onClick={() => void actions["ai.import"].execute()}
-                aria-description={actions["ai.import"].help}
-              >
-                {actions["ai.import"].label}
-              </button>
-              <button type="button" onClick={props.onHelp}>
-                Kontexthilfe
-              </button>
-            </div>
-            {run.executionMode === "live" && anchorCorrectionOpen && (
-              <InlineWorkflow
-                aria-labelledby="anchor-correction-title"
-              >
-                <h3 id="anchor-correction-title">Begründete Ankerkorrektur</h3>
-                <label>
-                  Neuer Aussaatzeitpunkt
-                  <input
-                    type="datetime-local"
-                    value={anchorUtc}
-                    onChange={(event) => setAnchorUtc(event.target.value)}
-                  />
-                </label>
-                <label>
-                  Begründung
-                  <textarea
-                    value={anchorReason}
-                    onChange={(event) => setAnchorReason(event.target.value)}
-                    minLength={8}
-                  />
-                </label>
-                <button type="button" onClick={() => void correctAnchor()}>
-                  Korrektur prüfen & sichern
-                </button>
-              </InlineWorkflow>
-            )}
-            {run.executionMode === "live" && run.status !== "archived" && (
-              <DangerZone summary="Live-Run abschließen">
-                <label>
-                  Abschlussgrund
-                  <textarea
-                    value={completionReason}
-                    onChange={(event) =>
-                      setCompletionReason(event.target.value)
-                    }
-                  />
-                </label>
-                <button type="button" onClick={() => void completeRun()}>
-                  Abschließen und dauerhaft sichern
-                </button>
-              </DangerZone>
-            )}
-            <input
-              ref={importRef}
-              hidden
-              type="file"
-              accept="application/json,.json,.ukdai"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void importAi(file);
-                event.currentTarget.value = "";
-              }}
+          <div className="status-grid">
+            <StatusCard
+              label="Betrieb"
+              tone={run.executionMode === "live" ? "warning" : "success"}
+              value={
+                run.executionMode === "live"
+                  ? `Live · Tag ${clock.day}`
+                  : `Simulation · Ansichtstag ${props.day}`
+              }
             />
-            <details className="global-action-help">
-              <summary>Hilfe zu allen globalen Aktionen</summary>
-              <dl>
-                {Object.entries(GLOBAL_ACTION_REGISTRY).map(([id, action]) => (
-                  <div key={id}>
-                    <dt>{action.label}</dt>
-                    <dd>{action.help}</dd>
-                  </div>
-                ))}
-              </dl>
-            </details>
-            <p className="microcopy">
-              <TermTooltip
-                term="Evidenz"
-                lens={lens}
-                customText="AI erklärt und schlägt vor. Jede Änderung benötigt deine Einzelprüfung; Evidenz, Formeln und Live-Anker bleiben gesperrt."
-                showIcon
-              >
-                Warum AI nur Vorschläge liefert
-              </TermTooltip>
+            <StatusCard
+              label="Uhr"
+              tone={clock.blocked ? "danger" : "success"}
+              value={clock.blocked ? "BLOCKIERT" : "Verifiziert"}
+            />
+            <StatusCard
+              label="Backup"
+              tone={run.backupState.lastCheckpointAtUtc ? "success" : "warning"}
+              value={
+                run.backupState.lastCheckpointAtUtc
+                  ? new Date(
+                      run.backupState.lastCheckpointAtUtc,
+                    ).toLocaleString("de-DE")
+                  : "Noch offen"
+              }
+            />
+            <StatusCard
+              label="Speicher"
+              tone={
+                pressure && pressure >= 85
+                  ? "danger"
+                  : pressure
+                    ? "warning"
+                    : "neutral"
+              }
+              value={
+                pressure
+                  ? `${pressure}% Warnstufe`
+                  : run.backupState.persistentStorage
+              }
+            />
+          </div>
+          {clock.blocked && (
+            <p className="inline-error" role="alert">
+              {clock.health.detail}
             </p>
-            {displayMessage && (
-              <p className="command-message" role="status">
-                {displayMessage}
-              </p>
+          )}
+          <div className="command-action-grid">
+            {run.executionMode === "simulation" && (
+              <button
+                type="button"
+                className="primary"
+                onClick={() => void actions["live.start"].execute()}
+                aria-description={actions["live.start"].help}
+              >
+                ● {actions["live.start"].label}
+              </button>
             )}
+            {run.executionMode === "live" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setAnchorUtc(
+                    toLocalInput(
+                      new Date(run.liveAnchor?.startedAtUtc ?? Date.now()),
+                    ),
+                  );
+                  setAnchorCorrectionOpen((value) => !value);
+                }}
+              >
+                Aussaatanker korrigieren
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => void actions["log.quick"].execute()}
+              disabled={!actions["log.quick"].availability.enabled}
+            >
+              {actions["log.quick"].label} öffnen
+            </button>
+            <button
+              type="button"
+              onClick={() => void actions["backup.now"].execute()}
+              disabled={busy}
+            >
+              Sofortbackup
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                void chooseBackupDirectory().then((handle) =>
+                  setMessage(
+                    handle
+                      ? `Backup-Ordner „${handle.name}“ verbunden.`
+                      : "Dieser Browser unterstützt keinen direkten Ordnerzugriff.",
+                  ),
+                )
+              }
+            >
+              Backup-Ordner wählen
+            </button>
+            <button
+              type="button"
+              onClick={() => void actions["ai.export"].execute()}
+              aria-description={actions["ai.export"].help}
+            >
+              {actions["ai.export"].label}
+            </button>
+            <button
+              type="button"
+              onClick={() => void actions["ai.import"].execute()}
+              aria-description={actions["ai.import"].help}
+            >
+              {actions["ai.import"].label}
+            </button>
+            <button type="button" onClick={props.onHelp}>
+              Kontexthilfe
+            </button>
+          </div>
+          {run.executionMode === "live" && anchorCorrectionOpen && (
+            <InlineWorkflow aria-labelledby="anchor-correction-title">
+              <h3 id="anchor-correction-title">Begründete Ankerkorrektur</h3>
+              <label>
+                Neuer Aussaatzeitpunkt
+                <input
+                  type="datetime-local"
+                  value={anchorUtc}
+                  onChange={(event) => setAnchorUtc(event.target.value)}
+                />
+              </label>
+              <label>
+                Begründung
+                <textarea
+                  value={anchorReason}
+                  onChange={(event) => setAnchorReason(event.target.value)}
+                  minLength={8}
+                />
+              </label>
+              <button type="button" onClick={() => void correctAnchor()}>
+                Korrektur prüfen & sichern
+              </button>
+            </InlineWorkflow>
+          )}
+          {run.executionMode === "live" && run.status !== "archived" && (
+            <DangerZone summary="Live-Run abschließen">
+              <label>
+                Abschlussgrund
+                <textarea
+                  value={completionReason}
+                  onChange={(event) => setCompletionReason(event.target.value)}
+                />
+              </label>
+              <button type="button" onClick={() => void completeRun()}>
+                Abschließen und dauerhaft sichern
+              </button>
+            </DangerZone>
+          )}
+          <input
+            ref={importRef}
+            hidden
+            type="file"
+            accept="application/json,.json,.ukdai"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void importAi(file);
+              event.currentTarget.value = "";
+            }}
+          />
+          <details className="global-action-help">
+            <summary>Hilfe zu allen globalen Aktionen</summary>
+            <dl>
+              {Object.entries(GLOBAL_ACTION_REGISTRY).map(([id, action]) => (
+                <div key={id}>
+                  <dt>{action.label}</dt>
+                  <dd>{action.help}</dd>
+                </div>
+              ))}
+            </dl>
+          </details>
+          <p className="microcopy">
+            <TermTooltip
+              term="Evidenz"
+              lens={lens}
+              customText="AI erklärt und schlägt vor. Jede Änderung benötigt deine Einzelprüfung; Evidenz, Formeln und Live-Anker bleiben gesperrt."
+              showIcon
+            >
+              Warum AI nur Vorschläge liefert
+            </TermTooltip>
+          </p>
+          {displayMessage && (
+            <p className="command-message" role="status">
+              {displayMessage}
+            </p>
+          )}
         </ModalDialog>
       )}
 
       <ModalDialog
         open={quickLogOpen}
         title="Quick Log"
-        eyebrow={run.executionMode === "live" ? `Live · Tag ${clock.day}` : `Simulation · Tag ${props.day}`}
+        eyebrow={
+          run.executionMode === "live"
+            ? `Live · Tag ${clock.day}`
+            : `Simulation · Tag ${props.day}`
+        }
         onClose={() => setQuickLogOpen(false)}
         closeLabel="Quick Log schließen"
         className="quick-log-sheet"
       >
-        <div className="segmented-control" role="tablist" aria-label="Art des Eintrags">
-          {([
-            ["measurement", "Messwert"],
-            ["observation", "Beobachtung"],
-            ["action", "Aktion"],
-          ] as const).map(([kind, label]) => (
+        <div
+          className="segmented-control"
+          role="tablist"
+          aria-label="Art des Eintrags"
+        >
+          {(
+            [
+              ["measurement", "Messwert"],
+              ["observation", "Beobachtung"],
+              ["action", "Aktion"],
+            ] as const
+          ).map(([kind, label]) => (
             <button
               key={kind}
               type="button"
@@ -730,7 +809,9 @@ export function GlobalCommandCenter(props: Props) {
               Messgröße
               <select
                 value={quickMetric}
-                onChange={(event) => setQuickMetric(event.target.value as keyof ObservationValues)}
+                onChange={(event) =>
+                  setQuickMetric(event.target.value as keyof ObservationValues)
+                }
               >
                 {QUICK_METRICS.map((metric) => (
                   <option key={metric.key} value={metric.key}>
@@ -755,7 +836,11 @@ export function GlobalCommandCenter(props: Props) {
             Schwere
             <select
               value={quickSeverity}
-              onChange={(event) => setQuickSeverity(event.target.value as StructuredObservation["severity"])}
+              onChange={(event) =>
+                setQuickSeverity(
+                  event.target.value as StructuredObservation["severity"],
+                )
+              }
             >
               <option value="info">Information</option>
               <option value="mild">Leicht</option>
@@ -777,12 +862,21 @@ export function GlobalCommandCenter(props: Props) {
           />
         </label>
         <p className="microcopy">
-          Der Eintrag wird getrennt von Sollwerten gespeichert und erhält Zeit-, Audit- und Timeline-Spur.
+          Der Eintrag wird getrennt von Sollwerten gespeichert und erhält Zeit-,
+          Audit- und Timeline-Spur.
         </p>
-        {message && <p className="inline-error" role="alert">{message}</p>}
+        {message && (
+          <p className="inline-error" role="alert">
+            {message}
+          </p>
+        )}
         <div className="button-row dialog-actions">
-          <button type="button" onClick={() => setQuickLogOpen(false)}>Abbrechen</button>
-          <button type="button" className="primary" onClick={saveQuickLog}>Eintrag speichern</button>
+          <button type="button" onClick={() => setQuickLogOpen(false)}>
+            Abbrechen
+          </button>
+          <button type="button" className="primary" onClick={saveQuickLog}>
+            Eintrag speichern
+          </button>
         </div>
       </ModalDialog>
 
@@ -794,49 +888,49 @@ export function GlobalCommandCenter(props: Props) {
           onClose={() => setLiveOpen(false)}
           closeLabel="Live-Preflight schließen"
         >
-            <ol className="preflight-list">
-              <li>
-                Setup: {run.config.genetics} · {run.config.medium} ·{" "}
-                {run.plants.length} Pflanze(n)
-              </li>
-              <li>Pflanzenidentität und Aussaatzeit bestätigen</li>
-              <li>Persistenten Speicher prüfen</li>
-              <li>Simulation unverändert erhalten und neuen Run erzeugen</li>
-              <li>Vorher-/Nachher-Backup mit SHA-256-Readback</li>
-            </ol>
-            <label>
-              Aussaatzeitpunkt
-              <input
-                type="datetime-local"
-                value={anchorUtc}
-                max={toLocalInput(new Date())}
-                onChange={(event) => setAnchorUtc(event.target.value)}
-              />
-            </label>
-            <p className="microcopy">
-              Live-Tag 0 beginnt exakt an diesem UTC-Zeitpunkt. Lokale
-              Mitternacht und Sommerzeit ändern den Tageswechsel nicht.
+          <ol className="preflight-list">
+            <li>
+              Setup: {run.config.genetics} · {run.config.medium} ·{" "}
+              {run.plants.length} Pflanze(n)
+            </li>
+            <li>Pflanzenidentität und {anchorLabel}-Zeitpunkt bestätigen</li>
+            <li>Persistenten Speicher prüfen</li>
+            <li>Simulation unverändert erhalten und neuen Run erzeugen</li>
+            <li>Vorher-/Nachher-Backup mit SHA-256-Readback</li>
+          </ol>
+          <label>
+            {anchorLabel}-Zeitpunkt (Live-Tag 0)
+            <input
+              type="datetime-local"
+              value={anchorUtc}
+              max={toLocalInput(new Date())}
+              onChange={(event) => setAnchorUtc(event.target.value)}
+            />
+          </label>
+          <p className="microcopy">
+            Live-Tag 0 beginnt exakt an diesem UTC-Zeitpunkt. Lokale Mitternacht
+            und Sommerzeit ändern den Tageswechsel nicht.
+          </p>
+          <div className="button-row">
+            <button type="button" onClick={() => setLiveOpen(false)}>
+              Abbrechen
+            </button>
+            <button
+              type="button"
+              className="primary"
+              disabled={busy || !anchorUtc}
+              onClick={() => void startLive()}
+            >
+              {busy
+                ? "Prüfen und sichern…"
+                : `${anchorLabel} bestätigen & Live starten`}
+            </button>
+          </div>
+          {message && (
+            <p className="inline-error" role="alert">
+              {message}
             </p>
-            <div className="button-row">
-              <button type="button" onClick={() => setLiveOpen(false)}>
-                Abbrechen
-              </button>
-              <button
-                type="button"
-                className="primary"
-                disabled={busy || !anchorUtc}
-                onClick={() => void startLive()}
-              >
-                {busy
-                  ? "Prüfen und sichern…"
-                  : "Aussaat bestätigen & Live starten"}
-              </button>
-            </div>
-            {message && (
-              <p className="inline-error" role="alert">
-                {message}
-              </p>
-            )}
+          )}
         </ModalDialog>
       )}
 
@@ -849,43 +943,43 @@ export function GlobalCommandCenter(props: Props) {
           closeLabel="Vorschläge schließen"
           className="proposal-sheet"
         >
-            {proposalReview.file.proposals.map((proposal) => (
-              <article className="proposal-card" key={proposal.id}>
-                <h3>{proposal.targetPath}</h3>
-                <p>{proposal.reason}</p>
-                <dl>
-                  <dt>Ausgang</dt>
-                  <dd>{JSON.stringify(proposal.baseValue)}</dd>
-                  <dt>Vorschlag</dt>
-                  <dd>{JSON.stringify(proposal.proposedValue)}</dd>
-                  <dt>Unsicherheit</dt>
-                  <dd>{proposal.uncertainty}</dd>
-                  <dt>Belege</dt>
-                  <dd>
-                    {[
-                      ...proposal.ruleIds,
-                      ...proposal.claimIds,
-                      ...proposal.sourceIds,
-                    ].join(", ") || "Keine – daher besonders kritisch prüfen"}
-                  </dd>
-                </dl>
-                <div className="button-row">
-                  <button
-                    type="button"
-                    onClick={() => decide(proposal, "reject")}
-                  >
-                    Ablehnen
-                  </button>
-                  <button
-                    type="button"
-                    className="primary"
-                    onClick={() => decide(proposal, "accept")}
-                  >
-                    Annehmen
-                  </button>
-                </div>
-              </article>
-            ))}
+          {proposalReview.file.proposals.map((proposal) => (
+            <article className="proposal-card" key={proposal.id}>
+              <h3>{proposal.targetPath}</h3>
+              <p>{proposal.reason}</p>
+              <dl>
+                <dt>Ausgang</dt>
+                <dd>{JSON.stringify(proposal.baseValue)}</dd>
+                <dt>Vorschlag</dt>
+                <dd>{JSON.stringify(proposal.proposedValue)}</dd>
+                <dt>Unsicherheit</dt>
+                <dd>{proposal.uncertainty}</dd>
+                <dt>Belege</dt>
+                <dd>
+                  {[
+                    ...proposal.ruleIds,
+                    ...proposal.claimIds,
+                    ...proposal.sourceIds,
+                  ].join(", ") || "Keine – daher besonders kritisch prüfen"}
+                </dd>
+              </dl>
+              <div className="button-row">
+                <button
+                  type="button"
+                  onClick={() => decide(proposal, "reject")}
+                >
+                  Ablehnen
+                </button>
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => decide(proposal, "accept")}
+                >
+                  Annehmen
+                </button>
+              </div>
+            </article>
+          ))}
         </ModalDialog>
       )}
 
@@ -897,34 +991,48 @@ export function GlobalCommandCenter(props: Props) {
           onClose={() => setCorrectionFindings(null)}
           closeLabel="Reparaturassistent schließen"
         >
-            <ul className="finding-list">
-              {correctionFindings.findings.map((finding, index) => (
-                <li key={`${finding.path}-${index}`}>
-                  <strong>{finding.path}</strong>: {finding.message}
-                  {finding.example !== undefined && (
-                    <code>{JSON.stringify(finding.example)}</code>
-                  )}
-                </li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              onClick={() =>
-                downloadJson(
-                  `ukd-ai-correction-${correctionFindings.fileSha256.slice(0, 8)}`,
-                  createAiCorrectionRequest(
-                    correctionFindings.fileSha256,
-                    correctionFindings.findings,
-                  ),
-                )
-              }
-            >
-              Correction Request exportieren
-            </button>
+          <ul className="finding-list">
+            {correctionFindings.findings.map((finding, index) => (
+              <li key={`${finding.path}-${index}`}>
+                <strong>{finding.path}</strong>: {finding.message}
+                {finding.example !== undefined && (
+                  <code>{JSON.stringify(finding.example)}</code>
+                )}
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() =>
+              downloadJson(
+                `ukd-ai-correction-${correctionFindings.fileSha256.slice(0, 8)}`,
+                createAiCorrectionRequest(
+                  correctionFindings.fileSha256,
+                  correctionFindings.findings,
+                ),
+              )
+            }
+          >
+            Correction Request exportieren
+          </button>
         </ModalDialog>
       )}
     </>
   );
+}
+
+function configuredAnchorDate(run: RunPackage): Date {
+  const selectedKind =
+    run.config.dayZeroAnchor === "seed-planted" ? "seed-planted" : "emergence";
+  const milestone = run.growthEvents.find(
+    (event) => event.kind === selectedKind && event.confidence === "confirmed",
+  );
+  const configured = milestone?.occurredAt || run.config.startDate;
+  if (!configured) return new Date();
+  const parsed = new Date(
+    configured.includes("T") ? configured : `${configured}T00:00:00Z`,
+  );
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
 }
 
 function toLocalInput(date: Date): string {

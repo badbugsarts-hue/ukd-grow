@@ -2,7 +2,7 @@
 
 ## Entscheidung
 
-React 19.2, TypeScript 7 und Vite 8 bilden eine statisch deploybare Single-Page-Anwendung. Es gibt keinen Serverzwang, keine Authentifizierung und keine Remote-Telemetrie. Operative Einzelplatz-Runs werden als `RunPackage v4` über eine austauschbare `RunRepository`-Schnittstelle lokal in IndexedDB gespeichert; ein expliziter lokaler Diagnoseexport bleibt datensparsam.
+React 19.2, TypeScript 7 und Vite 8 bilden eine statisch deploybare Single-Page-Anwendung. Es gibt keinen Serverzwang, keine aktivierte Authentifizierung und keine Remote-Telemetrie. Operative Einzelplatz-Runs werden als `RunPackage v6` über eine austauschbare `RunRepository`-Schnittstelle lokal in IndexedDB-Schema 8 gespeichert; ein expliziter lokaler Diagnoseexport bleibt datensparsam.
 
 Next.js wurde nicht gewählt: Das Produkt ist ein lokaler/offline-naher Operator- und Referenzworkspace ohne serverseitige Datenmutation, SSR-Anforderung oder Server Actions. Die zusätzliche Server-/Routingkomplexität hätte keinen entsprechenden Produktwert.
 
@@ -13,9 +13,9 @@ Der zweite Architektur-Audit steht in `PLAN_AUDIT_ROUND2_2026.md`; die maschinen
 ## Datenfluss
 
 ```text
-Evidence-Guarded XLSX v8
+Evidence-Guarded XLSX v11.5
   └─ scripts/extract-web-data.mjs
-      ├─ public/data/evidence-guarded-workbook-v8.json (29 Blätter)
+      ├─ public/data/evidence-guarded-workbook-v11_5.json (56 Blätter)
       ├─ public/data/data-manifest.json (Hashes/Provenienz)
       └─ src/data/legacy-audit.json (55 Findings)
 
@@ -23,13 +23,15 @@ knowledge-base.json ─┐
 ai-context.json      ├─ React UI → Guided / Advanced / Expert
 skills.json          ┘
 
-RunRepository ↔ IndexedDB Schema 4
-  └─ RunPackage v4
+RunRepository ↔ IndexedDB Schema 8
+  └─ RunPackage v6
       ├─ immutable RunConfigurationSnapshot / Zonen / Pflanzen
       ├─ ScientificValue-Lineage / Geräte / Kalibrierungen
       ├─ Domain Events / formale Task-Transitions / Overrides / AuditEvents
       ├─ Timeline / Warnungsbestätigungen / Bestandsereignisse
-      └─ SHA-256-Backup / Recovery / CSV / XLSX / PDF / Druck
+      ├─ getrennte Simulation-/Live-Aggregate und UTC-Zeitanker
+      ├─ AI-Austausch als quarantänisierte Vorschlagsdatei
+      └─ verschlüsseltes Checkpoint-Vault / Recovery / CSV / XLSX / PDF / Druck
 ```
 
 Ein persönliches Rechtsprofil ist ausdrücklich nicht Teil dieses eingecheckten Datenflusses. `legal-profile.schema.json` definiert nur die Struktur; konkrete Patienten-, Rezept- und Genehmigungsdaten bleiben in einer ignorierten lokalen Datei. Technischer Bruttoertrag und rechtlich zulässiger Bestand sind getrennte Domänen.
@@ -42,8 +44,8 @@ Der große Workbook-Snapshot wird zur Laufzeit separat geladen. Dadurch bleibt d
 - Persistent preference: Lens, Tag, Theme, Kontrast und Textskalierung in Local Storage.
 - Transient: Drawer, Navigation, Suchdialog, Tabellenfilter.
 - Session-only sensitive context: importiertes Rechtsprofil ohne Dokumentinhalt.
-- Local operational domain: mehrere RunPackage-v4-Objekte in IndexedDB; unterstützte Altschemata werden kontrolliert migriert. Restore erfolgt erst nach Hash- und Schema-Gate.
-- Domain snapshot: `evidence-guarded-workbook-v8.json`, unveränderlich im Browser.
+- Local operational domain: mehrere RunPackage-v6-Objekte in IndexedDB; v1–v5 werden kontrolliert migriert. Restore erfolgt erst nach Hash-, Schema-, Referenz- und Medien-Gate.
+- Domain snapshot: `evidence-guarded-workbook-v11_5.json`, unveränderlich im Browser.
 
 ## Domain-Grenzen
 

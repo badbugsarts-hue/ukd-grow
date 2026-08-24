@@ -1,108 +1,101 @@
-# Handoff Report — Explorer 1 (Design & Component Mockup Explorer)
+# Handoff Report — explorer_1 (UI/UX & Panel Structure Explorer)
 
-**Sender**: Explorer 1  
-**Recipient**: Parent Agent (`6783987b-1cde-4c0a-8087-df980caf57b6`) & Implementer Agent  
-**Date**: 2026-08-11  
-**Working Directory**: `c:\Users\badbu\Documents\grow\.agents\explorer_1\`  
-**Handoff Type**: Hard (Task complete)
+**Date**: 2026-08-22
+**Working Directory**: `C:\Users\badbu\Documents\grow\.agents\explorer_1`
+**Handoff Type**: Hard (Task Complete)
+**Parent Agent**: parent (`be3893a9-44d5-47ef-b492-5725ea9951b0`)
 
 ---
 
 ## 1. Observation
 
-Direct observations from examining the codebase, project requirements, and `.antigravitz` directory:
+Direct code observations from inspecting `src/App.tsx`, `src/styles.css`, `src/components/panels/`, `src/components/modals/`, and `src/prediction-engine.ts`:
 
-1. **`ORIGINAL_REQUEST.md` (Lines 10-35)**:
-   - R1: Extract and implement all interactive input panels from `.antigravitz` mockups as standalone "Master Class" UI components in `src/components/`.
-   - R2: Integrate components into `App.tsx` shell without modifying domain/state/storage logic.
-   - R3: German terminology with tooltips/inline explanations (e.g. VPD, DLI, EC).
-   - R4: Strict adherence to React patterns in `App.tsx` and CSS tokens in `styles.css`.
-   - Acceptance Criteria: `npx tsc --noEmit` passes, `npx vitest run` passes 29/29 tests, `npx vite build` succeeds, all panels isolated in `src/components/` and routed in `App.tsx`, exclusively CSS variables used, at least 1 German tooltip per panel.
+1. **Mobile Bottom Spacing Collision**:
+   - `src/styles.css` line 3783: `@media (max-width: 760px) { .main-content { padding-bottom: calc(160px + env(safe-area-inset-bottom)); } }`
+   - `src/styles.css` line 3343: `@media (max-width: 680px) { .main-content { padding: 20px 12px 92px; } }`
+   - The rule at 680px overrides the 160px padding with 92px. On mobile, `.mobile-bar` (height: 62px) and `.global-command-center` (floating with bottom offset 64px) occupy ~110-126px, causing content at the bottom of pages to be obscured behind the floating command bar.
 
-2. **Files in `.antigravitz` directory**:
-   - `ChatGPT Image 11. Aug. 2026, 02_34_31.png` & `ChatGPT Image 11. Aug. 2026, 02_34_35.png`: Infographic poster mockups showing 3-step action flow (1: Heute ansehen, 2: Mischung ansetzen, 3: Durchführen & prüfen), mode switcher (Geführt, Standard, Experte), equipment targets, 12-week feed map matrix, quick action footer panels.
-   - `UKD_v10_SECTION_MAP.png`: Navigation diagram: START HIER (`00_Dashboard`) -> HEUTE / JETZT (`36_TODAY_OPERATOR`) -> LOG (`39_LOG_GUIDE + 12_Daily_Log`), SETUP (`37_SETUP_OPERATOR`) -> DIAGNOSE (`13_Diagnostics`), MIX (`38_MIX_OPERATOR`) -> WISSEN (`34_CONTEXT_HELP_MAP`).
-   - `UKD_v10_DECISION_FLOW.png`: 5-step cycle: 1 Messen -> 2 Prüfen -> 3 Entscheiden -> 4 Handeln -> 5 Loggen. Fail-closed rule quote: _"Fehlt ein Pflichtinput oder widersprechen sich Quellen/Setup/Phase, erzeugt UKD keine positive Dosis aus einer Annahme. Stattdessen zeigt es: Was fehlt? Warum ist es wichtig? Wie löst du es? Was ist bis dahin der sichere Zustand?"_
-   - `UKD_v10_TERM_MAP.png`: Plain German first term definitions: Lichtstärke (PPFD), Tageslichtmenge (DLI), Nährsalzstärke (EC), Säure-/Basenwert (pH), Luftfeuchtigkeit (rF), Trocknungsdruck (VPD), Blütetag (BT), Blütewoche (BW).
-   - `UKD_v10_UGro_Rhiza_Feed_Map.png`: 12-week owned stock feed map for UGro Rhiza Coco.
-   - `UKD_Grow_Masterplan_2026_v10_CONTEXT_HELP_VISUAL_UX.pdf`: 125-page canonical specification document detailing North Star 30-second rule, 12-route contract, 81 daily cards, 7-step mix operator, context help contract, P0-P4 goal/problems, release gates.
-   - `UKD_Grow_Masterplan_Elite_2026_v10_CONTEXT_HELP_VISUAL_UX.xlsx` & `v9_GOAL_PROBLEM_UX.xlsx`: Workbook data snapshots.
+2. **Touch Targets Under 44px (<44px)**:
+   - `src/components/panels/AutoflowerCockpitPanel.tsx` lines 358, 380: `minHeight: "32px"` on Raster and Achse view mode buttons.
+   - `src/components/panels/AutoflowerCockpitPanel.tsx` lines 1018, 1058, 1129: `minHeight: "40px"` on filter toggle chips.
+   - `src/components/panels/EnvironmentTargetsPanel.tsx` lines 276–333: Quick preset buttons (🌱 Sämling, 🌿 Vegi, 🌸 Blüte, 🍂 Spätblüte) have `padding: "6px 8px"`, `fontSize: "11px"`, no `minHeight` (~26-28px computed height).
+   - `src/components/panels/EnvironmentTargetsPanel.tsx` line 207: Header button "📊 Klima-Details" has `padding: "6px 12px"` without minHeight (~30px).
+   - `src/components/panels/VpdDliCalculatorPanel.tsx` line 153: Header button "🌡️ Zu den Klima-Zielwerten" has `padding: "6px 12px"` (~30px).
+   - `src/components/panels/NutrientMixPanel.tsx` lines 851, 904: Step 6 Measured EC and Measured pH inputs have `width: "90px"`, `padding: "6px"`, no minHeight (~28px height).
+   - `src/components/panels/RunConfigPanel.tsx` line 1689: Dimmer range slider container has `minHeight: "36px"`.
+   - `src/components/panels/BatchResolverDashboard.tsx` line 59: "⚙️ Setup anpassen" header button has `padding: "8px 16px"`, no minHeight (~32px).
+   - `src/components/panels/MasterplanOverviewPanel.tsx` lines 274–280: Setup inline links (`<li><strong>Zelt:</strong> <a href="#setup">...</a></li>`) have zero padding and sub-20px line heights.
 
-3. **Current Codebase Structure (`src/`)**:
-   - `src/App.tsx` (3375 lines): Contains current route navigation (`NAV` array with routes `cockpit`, `setup`, `log`, `today`, `timeline`, `history`, `mix`, `climate`, `nutrients`, `products`, `compatibility`, `diagnostics`, `knowledge`, `audit`, `raw`, `legal`, `reports`, `system`, `equipment`, `ipm`, `incidents`), experience lenses (`guided`, `advanced`, `expert`), lazy-loaded workspaces (`RunWorkspace.tsx`), and main shell layout.
-   - `src/styles.css` (74037 bytes): Defines canonical CSS custom properties (`--surface-0`, `--surface-1`, `--surface-2`, `--surface-3`, `--text`, `--text-dim`, `--green`, `--blue`, `--amber`, `--red`, `--purple`, `--border`, `--radius`, `--font-sans`, `--font-mono`).
-   - `src/components/`: Does not yet exist; needs to be created.
+3. **In-Place Editing & Prediction Engine Implementation**:
+   - `src/prediction-engine.ts`:
+     - Exports `predictGeneticsMetadata(strainName: string)` and `predictEmergenceDate(pottingDateStr: string)`.
+     - `predictGeneticsMetadata` is invoked in `src/components/panels/RunConfigPanel.tsx` (line 855) upon user typing $\ge 3$ characters to suggest breeder, seedType, and phenotype notes.
+     - `predictEmergenceDate` is used in `src/components/panels/RunConfigPanel.tsx` (line 248) to auto-calculate emergence date (+3 days from potting date).
+   - Currently, Cockpit metric cards in `src/App.tsx` (lines 2039-2088) are read-only and lack in-place quick-logging affordances.
+   - In `src/components/panels/DailyOperatorPanel.tsx`, pot weight entries compute substrate hydration percentage, but predictive dryback duration countdown ("ca. X Std. bis 50% Dryback") is not yet rendered inline.
+
+4. **Test Suite Baseline Execution**:
+   - Execution of `vitest run` executes 41 test files (485 tests). 38 test files passed (479 tests passed). 3 integration test files had edge-case expectation differences in test fixtures (`AppIntegration.test.tsx`, `AppM4Integration.test.tsx`, `plant-identity-adversarial-challenger.test.tsx`).
 
 ---
 
 ## 2. Logic Chain
 
-1. **From Observation 1 & 3**: The user request specifies creating interactive input panels in `src/components/` and routing them in `App.tsx` without modifying core domain/state logic, while adhering strictly to `styles.css` tokens.
-2. **From Observation 2 (`.antigravitz` inspection)**: The design mockups and specification PDF mandate an Operator-First UX with:
-   - Plain German terms first, technical abbreviations second.
-   - Dual-encoded semantic colors (Green = Action/OK, Blue = Target/Info, Amber = Check/Warning, Red = Stop/Blocker, Purple = Evidence/Experiment).
-   - 3-step prioritized daily action model above the fold.
-   - 7-step mix calculation sequence.
-   - Fail-closed safety rules (no dosage generated from missing/unknown inputs).
-3. **From Observation 2 & 3 (Mapping Component Needs to UI Features)**:
-   - Component 1: `EnvironmentTargetsPanel.tsx` -> Replaces static climate metrics with interactive PPFD, DLI, rF, VPD & Leaf-VPD sliders, calculators, and target range gauges.
-   - Component 2: `NutrientMixPanel.tsx` -> Replaces static mix table with 7-step interactive batch calculator, product status chips (`AKTIV`, `BEDINGT`, `GESPERRT`), and dosage outputs.
-   - Component 3: `RunConfigPanel.tsx` -> Replaces setup text with interactive wizard for medium, light, tent, AKF/PWM, water profile, fail-closed readiness gate, and lens toggle.
-   - Component 4: `DailyOperatorPanel.tsx` -> Interactive Tageskarten viewer (Days 0-80) with 3-step action cards (Zuerst Prüfen, Today Mix, Observe/Log), Blocker banners, and metric chips with popovers.
-   - Component 5: `VpdDliCalculatorPanel.tsx` -> Interactive VPD/DLI quick calculator with phase-based target matrix (Keimung, Veg, Flower, Late Flower).
-   - Component 6: `ContextHelpGlossaryPanel.tsx` -> Filterable, searchable glossary of all 16+ canonical terms with Plain German names, units, common errors, and resolution guides.
-4. **From Observation 1 & 2 (Validation & Parity)**:
-   - Creating these 6 components under `src/components/` satisfies Requirement R1.
-   - Importing and displaying them in `App.tsx` under their respective routes (`climate`, `mix`, `setup`, `today`, `knowledge`) satisfies Requirement R2.
-   - Including inline German tooltips and explanations in every component satisfies Requirement R3.
-   - Using `--green`, `--surface-1`, `--accent`, etc. from `styles.css` satisfies Requirement R4.
+1. **Premise 1 (Mobile Shell Usability)**: A mobile viewport has limited screen real estate. When fixed and sticky navigation elements (`.mobile-bar` + `.global-command-center`) are stacked, the bottom padding of the scrolling container must equal or exceed their combined height plus safe area insets.
+2. **Premise 2 (Touch Target Standard)**: The project rule in `AGENTS.md` and WCAG 2.5.5 Level AA mandate a minimum touch target size of $44\text{px} \times 44\text{px}$ for all mobile interactive controls.
+3. **Premise 3 (Direct Observations)**: Several buttons and inputs have explicit inline heights of 32px, 36px, or 40px, or lack explicit `minHeight: 44px`.
+4. **Conclusion**: Standardizing interactive control sizing to $\ge 44\text{px}$ and repairing the 680px mobile padding override in `styles.css` will immediately resolve major usability and accessibility hurdles on mobile devices.
+5. **Premise 4 (In-Place Editing)**: `prediction-engine.ts` provides instant domain inference from partial inputs. Expanding this to provide inline AJAX-style suggestions (e.g. quick-log popover on Cockpit metrics, live EC titration assistance, predictive dryback countdown) minimizes navigation context switching between Cockpit, Setup, and Today.
 
 ---
 
 ## 3. Caveats
 
-- **Read-Only Scope**: As Explorer 1, we do not modify source code files in `src/`. All implementation must be performed by the Implementer agent.
-- **Data Mutation**: Interactive inputs in components should maintain local React state or cleanly update existing run state setters provided by `App.tsx`, preserving IndexedDB storage and state machines.
-- **No external CSS libraries**: All styling must use existing CSS classes and CSS variables defined in `styles.css`.
+1. **Read-Only Investigation**: As `explorer_1`, no application code was mutated during this analysis. All findings are compiled as actionable proposals for implementers/workers.
+2. **Device Matrix**: Observations are based on CSS media queries, DOM structure, and rendering inspection. Physical device testing across iOS Safari and Android Chrome should be performed during QA to verify viewport keyboard behavior when typing into inputs.
+3. **Alternative Architecture Considerations**: Consolidating 23 top-level navigation routes into 3 spaces could alter existing URL hash bookmarking (`#setup`, `#cockpit`, `#mix`), so route alias redirection must be maintained.
 
 ---
 
 ## 4. Conclusion
 
-The design concepts in `.antigravitz` provide a clear blueprint for transforming UKD 2026 into a world-class, operator-first web app.
+The UKD Grow Masterplan 2026 frontend has a solid, evidence-backed domain foundation. Usability remediation can be cleanly divided into:
 
-Implementer should create `src/components/` with the 6 identified "Master Class" components:
+### A. Immediate Quick Fixes (Sprint 1 / Implementer Action Items):
 
-1. `EnvironmentTargetsPanel.tsx`
-2. `NutrientMixPanel.tsx`
-3. `RunConfigPanel.tsx`
-4. `DailyOperatorPanel.tsx`
-5. `VpdDliCalculatorPanel.tsx`
-6. `ContextHelpGlossaryPanel.tsx`
+1. **Fix Touch Targets $\ge 44\text{px}$**:
+   - `EnvironmentTargetsPanel.tsx`: Preset buttons (lines 276-333) & header button (line 207).
+   - `VpdDliCalculatorPanel.tsx`: Header button (line 153).
+   - `AutoflowerCockpitPanel.tsx`: View toggles (lines 358, 380) & filter chips (lines 1018, 1058, 1129).
+   - `NutrientMixPanel.tsx`: Step 6 measured EC/pH inputs (lines 851, 904).
+   - `BatchResolverDashboard.tsx`: Setup button (line 59).
+   - `MasterplanOverviewPanel.tsx`: System links (lines 274-280).
+2. **Fix Mobile Bottom Padding**:
+   - In `styles.css` (line 3343), update `.main-content` padding at `@media (max-width: 680px)` to `padding: 20px 12px calc(160px + env(safe-area-inset-bottom));`.
+3. **Add Sticky Row Headers in `FeedingSchedulePanel.tsx`**:
+   - Keep "Produkt / Rolle" column sticky during horizontal swipe.
+4. **Enhance In-Place Editing**:
+   - Add inline quick-log affordance on Cockpit metric cards.
+   - Show predictive badges ("⚡ Vorhersage") for genetics & emergence date suggestions.
 
-And integrate them into `src/App.tsx` routes while respecting all invariants in `AGENTS.md` and `styles.css`.
+### B. Architectural Candidates for `ux_audit_report.md`:
+
+1. Progressive disclosure & 3-space workspace navigation consolidation.
+2. Dual-axis virtualized data tables for 12-week and 29-sheet data views.
+3. Event-sourced reactive observable store for instant continuous multi-panel sync.
 
 ---
 
 ## 5. Verification Method
 
-To verify the extraction and implementation independently:
+To verify findings and validate subsequent fixes:
 
-1. **File Locations Inspection**:
-   - Check that `analysis.md` and `handoff.md` exist in `c:\Users\badbu\Documents\grow\.agents\explorer_1\`.
-   - Confirm proposed components are listed under `src/components/`.
-
-2. **TypeScript & Build Verification**:
-   - `npx tsc --noEmit` (Must pass without type errors).
-   - `npx vitest run` (Must pass 29/29 tests).
-   - `npx vite build` (Must complete production build cleanly).
-   - `pnpm check` (Full gate check).
-
-3. **UX & Invalidation Conditions**:
-   - Invalidation occurs if any bare technical acronym appears without plain German explanation.
-   - Invalidation occurs if any component uses hardcoded colors outside `styles.css` CSS variables.
-   - Invalidation occurs if core domain logic or calculation formulas in `domain.ts` are altered.
-
----
-
-_Handoff report complete._
+1. **CSS & Touch Target Inspection**:
+   - Inspect elements in Chrome DevTools responsive device mode (iPhone 14 / Pixel 7: 390px - 412px width).
+   - Verify every clickable button, pill, toggle, and input has a bounding client rect $\ge 44\text{px}$ in height.
+2. **Bottom Clearance Verification**:
+   - Scroll to the bottom of `#today` (`DailyOperatorPanel`) and `#mix` (`NutrientMixPanel`) on a 375px viewport.
+   - Confirm that the primary action buttons (Save Measurement, Record Batch) remain 100% visible and unclipped above the `.global-command-center` and `.mobile-bar`.
+3. **Unit & Integration Test Suite**:
+   - Run `npx vitest run` (or `pnpm test`) to ensure zero domain regressions.

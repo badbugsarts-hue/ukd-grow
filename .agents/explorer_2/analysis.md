@@ -1,251 +1,272 @@
-# Master Class Input Panels & App Shell State Flow Analysis
+# In-Place Editing & Prediction Engine: Deep Technical Analysis
 
-**Author**: Explorer 2 (App Shell & State Flow Explorer)  
-**Date**: 2026-08-11  
-**Target Repository**: UKD Grow Masterplan 2026 (`src/App.tsx`, `src/domain.ts`, `src/run-state.ts`, `src/run-storage.ts`, `src/scientific-core.ts`)
-
----
-
-## 1. Executive Summary
-
-This report presents a thorough analysis of the UKD Grow Masterplan application shell (`App.tsx`), experience level mechanisms (`guided`, `advanced`, `expert`), state flow pipelines, storage contracts (`run-storage.ts`), and scientific core validation (`scientific-core.ts`).
-
-The objective is to establish an architectural blueprint for integrating new **"Master Class" input panels** located in `src/components/` into `App.tsx` and workspace views, ensuring:
-
-- **Zero regression** on existing domain calculations, state machines, and IndexedDB storage contracts (`RunPackage-v3`).
-- **Strict compliance** with `AGENTS.md` invariants (read-only plan snapshots, immutable event streams, clear separation of planned vs. measured values).
-- **High UX standards** tailored for all experience levels in clear German terminology with tooltips and visual safety gates.
+**Author**: explorer_2 (In-Place Editing & Prediction Engine Explorer)
+**Date**: 2026-08-22
+**Target Codebase**: `src/prediction-engine.ts`, `src/domain.ts`, `src/run-state.ts`, `src/App.tsx`, `src/components/panels/*`, `src/components/common/*`
 
 ---
 
-## 2. Current App Shell Architecture & Navigation
+## 1. Executive Summary & Problem Boundary
 
-### 2.1 Component Lifecycle & Data Ingestion
+The UKD Grow Masterplan application is an evidence-guarded, scientifically grounded operating system for precision indoor cultivation. While the underlying domain models (`src/domain.ts`, `src/run-state.ts`) provide robust state machines and snapshot immutability, the primary user experience (UX) suffers from substantial **context loss and interaction friction**:
 
-1. **`App` (`src/App.tsx:448-520`)**:
-   - Asynchronously loads canonical JSON snapshots: `evidence-guarded-workbook-v8.json` (Workbook), `legacy-audit.json`, `knowledge-base.json`, `ai-context.json`, and `skills.json`.
-   - Displays a loading screen during hydration and renders `<Workspace />` upon completion.
-2. **`Workspace` (`src/App.tsx:522-779`)**:
-   - Manages top-level application state:
-     - `route`: `RouteId` (synced with `window.location.hash`, defaults to `"cockpit"`).
-     - `lens`: `ExperienceLens` (`"guided" | "advanced" | "expert"`), synced with `localStorage.getItem("ukd:lens")` and URL query parameter `?lens=...`.
-     - `day`: `number` (0 to 80), synced with `localStorage.getItem("ukd:day")` and URL query parameter `?day=...`.
-     - `theme`: `"light" | "dark"`, synced with `localStorage.getItem("ukd:theme")` and `document.documentElement.dataset.theme`.
-     - `run`: `RunPackage` (v4 schema `RUN_SCHEMA_VERSION = "4.0.0"`), loaded via `loadActiveRun()`.
-     - Overlays: `helpOpen` (`HelpDrawer`), `paletteOpen` (`CommandPalette`), `navOpen` (Mobile Sidebar).
-   - Automatically debounces (250ms) changes to `run` and persists them to IndexedDB using `saveActiveRun(run)`.
+1. **Dashboard Read-Only Isolation**: The primary Cockpit landing view (`src/App.tsx`) displays core metrics (PPFD, DLI, Temp/RH, Leaf-VPD, EC, pH) and the active run strip as completely static, read-only cards.
+2. **High-Friction Navigation**: Routine daily actions (e.g. logging canopy climate, checking watering volume, adjusting genetics, or updating light height) require 4 to 6 clicks and navigating into separate workspaces (`today` / `DailyOperatorPanel`, `setup` / `RunConfigPanel`, `mix` / `NutrientMixPanel`).
+3. **Underutilized Prediction Engine**: The existing `src/prediction-engine.ts` is a minimal prototype (limited to strain name string matching and potting date +3 days). It lacks real-time environmental target corridor inference, live VPD/DLI calculations, water/dryback advice, and an AJAX-like auto-completion engine for inline inputs.
 
-### 2.2 Navigation Structure (`NAV`)
+This report establishes a comprehensive architectural specification for:
 
-The shell organizes 21 routes into 6 logical groups:
-
-- **Operator**: `cockpit`, `setup`, `log`, `today`, `timeline`, `history`
-- **Werkzeuge**: `mix`, `climate`, `incidents`
-- **Bibliothek**: `products`, `compatibility`, `diagnostics`, `ipm`, `nutrients`
-- **Evidenz**: `knowledge`, `audit`
-- **System**: `raw`, `legal`, `reports`, `system`, `equipment`
-
-### 2.3 Experience Level Lenses (`ExperienceLens`)
-
-- **`guided`**: Filters the sidebar to core routes (`GUIDED_CORE_ROUTES`), displays top guidance banners (`GuidedBanner`), provides step-by-step action instructions (`💡`), truncates large datasets (max 25 rows), and hides formula/trace panels.
-- **`advanced`**: Displays full data tables, complete metrics, mixing protocols (`MixOrder`), and detailed checklists without inline beginner banners.
-- **`expert`**: Exposes formula inspection (`ExpertTrace`), raw cell formula toggles, detailed provenance tracing, JSON inspect blocks, and raw model exports.
-
-_Invariant Check_: Experience levels alter layout density, visual cues, and explanation levels—they **never** alter calculated results, formulas, or safety rules.
+- **Universal In-Place Editing** across the Cockpit and Dashboard panels.
+- An **expanded, physics-grounded Prediction Engine** delivering in-memory suggestions (<5ms latency).
+- Strict adherence to `AGENTS.md` invariants (measurements override calendar values, append-only event streams, active snapshot immutability, fail-closed safety gates).
 
 ---
 
-## 3. State Management & Storage Contracts
+## 2. Current State Audit & Friction Analysis
 
-### 3.1 `RunPackage` (v4 Schema) Invariants
+### 2.1 Cockpit (Dashboard Landing Page)
 
-- `RunPackage` is an immutable state tree (`src/types.ts:518-566`).
-- Active snapshots (`run.configurationSnapshot`) are immutable once a run moves from `"draft"` to `"active"`.
-- Every state modification appends to immutable event streams:
-  - `auditEvents`: Human-readable audit trails (`AuditEvent`).
-  - `domainEvents`: Machine-parsable events for state projections (`DomainEvent`).
-  - `events`: User-facing timeline entries (`RunEvent`).
+- **File & Location**: `src/App.tsx` (`function Cockpit`, lines 1990–2200).
+- **Displayed Metrics**:
+  - `PPFD`: `numberAt(plan, DAILY_COLUMNS.ppfd)`
+  - `DLI`: `numberAt(plan, DAILY_COLUMNS.dli)`
+  - `Klima`: `tempLight` & `humidity`
+  - `Leaf-VPD`: `leafVpd`
+  - `EC`: `ec` (target)
+  - `pH`: `ph` (target)
+  - Run Strip: `config.genetics`, `phase`, `goal`, `day` progress.
+- **Pain Points**:
+  - If a grower inspects their tent and measures 26.2 °C, 58% rF, and 540 PPFD, clicking any of these metric cards does nothing.
+  - The grower must click `Vollansicht →`, scroll down the massive `DailyOperatorPanel`, find the respective inputs, enter values, and click save.
+  - After saving, they must manually click back to the Cockpit.
 
-### 3.2 Canonical State Mutator Functions (`src/run-state.ts`)
+### 2.2 Daily Operator Panel (`src/components/panels/DailyOperatorPanel.tsx`)
 
-Existing domain functions that must be used by input panels (no direct state mutations):
+- **Structure**:
+  - Target Corridors (top summary cards) are read-only.
+  - Substrate Hydration / Topfgewicht calculations require scrolling to a separate section.
+  - Form fields at the bottom are unassisted native inputs without live corridor boundaries or auto-completion.
+- **Pain Points**:
+  - No instant visual feedback if an entered value violates biological safety corridors (e.g. EC > 2.2 mS/cm in early veg).
 
-- `addObservation(run, observation)`: Adds daily measurements (`DailyObservation`) and extracts typed `Measurement` items.
-- `addStructuredObservation(run, observation)`: Records category/severity-based qualitative observations.
-- `updateRunConfig(run, config)`: Updates setup parameters (genetics, light wattage, medium, water profile).
-- `setTaskCompleted(run, day, task, completed)`: Updates daily operational checklist task status.
-- `supersedeMeasurement(run, measurementId, correctedValue, reason)`: Appends measurement corrections with audit rationale.
-- `addRunOverride(run, override)`: Registers intentional deviations with required justification.
+### 2.3 Run Configuration Panel (`src/components/panels/RunConfigPanel.tsx`)
 
-### 3.3 Storage Pipeline (`src/run-storage.ts`)
+- **Structure**:
+  - Large monolithic form for editing `RunConfig`.
+  - Genetics selection requires manual free-text entry or opening the full-screen `AutoflowerCockpitModal`.
+- **Pain Points**:
+  - No combobox with inline fuzzy search from `autoflower-cockpit.json` to immediately populate breeder, flowering time, and cycle targets.
 
-- **Primary Store**: IndexedDB database `ukd-operator-workspace` (Store `run-packages-v3`).
-- **Autosave Gate**: Triggered in `Workspace` on `run` state change with 250ms debounce window.
-- **Schema Validation**: Validates loaded data via `validateRunPackage(raw)`. Failed validation returns `null` or prompts backup restoration without crashing the app shell.
+### 2.4 Gap Analysis of `src/prediction-engine.ts`
 
----
-
-## 4. Proposed "Master Class" Input Panel Directory & Component Architecture
-
-To maintain code clarity and adhere to modular architecture guidelines, all new "Master Class" input panels and support UI elements should be placed inside a new directory: `src/components/`.
-
-### 4.1 Recommended Component Hierarchy
-
-```
-src/
-├── components/
-│   ├── common/
-│   │   ├── TermTooltip.tsx         # Inline hover/focus German terminology explainer (VPD, DLI, EC, pH, etc.)
-│   │   ├── LensBadge.tsx           # Displays experience level indicator tag (Guided/Advanced/Expert)
-│   │   └── MetricGauge.tsx         # Visual indicator showing actual vs target range with status tones
-│   └── panels/
-│       ├── DailyObservationPanel.tsx  # Master Class Panel for logging daily measurements (log/today routes)
-│       ├── NutrientMixPanel.tsx       # Master Class Panel for batch mixing & dose calculations (mix route)
-│       ├── ClimateControlPanel.tsx    # Master Class Panel for light & VPD environment inputs (climate route)
-│       └── WaterBaselinePanel.tsx     # Master Class Panel for source water chemistry & setup (setup route)
-```
+| Desired Capability                | Current Status in `prediction-engine.ts` | Proposed Architecture                                                                                     |
+| --------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Genetics Auto-Complete**        | Basic exact/fuzzy string match           | Fast fuzzy combobox search across 24+ strains in `autoflower-cockpit.json` with instant metadata autofill |
+| **Milestone Prediction**          | Only +3 days emergence                   | Full cycle projection (Emergence, Early Veg, Preflower, Peak Bloom, Flush, Harvest Window)                |
+| **Environmental Corridors**       | Missing                                  | Dynamic target corridor resolver (PPFD, DLI, Temp, RH, Leaf-VPD, Air-VPD) based on day & strain           |
+| **Instant Physical Calculations** | Missing                                  | Pure Magnus-Tetens leaf/air VPD, leaf Delta T heuristics, and DLI integrals                               |
+| **Water & Substrate Dryback**     | Missing                                  | Recommends irrigation volume based on current pot mass, tare, and saturation capacity                     |
+| **Nutrient Dosage Corridor**      | Missing                                  | Suggests base fertilizer, booster, and CalMag dosing adjusted for source water EC/Ca/Mg                   |
+| **Live In-Place Suggestion API**  | Missing                                  | Unified `getLiveFieldSuggestions(field, input, context)` for all inline components                        |
 
 ---
 
-## 5. Component Specifications & Prop Contracts
+## 3. UI Component Architecture for In-Place Editing
 
-### 5.1 Common Support Components
+To ensure high performance, seamless desktop/mobile ergonomics, and WCAG accessibility, we define two primary reusable primitives.
 
-#### `TermTooltip`
+### 3.1 `InlineEditable<T>` Primitive (`src/components/common/InlineEditable.tsx`)
 
-Provides clear German explanations for technical terminology.
+A universal wrapper component managing the lifecycle between formatted display and active input with predictive overlay.
 
-```typescript
-export interface TermTooltipProps {
-  term: "VPD" | "DLI" | "PPFD" | "EC" | "pH" | "Dryback" | "Drain";
-  children: React.ReactNode;
+```tsx
+export interface FieldSuggestion<T = string | number> {
+  value: T;
+  label: string;
+  hint: string;
+  badge?: "Plan" | "Empfohlen" | "Sicher" | "Katalog" | "Letzter Wert";
+  confidence?: number;
+  payload?: any;
+}
+
+export interface InlineEditableProps<T> {
+  value: T | null | undefined;
+  displayValue?: React.ReactNode;
+  label: string;
+  unit?: string;
+  type?: "text" | "number" | "select" | "combobox" | "date";
+  step?: number | string;
+  min?: number;
+  max?: number;
+  placeholder?: string;
+  options?: Array<{ label: string; value: T }>;
+  getSuggestions?: (
+    query: string,
+  ) => Promise<FieldSuggestion<T>[]> | FieldSuggestion<T>[];
+  validate?: (val: T) => { valid: boolean; error?: string; warning?: string };
+  onSave: (
+    newValue: T,
+    meta?: { reason?: string; isOverride?: boolean },
+  ) => void | Promise<void>;
+  permission?: "edit" | "override" | "readonly";
+  isOverrideMode?: boolean;
   lens?: ExperienceLens;
+  tone?: "neutral" | "blue" | "amber" | "green" | "danger";
+  className?: string;
 }
 ```
 
-_Terminology Dictionary_:
+### 3.2 `InlineMetricCard` (`src/components/common/InlineMetricCard.tsx`)
 
-- **VPD**: _Dampfdruckdefizit_ – Maß für das Verdunstungspotenzial der Luft. Beeinflusst Nährstoffaufnahme und Transpiration.
-- **DLI**: _Tägliche Lichtmenge (Daily Light Integral)_ – Gesamtmenge an nutzbarer Lichtstrahlung pro Quadratmeter an einem Tag (mol/m²/d).
-- **PPFD**: _Photosynthetische Photonenflussdichte_ – Momentane Lichtintensität am Pflanzendach (µmol/m²/s).
-- **EC**: _Elektrische Leitfähigkeit_ – Stärke der Nährstoffkonzentration in der Lösung (mS/cm).
-- **pH**: _Säuregrad_ – Bestimmt die chemische Verfügbarkeit von Nährstoffen an den Wurzeln.
-- **Dryback**: _Abtrocknungsrate_ – Gewichtsdifferenz des Topfes zwischen Bewässerungszyklen.
+Specialized component for Cockpit and Dashboard panels combining metric visualization with click-to-log capabilities.
+
+```tsx
+export interface InlineMetricCardProps {
+  label: string;
+  targetValue: number | string;
+  measuredValue?: number | string | null;
+  unit: string;
+  tone: "blue" | "amber" | "green" | "purple";
+  note: string;
+  lens: ExperienceLens;
+  metricType: "ppfd" | "dli" | "climate" | "vpd" | "ec" | "ph" | "potMass";
+  onSaveMeasurement: (
+    metricKey: string,
+    value: number | { temp: number; rh: number },
+  ) => void;
+  getSuggestions?: () => FieldSuggestion[];
+}
+```
+
+### 3.3 Interaction State Machine & Ergonomics
+
+```
++----------------------------------------------------------+
+|                      VIEW STATE                          |
+|  - Renders as accessible button / interactive card       |
+|  - Min 44x44px touch target (Mobile accessible)         |
+|  - Displays: Target value, Unit, 'Soll'/'Ist' badge     |
+|  - Hover: Subtle pencil icon (✎) + outline accent        |
++-------------------------+--------------------------------+
+                          | Click / Enter / Space
+                          v
++----------------------------------------------------------+
+|                      EDIT STATE                          |
+|  - Mounts native <input> / <combobox> with autoFocus     |
+|  - Value pre-selected for instant overwrite             |
+|  - Live in-memory suggestions queried (<5ms)             |
+|  - Opens Suggestion Dropdown Popover beneath input       |
++----------------------------------------------------------+
+| Keyboard Handlers:                                       |
+|  - [Enter]: Validate -> Commit onSave() -> View State    |
+|  - [Escape]: Revert to initial value -> View State       |
+|  - [Down/Up]: Navigate suggestion dropdown list          |
+|  - [Tab]: Commit valid value & move to next field        |
+| Blur / Click Outside: Auto-commit if valid, revert if not|
++-------------------------+--------------------------------+
+                          | onSave(value)
+                          v
++----------------------------------------------------------+
+|                  OPTIMISTIC FEEDBACK                     |
+|  - Instant UI update without network lag                 |
+|  - Green checkmark (✓) flash for 1.2s                    |
+|  - If target override on active run: Prompts for reason  |
++----------------------------------------------------------+
+```
 
 ---
 
-### 5.2 Master Class Input Panels
+## 4. Expanded Prediction Engine Specification (`src/prediction-engine.ts`)
 
-#### 1. `DailyObservationPanel`
+The prediction engine is enhanced into a modular, pure calculation engine:
 
-Used in `log` (`RunLogWorkspace`) and `today` (`Today`) views.
+### 4.1 Module 1: Genetics & Strain Intelligence
 
-```typescript
-export interface DailyObservationPanelProps {
-  run: RunPackage;
-  plan: DayPlan;
-  lens: ExperienceLens;
-  onUpdateRun: (updatedRun: RunPackage) => void;
-}
-```
+- **`searchGeneticsSuggestions(query: string, limit = 5)`**:
+  - Fuzzy-matches query against `autoflower-cockpit.json` across strain name, breeder, aroma, effects.
+  - Returns `AutoflowerStrainSuggestion` with expected THC, flowering days, height, yield, difficulty, and setup defaults.
+- **`predictStrainSchedule(strainName: string, startDate: string, anchor: DayZeroAnchor)`**:
+  - Generates estimated biological timeline (Emergence Day 3-4, Early Veg Day 7-14, Preflower Day 21-28, Peak Bloom Day 35-56, Flush Day 63-70, Harvest Day 70-80).
 
-_Inputs & Mechanics_:
+### 4.2 Module 2: Environmental & Climate Corridors
 
-- Quantitative inputs: Air Temp Max/Min, Humidity Max/Min, Leaf Temp, PPFD, pH In, EC In, pH Drain, EC Drain, Water Volume, Drain Volume, Pot Mass, Plant Height.
-- Qualitative input: Plant Stress rating (`none` | `slight` | `moderate` | `severe`) with notes.
-- Flow: Validates inputs using plausibility bounds, creates `DailyObservation` via `createObservation(plan.day)`, calls `addObservation(run, obs)`, and passes the resulting `RunPackage` to `onUpdateRun`.
+- **`predictEnvironmentalCorridor(day: number, phaseName?: string, strainData?: Partial<AutoflowerStrain>)`**:
+  - Returns safe corridors for `tempLight`, `tempDark`, `humidity`, `ppfd`, `dli`, `leafVpd`, `airVpd`.
+  - Automatically adjusts humidity ceilings for mold-sensitive cultivars in late bloom.
+- **`calculateInstantVpd(tempAir: number, rh: number, leafDelta = -1.0)`**:
+  - Pure Magnus-Tetens calculation returning leaf VPD, air VPD, and safety classification (`optimal`, `under-transpiring`, `over-transpiring`, `mold-risk`).
+- **`predictLeafTemp(tempAir: number, rh: number, ppfd: number)`**:
+  - Estimates transpiration cooling delta T based on radiation and relative humidity.
 
-#### 2. `NutrientMixPanel`
+### 4.3 Module 3: Water, Substrate & Nutrient Predictions
 
-Used in `mix` (`MixLab`) view.
+- **`predictWaterRequirements(day: number, potVolumeL: number, potMassCurrentG?: number, potTareG?: number, potSatG?: number)`**:
+  - Computes recommended irrigation volume (L) based on current substrate hydration and target dryback.
+- **`predictNutrientDose(day: number, system: string, batchLiters: number, waterProfile: WaterProfile)`**:
+  - Calculates base nutrients, boosters, and CalMag titrations tailored to water chemistry.
 
-```typescript
-export interface NutrientMixPanelProps {
-  plan: DayPlan;
-  lens: ExperienceLens;
-  run: RunPackage;
-  onUpdateRun?: (updatedRun: RunPackage) => void;
-}
-```
+### 4.4 Module 4: Unified Live Suggestion & Validation Hook
 
-_Inputs & Mechanics_:
-
-- Interactive batch volume slider/input (Liters).
-- Calculates product doses using `calculateMix(plan, liters)`.
-- Displays step-by-step chemical safety mixing order:
-  1. Measure fresh source water.
-  2. Mix Athena Balance (if applicable) completely first.
-  3. Mix CalMag (if required by water profile).
-  4. Mix HESI Base nutrient.
-  5. Add single-role additives (PowerZyme, SuperVit, Boost, PK13/14).
-  6. Homogenize and measure final pH; adjust with pH Down only as final step.
-
-#### 3. `ClimateControlPanel`
-
-Used in `climate` (`Climate`) view.
-
-```typescript
-export interface ClimateControlPanelProps {
-  plan: DayPlan;
-  lens: ExperienceLens;
-  run: RunPackage;
-  onUpdateRun: (updatedRun: RunPackage) => void;
-}
-```
-
-_Inputs & Mechanics_:
-
-- Photoperiod (hours), Light Power (Watts), Canopy Distance (cm), Measured PPFD, Air Temperature (°C), Relative Humidity (%), Leaf Temperature Offset (°C).
-- Real-time calculations: Leaf-VPD via `calculateLeafVpd(airTemp, rh, leafDelta)`, DLI via `calculateDli(ppfd, hours)`.
-- Compares calculated Leaf-VPD against target corridor for current phase.
-
-#### 4. `WaterBaselinePanel`
-
-Used in `setup` (`RunSetupWorkspace`) view.
-
-```typescript
-export interface WaterBaselinePanelProps {
-  run: RunPackage;
-  lens: ExperienceLens;
-  onUpdateRun: (updatedRun: RunPackage) => void;
-}
-```
-
-_Inputs & Mechanics_:
-
-- Source water pH, EC, Calcium (mg/L), Magnesium (mg/L), Bicarbonate (HCO₃⁻).
-- Updates `run.config.water` via `updateRunConfig(run, newConfig)`.
+- **`getLiveFieldSuggestions(field: string, inputPartial: string | number, context: PredictorContext)`**:
+  - Primary API hook consumed by `InlineEditable` and `InlineMetricCard`.
+  - Generates ranked, context-aware suggestions (e.g. for PPFD on Day 21: [Plan: 500 µmol/m²/s, Min Safe: 420 µmol/m²/s, Max Safe: 580 µmol/m²/s]).
+- **`validateFieldInput(field: string, value: unknown, context: PredictorContext)`**:
+  - Validates physical limits, biological corridors, and fail-closed safety invariants.
 
 ---
 
-## 6. Integration Strategy in `App.tsx`
+## 5. Candidate Dashboard Fields & Metric Mapping Matrix
 
-To integrate these components seamlessly:
-
-1. **Import Structure**: Import panel components cleanly into `App.tsx` or route workspace files (`RunWorkspace.tsx`).
-2. **State Propagation**: `Workspace` passes `run`, `plan`, `lens`, and `setRun` to `RouteContent`. `RouteContent` delegates to specific route components (`Cockpit`, `Today`, `MixLab`, `Climate`, `RunLogWorkspace`, `RunSetupWorkspace`).
-3. **Autosave Safety**: Because `setRun` updates state in `Workspace`, the existing `useEffect` automatically triggers debounced save (`saveActiveRun`). No custom storage calls are needed inside child input components!
-4. **CSS Token Alignment**: All panels use CSS variable tokens defined in `src/styles.css` (`var(--bg)`, `var(--surface-1)`, `var(--surface-2)`, `var(--green)`, `var(--blue)`, `var(--amber)`, `var(--red)`, `var(--purple)`, `var(--radius)`, `var(--line)`).
-
----
-
-## 7. Verification & Parity Matrix
-
-| Verification Aspect         | Method                         | Pass Criteria                                                            |
-| --------------------------- | ------------------------------ | ------------------------------------------------------------------------ |
-| Type Safety                 | `npx tsc --noEmit`             | Clean compilation, zero TypeScript errors                                |
-| Test Suite                  | `npx vitest run`               | All existing unit tests pass (29/29)                                     |
-| Production Build            | `npx vite build`               | Successfully bundles dist artifacts                                      |
-| Experience Level Invariance | Manual inspection / code audit | Calculation outputs identical across Guided, Advanced, and Expert lenses |
-| Storage Integrity           | IndexedDB test                 | Active run rehydrated accurately without schema mutation                 |
+| Field / Metric                | Dashboard Location       | Input Type       | In-Place Interaction                    | Prediction Engine Integration                                                       | State Mutation & Invariant Safety                                       |
+| ----------------------------- | ------------------------ | ---------------- | --------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **PPFD**                      | Cockpit / Daily Operator | Number           | Click metric card → inline input        | Suggests: (1) Plan target (500), (2) Optimal range [450–550], (3) Max ceiling (600) | `addObservation` (typed `light.ppfd` measurement, non-destructive)      |
+| **Klima (Temp/RH)**           | Cockpit / Daily Operator | Dual Number      | Click card → dual temp/RH input         | Live VPD preview during input; warns if RH > 65% in bloom                           | `addObservation` (typed `temperature.air.max`, `humidity.relative.max`) |
+| **Leaf-VPD**                  | Cockpit / Calculator     | Number           | Click card → leaf temp / delta input    | Calculates exact leaf VPD from temp + RH + delta                                    | `addObservation` (typed `temperature.leaf`)                             |
+| **Feed EC / pH**              | Cockpit / Mix Panel      | Number           | Click card → feed/drain EC & pH input   | Suggests target EC/pH from plan; checks fail-closed water gate                      | `addObservation` (typed `water.ec`, `water.ph`)                         |
+| **Topfgewicht**               | Daily Operator Panel     | Number           | Click hydration gauge → mass input      | Suggests tare, saturation reference, and expected dryback mass                      | `addObservation` (typed `pot.mass`) → updates hydration gauge           |
+| **Gießmenge**                 | Daily Operator / Mix     | Number           | Click watering row → volume input       | Suggests target volume (e.g. 1.2 L based on 50% dryback)                            | `addObservation` (`waterLiters`, typed irrigation measurement)          |
+| **Genetik Name**              | Run Strip / Setup        | Combobox         | Click genetics tag → combobox dropdown  | Live fuzzy search across 24+ autoflower strains with auto-fill of breeder/THC/cycle | `updateRunConfig` (draft) or `updatePlantIdentity` (active run)         |
+| **Run-Name**                  | Run Strip / Setup        | Text             | Click title → inline text input         | Auto-generates clean title from Strain + System + Date                              | `updateRunConfig`                                                       |
+| **Startdatum / Keimung**      | Run Strip / Setup        | Date             | Click date → datepicker input           | Predicts emergence date (+3d) and full schedule                                     | `updatePlantMilestones` / `updateRunConfig`                             |
+| **Batch-Liter**               | Nutrient Mix Panel       | Stepper / Number | Inline stepper input                    | Instantly recalculates all component ml amounts in real time                        | Local component state / Mix batch creation                              |
+| **Wasserwerte (pH/EC/Ca/Mg)** | Setup / Water Card       | Number           | Click missing water pill → inline input | Suggests standard municipal presets (Weich / Mittel / Hart)                         | `updateRunConfig` (`water` profile)                                     |
 
 ---
 
-## 8. Recommendations for Implementation Team
+## 6. State Mutation Flows & Invariant Compliance Analysis
 
-1. Create directory `src/components/common` and `src/components/panels`.
-2. Implement `TermTooltip.tsx` first so tooltips can be attached to input labels across all panels.
-3. Implement `DailyObservationPanel.tsx` and integrate it into `RunLogWorkspace.tsx` and `Today` route.
-4. Implement `NutrientMixPanel.tsx` and integrate into `MixLab`.
-5. Implement `ClimateControlPanel.tsx` and integrate into `Climate`.
-6. Run full verification gate (`pnpm check` or `npx tsc --noEmit && npx vitest run && npx vite build`).
+The proposed in-place editing flow strictly honors all invariant gates specified in `AGENTS.md`:
+
+1. **Messwert überschreibt Kalenderwert**:
+   - In-place logging of actual measurements calls `addObservation(run, observation)`.
+   - The canonical `02_Daily_Master` sheet remains strictly read-only and unmutated.
+   - The Cockpit dynamically resolves `latestObservation(run, day)` to display actual measured values alongside plan targets.
+2. **Snapshot Immutability**:
+   - For active runs (`run.status !== 'draft'`), editing operational targets prompts for an override reason and creates a typed `RunOverride` via `addRunOverride(run, override)`.
+   - `run.configurationSnapshot` remains untouched.
+   - Audit events (`override-created` / `measurement-recorded`) and Domain events are appended.
+3. **Representational Distinctness**:
+   - UI visually separates **Sollwert (Plan)**, **Istwert (Messung)**, **Prognose (Prediction)**, **Override**, and **Fehlender Wert** via dedicated tokens (`var(--accent)`, `var(--tone-green)`, `var(--tone-purple)`, `var(--tone-amber)`, `var(--muted)`).
+4. **Lens Independence**:
+   - Experience levels (`guided`, `advanced`, `expert`) adjust explanation depth and UI density without modifying prediction math or biological safety bounds.
+5. **Fail-Closed Safety Gates**:
+   - If water chemistry is unknown, inline nutrient dosage suggestions block CalMag and Athena titration.
+6. **Mobile Accessibility**:
+   - Minimum 44×44px touch targets on mobile, full keyboard navigation (Enter/Esc/Arrows/Tab), and visible focus rings.
+
+---
+
+## 7. Actionable Implementation Blueprint for Worker Agents
+
+1. **Phase 1 — Prediction Engine Core (`src/prediction-engine.ts`)**:
+   - Implement all 4 modules: Genetics Combobox, Corridor Predictor, Physical VPD/DLI Inferences, and Unified `getLiveFieldSuggestions` hook.
+   - Create comprehensive unit tests in `src/prediction-engine.test.ts`.
+2. **Phase 2 — UI Primitives (`src/components/common/`)**:
+   - Build `InlineEditable.tsx` and `InlineMetricCard.tsx`.
+   - Add responsive styles and suggestion popover animations in `src/styles.css`.
+3. **Phase 3 — Cockpit & Dashboard Panel Integration**:
+   - Upgrade `function Cockpit` in `src/App.tsx` to use `InlineMetricCard` for all 6 core metrics.
+   - Add inline strain auto-complete to the Run Strip.
+   - Enhance `DailyOperatorPanel.tsx` and `NutrientMixPanel.tsx` with inline target adjustments and live prediction hints.
+4. **Phase 4 — Quality Gate & Regression Verification**:
+   - Run `pnpm check` (lint, typecheck, build, unit tests, contract checks).

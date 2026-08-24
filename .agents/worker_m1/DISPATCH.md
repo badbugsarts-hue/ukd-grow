@@ -5,6 +5,7 @@ Your Working Directory is: c:\Users\badbu\Documents\grow\.agents\worker_m1
 Project Root: c:\Users\badbu\Documents\grow
 
 Read:
+
 - c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md
 - c:\Users\badbu\Documents\grow\AGENTS.md
 - c:\Users\badbu\Documents\grow\PROJECT.md
@@ -16,6 +17,7 @@ MANDATORY INTEGRITY WARNING:
 DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
 
 Your Tasks:
+
 1. Update `src/data/autoflower-cockpit.json` with the canonical 61-strain dataset from `c:\Users\badbu\Documents\grow\.agents\spec_miner_autoflower\extracted_plant_data.json`.
 2. Update `src/types.ts` to include:
    - `AutoflowerStrain` interface and any related types matching the 61-strain schema.

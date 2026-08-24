@@ -31,13 +31,28 @@
       "id": "mix-safety",
       "name": "Mischassistent",
       "triggers": ["Mischung berechnen", "Batch", "Düngerreihenfolge"],
-      "inputs": ["selectedDay", "batchLiters", "waterChemistry", "endMixPh"],
+      "inputs": [
+        "selectedDay",
+        "batchLiters",
+        "targetPlantIds",
+        "plantEvents",
+        "rootZoneState",
+        "actualIrrigationNeed",
+        "waterChemistry",
+        "meterCalibration",
+        "endMixEc",
+        "endMixPh",
+        "titrationCalibration"
+      ],
       "outputs": ["productAmounts", "mixOrder", "warnings", "unknowns"],
       "guardrails": [
         "Konzentrat nie direkt mischen",
         "Athena vor Dünger",
         "pH Down erst nach Endmix",
-        "Kein pH-Ping-Pong"
+        "Kein pH-Ping-Pong",
+        "Kalenderwert ist Eligibility und keine Anwendungsfreigabe",
+        "Mixed-Run vor dem Mischen nach kompatibler Feed-Signatur gruppieren",
+        "Ohne Testbatch-Kalibrierung keine EC-/pH-Korrekturmenge erfinden"
       ]
     },
     {

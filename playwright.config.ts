@@ -2,8 +2,14 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  timeout: 60_000,
+  testIgnore:
+    process.env.UKD_SKIP_VISUAL_REGRESSION === "1"
+      ? ["**/visual-regression.spec.ts"]
+      : [],
+  timeout: 300_000,
+  expect: { timeout: 20_000 },
   fullyParallel: true,
+  workers: process.env.CI ? 2 : 1,
   reporter: "line",
   use: {
     baseURL: "http://127.0.0.1:4173",

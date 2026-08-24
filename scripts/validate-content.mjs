@@ -27,7 +27,7 @@ const [
   platformQuality,
   manifest,
 ] = await Promise.all([
-  readJson("public/data/evidence-guarded-workbook-v8.json"),
+  readJson("public/data/evidence-guarded-workbook-v11_5.json"),
   readJson("src/data/legacy-audit.json"),
   readJson("src/data/knowledge-base.json"),
   readJson("src/data/ai-context.json"),
@@ -39,14 +39,17 @@ const [
   readJson("public/data/data-manifest.json"),
 ]);
 
-assert(Object.keys(workbook).length === 29, "Workbook must contain 29 sheets");
+assert(
+  Object.keys(workbook).length === 56,
+  "Workbook must contain 56 v11.5 sheets",
+);
 assert(
   workbook["02_Daily_Master"]?.values?.length === 82,
   "Daily Master must contain header plus 81 days",
 );
 assert(
-  workbook["02_Daily_Master"]?.values?.[0]?.length >= 45,
-  "Daily Master must contain at least 45 canonical columns",
+  workbook["02_Daily_Master"]?.values?.[0]?.length === 69,
+  "Daily Master must contain the 69-column v11.5 schema",
 );
 assert(audit.rows?.length === 55, "Audit must contain 55 findings");
 assert(
@@ -88,9 +91,20 @@ for (const source of knowledge.sources) {
 
 assert(
   aiContext.canonicalData.operational.includes(
-    "evidence-guarded-workbook-v8.json",
+    "evidence-guarded-workbook-v11_5.json",
   ),
-  "AI context must reference the v8 workbook",
+  "AI context must reference the v11.5 workbook",
+);
+assert(
+  [
+    "hesi-tnt-label-boundary",
+    "hesi-cadence-version-conflict",
+    "hesi-pk-ukd-corridor",
+    "an-root-microbe-window",
+    "eazy-block-event-gate",
+    "athena-balance-titration",
+  ].every((id) => knowledge.claims.some((claim) => claim.id === id)),
+  "v11.5 nutrient and root-zone evidence claims are incomplete",
 );
 assert(skills.skills.length >= 7, "Research and legal gates must be present");
 assert(
@@ -189,7 +203,7 @@ assert(
 
 assert(
   manifest.canonicalWorkbook.sha256 ===
-    (await sha256("public/data/evidence-guarded-workbook-v8.json")),
+    (await sha256("public/data/evidence-guarded-workbook-v11_5.json")),
   "Canonical workbook hash does not match manifest",
 );
 assert(

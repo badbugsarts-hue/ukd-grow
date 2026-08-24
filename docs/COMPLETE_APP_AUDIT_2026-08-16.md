@@ -18,16 +18,16 @@ Release-Einstufung: **technischer Release Candidate mit offenen Produkt- und Con
 
 ## Geprüfter Umfang
 
-| Ebene | Geprüft |
-| --- | --- |
-| Kanonische Quelle | v8-XLSX direkt gelesen; 29 Sheets; JSON-Snapshot und Manifest abgeglichen |
-| UI-Flächen | 25 Routen in Guided, Advanced und Expert |
-| Darstellung | Dark, Light, High Contrast, Textskalierung, Desktop und iPhone-Viewport |
-| Interaktion | Navigation, URL-State, Setup, Messungen, Today-Schritte, Timeline, Mix, Rechner, Filter, Suche, Dialoge, Run-Wechsel |
-| Datenlebenszyklus | IndexedDB-Persistenz, Reload, JSON-Backup/Restore, ungültiger Import, CSV, XLSX, PDF, Diagnosebundle |
-| Wissenschaftliche Erfassung | Pflanzenidentität, Day-Zero-Anker, pH/EC-Kalibrierung, PPFD-Grid, Soll/Ist-Mix |
-| Accessibility | Axe WCAG 2.0/2.1/2.2 A/AA auf allen Routen sowie interaktiven Dialogzuständen |
-| Sicherheit/Release | Dependency Audit, Secret Scan, Build, Bundlebudgets, SBOM/Provenienz-Generator |
+| Ebene                       | Geprüft                                                                                                              |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Kanonische Quelle           | v8-XLSX direkt gelesen; 29 Sheets; JSON-Snapshot und Manifest abgeglichen                                            |
+| UI-Flächen                  | 25 Routen in Guided, Advanced und Expert                                                                             |
+| Darstellung                 | Dark, Light, High Contrast, Textskalierung, Desktop und iPhone-Viewport                                              |
+| Interaktion                 | Navigation, URL-State, Setup, Messungen, Today-Schritte, Timeline, Mix, Rechner, Filter, Suche, Dialoge, Run-Wechsel |
+| Datenlebenszyklus           | IndexedDB-Persistenz, Reload, JSON-Backup/Restore, ungültiger Import, CSV, XLSX, PDF, Diagnosebundle                 |
+| Wissenschaftliche Erfassung | Pflanzenidentität, Day-Zero-Anker, pH/EC-Kalibrierung, PPFD-Grid, Soll/Ist-Mix                                       |
+| Accessibility               | Axe WCAG 2.0/2.1/2.2 A/AA auf allen Routen sowie interaktiven Dialogzuständen                                        |
+| Sicherheit/Release          | Dependency Audit, Secret Scan, Build, Bundlebudgets, SBOM/Provenienz-Generator                                       |
 
 Kombinatorisch „jede Situation“ ist nicht endlich testbar. Der Audit verwendet deshalb eine definierte Zustandsmatrix aus Routen, Lenses, Themes, Viewports, Happy Paths, leeren Zuständen, ungültigen Daten und Recovery-Pfaden. Reale Assistive-Technology- und Nutzertests bleiben ein eigenes Release-Gate.
 
@@ -51,21 +51,21 @@ Kombinatorisch „jede Situation“ ist nicht endlich testbar. Der Audit verwend
 16. Das Buildbudget prüfte nur den Entry-Chunk und ignorierte einen 908-kB-ExcelJS-Chunk. Es prüft jetzt Entry, größten Lazy Chunk und die gesamte JavaScript-Menge.
 17. Die Wissensroute renderte zusätzlich zur kanonischen Knowledge Base ein hart codiertes Glossar mit nicht ausreichend belegten „Optimal“-Bereichen. Diese zweite Wahrheit wurde aus der aktiven Route entfernt; die Wissensansicht verwendet nur noch die validierte Knowledge Base.
 18. Das Release-Gate akzeptierte ungeklärte Abhängigkeitslizenzen standardmäßig. Es blockiert jetzt fail-closed. Für `buffers@0.1.1` bleibt `licenseDeclared = NOASSERTION`, während eine versionierte, mit Archivbeleg dokumentierte Prüfung `licenseConcluded = MIT` setzt.
-19. Aktive Architektur-, Content-, Migrations-, Produkt-, Sicherheits- und Testdokumente wurden auf v8, RunPackage v4 und 29 Sheets konsolidiert; die Capability-Roadmap nennt die tatsächlich implementierten Grenzen.
+19. Aktive Architektur-, Content-, Migrations-, Produkt-, Sicherheits- und Testdokumente wurden auf Workbook v11.5, RunPackage v6 und 56 Sheets konsolidiert; die Capability-Roadmap nennt die tatsächlich implementierten Grenzen.
 
 ## Am 16. August noch offene Capability-Lücken (historische Baseline)
 
 ### P0 · vor einer Behauptung „vollständig“
 
-| Lücke | Ist-Zustand | Erforderlich |
-| --- | --- | --- |
-| Legacy-Glossar-Code | `ContextHelpGlossaryPanel.tsx` und `termDictionary.ts` sind aus der aktiven Route entfernt, enthalten aber weiterhin hart codierte „optimal“-Formulierungen | Vor einer Wiederverwendung löschen oder ausschließlich aus der Knowledge Base generieren |
-| IPM | Typen und Arrays existieren; Route ist nur Vorschau | Inspektionsformular, Verlauf, Fotos, Follow-up, Abschluss und AuditEvent |
-| Incident/Recovery | Typen existieren; Route ist nur Vorschau | Statusmaschine, Plan-Supersede, Aktionen, Recovery und Root-Cause-Workflow |
-| Equipment/Maintenance | Nur Licht, PPFD und pH/EC-Kalibrierung sind bedienbar | Generisches Asset-Inventar, Installation, Position, Wartung, Fehler und nächster Termin |
-| Produktinventar | `productInventory` existiert nur im Schema/Export | Besitz, Gebinde, Restmenge, Lot, Öffnung, Ablauf, Preis und Referenz-Stack-Prüfung als UI |
-| Weitere v4-Domänen | Reservoir, Lung Room, Post-Harvest, Energy, Cultivar Profile und Nutrient System Profile haben keine vollständige UI | Vertikale End-to-End-Slices mit State, Audit, Export und Tests |
-| Storage-Failure-UX | IndexedDB-Fehler werden technisch verworfen bzw. nur generisch sichtbar | Quota/Storage-full-Injection, In-Memory-Schutz, sofortiger Backup-Pfad und Recovery-Anleitung |
+| Lücke                 | Ist-Zustand                                                                                                                                                 | Erforderlich                                                                                  |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Legacy-Glossar-Code   | `ContextHelpGlossaryPanel.tsx` und `termDictionary.ts` sind aus der aktiven Route entfernt, enthalten aber weiterhin hart codierte „optimal“-Formulierungen | Vor einer Wiederverwendung löschen oder ausschließlich aus der Knowledge Base generieren      |
+| IPM                   | Typen und Arrays existieren; Route ist nur Vorschau                                                                                                         | Inspektionsformular, Verlauf, Fotos, Follow-up, Abschluss und AuditEvent                      |
+| Incident/Recovery     | Typen existieren; Route ist nur Vorschau                                                                                                                    | Statusmaschine, Plan-Supersede, Aktionen, Recovery und Root-Cause-Workflow                    |
+| Equipment/Maintenance | Nur Licht, PPFD und pH/EC-Kalibrierung sind bedienbar                                                                                                       | Generisches Asset-Inventar, Installation, Position, Wartung, Fehler und nächster Termin       |
+| Produktinventar       | `productInventory` existiert nur im Schema/Export                                                                                                           | Besitz, Gebinde, Restmenge, Lot, Öffnung, Ablauf, Preis und Referenz-Stack-Prüfung als UI     |
+| Weitere v4-Domänen    | Reservoir, Lung Room, Post-Harvest, Energy, Cultivar Profile und Nutrient System Profile haben keine vollständige UI                                        | Vertikale End-to-End-Slices mit State, Audit, Export und Tests                                |
+| Storage-Failure-UX    | IndexedDB-Fehler werden technisch verworfen bzw. nur generisch sichtbar                                                                                     | Quota/Storage-full-Injection, In-Memory-Schutz, sofortiger Backup-Pfad und Recovery-Anleitung |
 
 ### P1 · Produktreife und Globalität
 
@@ -90,17 +90,17 @@ Kombinatorisch „jede Situation“ ist nicht endlich testbar. Der Audit verwend
 
 ## Editierbarkeit und Geltungsbereich
 
-| Datenart | Lokal editierbar | Global editierbar | Persistenz |
-| --- | --- | --- | --- |
-| Aktive Run-Konfiguration | teilweise | nein | IndexedDB |
-| Messungen/Beobachtungen | ja, append/supersede | nein | IndexedDB |
-| Ist-Mix und Bewässerung | Erfassung teilweise | nein | IndexedDB |
-| Kanonischer Tagesplan v8 | nein | nur Build-/XLSX-Pipeline | versionierter JSON-Snapshot |
-| Knowledge Base/Evidenz | nein | nur Repository-Review | Git/JSON |
-| Rechtsprofil | Import, nicht editierbar | nein | nur Session |
-| Bestandsereignisse | ja | nein | IndexedDB |
-| Theme/Lens/Tag/A11Y | ja | nein | Local Storage |
-| IPM/Incident/Post-Harvest/Energy | noch keine vollständige UI | nein | Schema vorhanden |
+| Datenart                         | Lokal editierbar           | Global editierbar        | Persistenz                  |
+| -------------------------------- | -------------------------- | ------------------------ | --------------------------- |
+| Aktive Run-Konfiguration         | teilweise                  | nein                     | IndexedDB                   |
+| Messungen/Beobachtungen          | ja, append/supersede       | nein                     | IndexedDB                   |
+| Ist-Mix und Bewässerung          | Erfassung teilweise        | nein                     | IndexedDB                   |
+| Kanonischer Tagesplan v8         | nein                       | nur Build-/XLSX-Pipeline | versionierter JSON-Snapshot |
+| Knowledge Base/Evidenz           | nein                       | nur Repository-Review    | Git/JSON                    |
+| Rechtsprofil                     | Import, nicht editierbar   | nein                     | nur Session                 |
+| Bestandsereignisse               | ja                         | nein                     | IndexedDB                   |
+| Theme/Lens/Tag/A11Y              | ja                         | nein                     | Local Storage               |
+| IPM/Incident/Post-Harvest/Energy | noch keine vollständige UI | nein                     | Schema vorhanden            |
 
 „Global“ darf deshalb derzeit nur „für den aktiven lokalen Run“ bedeuten. Organisationsweite Defaults, synchronisierte Profile oder globale fachliche Neuberechnung existieren nicht.
 
@@ -123,7 +123,7 @@ Kombinatorisch „jede Situation“ ist nicht endlich testbar. Der Audit verwend
 
 ## Kanonische Referenzen
 
-- Operative Werte: `public/data/evidence-guarded-workbook-v8.json`
+- Operative Werte: `public/data/evidence-guarded-workbook-v11_5.json`
 - Provenienz: `public/data/data-manifest.json`
 - Validierte Claims: `src/data/knowledge-base.json`
 - Guardrails: `src/data/ai-context.json`, `src/data/skills.json`

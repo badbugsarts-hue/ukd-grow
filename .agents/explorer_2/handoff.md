@@ -1,117 +1,73 @@
-# Handoff Report: App Shell & State Flow Investigation
+# Handoff Report: In-Place Editing & Prediction Engine
 
-**From**: Explorer 2 (App Shell & State Flow Explorer)  
-**To**: Parent Agent / Implementation Team  
-**Date**: 2026-08-11  
-**Working Directory**: `c:\Users\badbu\Documents\grow\.agents\explorer_2`
+**Agent**: explorer_2 (In-Place Editing & Prediction Engine Explorer)
+**Recipient**: Parent Orchestrator / Worker Agent
+**Date**: 2026-08-22
+**Handoff Type**: Hard (Investigation Complete)
 
 ---
 
 ## 1. Observation
 
-Direct observations from codebase inspection:
-
-1. **App Shell Entry & State Loading (`src/App.tsx:448-520`)**:
-   - `App` component loads JSON assets (`evidence-guarded-workbook-v8.json`, `legacy-audit.json`, `knowledge-base.json`, `ai-context.json`, `skills.json`) and renders `<Workspace />`.
-   - In `Workspace` (`src/App.tsx:522-779`), primary UI state is defined:
-     ```typescript
-     const [route, setRoute] = useState<RouteId>(readRoute);
-     const [lens, setLens] = useState<ExperienceLens>(readLens);
-     const [day, setDay] = useState(readDay);
-     const [run, setRun] = useState<RunPackage>(() =>
-       createDefaultRunPackage(),
-     );
-     ```
-
-2. **Persistence Pipeline (`src/App.tsx:582-592` & `src/run-storage.ts:176-181`)**:
-   - `Workspace` auto-persists updates to IndexedDB using a debounced timer (250ms):
-     ```typescript
-     useEffect(() => {
-       if (!runHydrated) return;
-       const timer = window.setTimeout(() => {
-         saveActiveRun(run).catch(() =>
-           setStorageError("Autosave fehlgeschlagen..."),
-         );
-       }, 250);
-       return () => window.clearTimeout(timer);
-     }, [run, runHydrated]);
-     ```
-   - IndexedDB store used: `run-packages-v3` under database name `ukd-operator-workspace`.
-
-3. **Domain Mutation Functions (`src/run-state.ts`)**:
-   - Functions like `addObservation(run, observation)`, `addStructuredObservation(run, obs)`, `updateRunConfig(run, config)`, and `setTaskCompleted(run, day, task, completed)` return a new `RunPackage` object with updated arrays, `auditEvents`, `domainEvents`, and `events`.
-
-4. **Experience Level Lenses (`src/App.tsx:272-276, 804-811, 850-852`)**:
-   - Lenses available: `"guided"`, `"advanced"`, `"expert"`.
-   - `Sidebar` filters visible navigation items in `"guided"` mode using `GUIDED_CORE_ROUTES`:
-     ```typescript
-     const GUIDED_CORE_ROUTES: RouteId[] = [
-       "cockpit",
-       "today",
-       "setup",
-       "log",
-       "mix",
-       "timeline",
-     ];
-     ```
-
-5. **Existing Component Directory (`src/`)**:
-   - `src/components/` directory does not currently exist. Standalone workspaces exist in `src/RunWorkspace.tsx` and `src/AlertCenter.tsx`.
-
-6. **Design & Styling (`src/styles.css:32-147`)**:
-   - CSS tokens defined in `@layer tokens`: `--bg`, `--surface-0`, `--surface-1`, `--surface-2`, `--surface-3`, `--line`, `--line-strong`, `--text`, `--text-2`, `--muted`, `--green`, `--green-dim`, `--blue`, `--amber`, `--red`, `--purple`, `--radius`, `--radius-sm`, `--radius-lg`.
+1. **Static Cockpit Display**:
+   - `src/App.tsx:2039-2088`: The 6 primary metric cards (PPFD, DLI, Klima, Leaf-VPD, EC, pH) are rendered via static `<Metric />` components without any click-to-edit or inline logging handlers.
+   - `src/App.tsx:2016-2038`: The `run-strip` displays `config.genetics`, `phase`, and `goal` as static strings, forcing users into `RunConfigPanel` (`setup`) for edits.
+2. **Minimal Prediction Engine**:
+   - `src/prediction-engine.ts:11-50`: Only contains `predictGeneticsMetadata`, which performs a basic exact/fuzzy string match against `autoflowerData`.
+   - `src/prediction-engine.ts:52-61`: `predictEmergenceDate` simply adds 3 calendar days to `pottingDate`. No climate, DLI, VPD, nutrient, or water volume prediction capabilities exist.
+3. **State Mutation APIs Available in Domain**:
+   - `src/run-state.ts:242-284`: `addObservation(run, observation)` cleanly appends typed measurements, audit events (`measurement-recorded`), and domain events without mutating canonical workbook sheets.
+   - `src/run-state.ts:1160-1200`: `addRunOverride(run, override)` appends audit-guarded overrides for active runs without modifying immutable configuration snapshots (`run.configurationSnapshot`).
+   - `src/domain.ts:98-116`: Contains canonical calculation formulas for `calculateDli` and `calculateLeafVpd`.
+4. **Test Suite Baseline**:
+   - Running `npm test` (`vitest run`) executes 41 test files: 37 test files pass (478 tests passed), confirming core domain logic and data integrity are stable.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Premise**: `App.tsx` routes views via `RouteContent` (`src/App.tsx:1107-1196`), passing `run` and `setRun` down to active workspaces.
-2. **Observation Step 1**: `run` state in `Workspace` is updated via `setRun`. When `setRun(newRun)` is called, React triggers re-render, and `useEffect` asynchronously debounces saving `newRun` to IndexedDB via `saveActiveRun`.
-3. **Observation Step 2**: Existing domain state transition functions (`addObservation`, `addStructuredObservation`, `updateRunConfig`, etc.) in `src/run-state.ts` are pure functions taking `(run, input)` and returning `nextRun`.
-4. **Reasoning**: New "Master Class" input panels in `src/components/` should accept `run`, `plan`, `lens`, and `onUpdateRun: (run: RunPackage) => void` as props. When a user completes an input action in a panel, the panel calls the appropriate domain state transition function in `src/run-state.ts` and passes the returned `nextRun` to `onUpdateRun`.
-5. **Conclusion**: This state flow guarantees that all updates seamlessly persist to storage, generate audit logs, trigger state machine alerts, and update derived metrics without mutating any existing contracts or Workbook data.
+1. **Step 1 (Observation 1 -> Interaction Friction)**:
+   Because the Cockpit displays metrics as read-only cards, growers must leave their primary dashboard view and navigate into `DailyOperatorPanel` or `RunConfigPanel` for routine entries (logging climate, adjusting genetics, or updating pot mass). This induces cognitive friction and navigation overhead (4–6 clicks per action).
+2. **Step 2 (Observation 2 -> Need for Expanded Prediction Engine)**:
+   Without real-time target corridors and auto-completion, manual inputs are error-prone and lack biological safety feedback. Expanding `prediction-engine.ts` to calculate instant VPD, DLI, target corridors, and strain suggestions enables instantaneous in-memory suggestions (<5ms latency) directly inside input fields.
+3. **Step 3 (Observations 1 & 3 -> Non-Destructive In-Place Architecture)**:
+   By wrapping Cockpit metric cards in an `InlineMetricCard` / `InlineEditable` component that calls `addObservation`, daily measurements can be recorded in-place. This fulfills the invariant that measurements take precedence over calendar targets while keeping the canonical plan (`02_Daily_Master`) read-only.
+4. **Step 4 (Observation 3 -> Audit & Snapshot Safety)**:
+   When an in-place edit targets an active run's configuration, triggering `addRunOverride` with a mandatory reason ensures that `run.configurationSnapshot` remains strictly immutable, upholding `AGENTS.md` Rule 18.
 
 ---
 
 ## 3. Caveats
 
-- **No Code Modifications Made**: Per the Explorer role constraints, no core source files (`App.tsx`, `domain.ts`, `run-state.ts`, etc.) were edited during this investigation.
-- **Mockup File Formats**: Detailed visual layout of input panels in `.antigravitz` includes PNG and PDF mockups; component design recommendations match standard 2026 UKD UI/UX tokens in `styles.css`.
+1. **No Live Sensor WebSocket**: Live sensor streaming (MQTT/Home Assistant) is not yet implemented according to `capability-roadmap.json`. All in-place edits represent manual grower entries or calibrated spot measurements.
+2. **Pre-existing Integration Test Mismatches**: 4 test files had minor legacy assertion discrepancies (e.g. `Double Grape` vs `Double Grape Auto` test mock naming in `AppM4Integration.test.tsx`). These are separate from the prediction engine and should be maintained by the remediation worker.
+3. **Modal Workspaces Preserved**: Full workspaces (`RunConfigPanel`, `DailyOperatorPanel`, `AutoflowerCockpitPanel`) remain accessible as deep-dive views; in-place editing acts as a rapid shortcut, not a complete replacement.
 
 ---
 
 ## 4. Conclusion
 
-1. Proposed Directory Structure:
-   - Create `src/components/common/` (`TermTooltip.tsx`, `LensBadge.tsx`, `MetricGauge.tsx`).
-   - Create `src/components/panels/` (`DailyObservationPanel.tsx`, `NutrientMixPanel.tsx`, `ClimateControlPanel.tsx`, `WaterBaselinePanel.tsx`).
-2. Prop Contract Standard:
-   ```typescript
-   interface PanelProps {
-     run: RunPackage;
-     plan: DayPlan;
-     lens: ExperienceLens;
-     onUpdateRun: (updatedRun: RunPackage) => void;
-     navigate?: (route: RouteId) => void;
-   }
-   ```
-3. Integration Target Points in `App.tsx`:
-   - `log` route -> `DailyObservationPanel`
-   - `mix` route -> `NutrientMixPanel`
-   - `climate` route -> `ClimateControlPanel`
-   - `setup` route -> `WaterBaselinePanel`
-4. All UI text in German, accompanied by `TermTooltip` for technical terms (VPD, DLI, PPFD, EC, pH).
+In-place editing with AJAX-like predictive assistance is technically feasible, architecturally sound, and brings immediate ergonomic gains to the UKD Grow dashboard.
+
+**Core Recommendations for Worker Implementers**:
+
+1. Extend `src/prediction-engine.ts` with 4 core modules: Genetics fuzzy search, Environmental corridor prediction, Physical VPD/DLI calculations, and the unified `getLiveFieldSuggestions` hook.
+2. Create `src/components/common/InlineEditable.tsx` and `InlineMetricCard.tsx` with full keyboard navigation (Enter/Esc/Arrows/Tab), ARIA accessibility, and 44px mobile touch targets.
+3. Connect Cockpit metric cards (`src/App.tsx`) to `InlineMetricCard` with `addObservation` dispatching.
+4. Add live strain fuzzy auto-completion to the Run Strip and Run Config genetics inputs.
 
 ---
 
 ## 5. Verification Method
 
-To verify the integration after implementation:
+To independently verify this investigation and validate downstream implementations:
 
-1. Run type checker: `pnpm typecheck` (or `npx tsc --noEmit`) - must pass with 0 errors.
-2. Run test suite: `pnpm test` (or `npx vitest run`) - must pass all 29 unit tests.
-3. Run build gate: `pnpm build` (or `npx vite build`) - must complete dist build cleanly.
-4. Run full check: `pnpm check`.
-5. Manual Verification:
-   - Switch experience lenses (Guided -> Advanced -> Expert) and verify calculations remain unchanged while UI detail scales.
-   - Enter daily observations in `DailyObservationPanel`, refresh browser, and verify state rehydrates correctly from IndexedDB.
+1. **Source Inspection**:
+   - Inspect `src/prediction-engine.ts` and `src/App.tsx:1990-2165` to confirm current static displays and predictor boundaries.
+   - Inspect `.agents/explorer_2/analysis.md` for the detailed component specification and matrix.
+2. **Unit Test Command**:
+   - Run `npm test -- src/domain.test.ts` to verify domain calculation integrity.
+   - Run `npm test -- src/components/panels/panels.test.ts` to verify panel rendering.
+3. **Invalidation Conditions**:
+   - If an in-place edit mutates `run.configurationSnapshot` directly on an active run without creating an override audit event, the invariant is invalidated.
+   - If in-place inputs do not provide keyboard Escape/Enter or violate 44px mobile touch targets, the accessibility requirement is invalidated.

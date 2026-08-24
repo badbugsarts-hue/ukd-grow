@@ -32,17 +32,17 @@ All 5 core requirements from the user request (2026-08-21) and acceptance criter
 
 ## 2. Gate Verification & Audit Status
 
-| Verification Gate | Command | Verdict | Details |
-|-------------------|---------|---------|---------|
-| **Unit & Adversarial Tests** | `vitest run` | **PASS (100%)** | 41/41 test files passed, 485/485 tests passed in root (493 total workspace tests passed). |
-| **TypeScript Typecheck** | `tsc -b`, `tsc --noEmit` | **PASS (0 errors)** | Strict typecheck across root and workspace packages (`@ukd/contracts`, `@ukd/api`). |
-| **Linter Check** | `biome lint src tests` | **PASS (0 errors)** | 95 files checked with 0 errors or warnings. |
-| **UI Contracts Gate** | `check-ui-contracts.mjs` | **PASS** | Static CSS classes covered, 6 global actions documented. |
-| **Content Gate** | `validate-content.mjs` | **PASS** | 28 claims, 40 sources, 55 findings, 7 skills, 28 epics, 8 hazards valid. |
-| **Secret Scan** | `scan-secrets.mjs` | **PASS** | 324 tracked files scanned, 0 credentials found. |
-| **Production Build** | `vite build` | **PASS** | Production client bundle built cleanly in ~11s. |
-| **Build Budget** | `check-build-budget.mjs` | **PASS** | Initial chunk 437.2 kB (< 450 kB), total minified 2580.4 kB (< 2800 kB). |
-| **Forensic Integrity Audit** | `auditor_gen2` | **CLEAN** | Zero cheating, no facades, no mock strings, genuine implementation. |
+| Verification Gate            | Command                  | Verdict             | Details                                                                                   |
+| ---------------------------- | ------------------------ | ------------------- | ----------------------------------------------------------------------------------------- |
+| **Unit & Adversarial Tests** | `vitest run`             | **PASS (100%)**     | 41/41 test files passed, 485/485 tests passed in root (493 total workspace tests passed). |
+| **TypeScript Typecheck**     | `tsc -b`, `tsc --noEmit` | **PASS (0 errors)** | Strict typecheck across root and workspace packages (`@ukd/contracts`, `@ukd/api`).       |
+| **Linter Check**             | `biome lint src tests`   | **PASS (0 errors)** | 95 files checked with 0 errors or warnings.                                               |
+| **UI Contracts Gate**        | `check-ui-contracts.mjs` | **PASS**            | Static CSS classes covered, 6 global actions documented.                                  |
+| **Content Gate**             | `validate-content.mjs`   | **PASS**            | 28 claims, 40 sources, 55 findings, 7 skills, 28 epics, 8 hazards valid.                  |
+| **Secret Scan**              | `scan-secrets.mjs`       | **PASS**            | 324 tracked files scanned, 0 credentials found.                                           |
+| **Production Build**         | `vite build`             | **PASS**            | Production client bundle built cleanly in ~11s.                                           |
+| **Build Budget**             | `check-build-budget.mjs` | **PASS**            | Initial chunk 437.2 kB (< 450 kB), total minified 2580.4 kB (< 2800 kB).                  |
+| **Forensic Integrity Audit** | `auditor_gen2`           | **CLEAN**           | Zero cheating, no facades, no mock strings, genuine implementation.                       |
 
 ---
 

@@ -1,6 +1,7 @@
 # Progress — UKD Grow Masterplan Setup View & Autoflower Cockpit Integration (Gen 2)
 
 ## Current Status
+
 Last visited: 2026-08-21T10:10:00Z
 
 - [x] Initial setup and Gen 2 briefing initialization
@@ -11,4 +12,5 @@ Last visited: 2026-08-21T10:10:00Z
 - [x] Write handoff.md and notify Sentinel
 
 ## Iteration Status
+
 Current iteration: 1 / 32 (Complete)

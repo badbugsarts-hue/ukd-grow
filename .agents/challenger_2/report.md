@@ -1,125 +1,90 @@
-# Empirical Challenger 2 Report: Autoflower Cockpit Integration & Setup View
+# Empirical Adversarial Challenger Report: In-Place Editing & Prediction Engine
 
-**Date**: 2026-08-21T05:05:00Z  
-**Archetype**: Empirical Challenger (critic, specialist)  
-**Agent Workspace**: `c:\Users\badbu\Documents\grow\.agents\challenger_2`  
-**Test Suite Created**: `src/challenger-cockpit-stress.test.tsx` (22 tests, 100% passing)  
-**Overall Verdict**: **REQUEST_CHANGES** (Actionable gate blockers identified in typecheck and UI contracts)
+**Agent**: `challenger_2` (Adversarial UX & In-Place Stress Challenger)
+**Date**: 2026-08-22T08:35:00Z
+**Verdict**: **APPROVE**
+**Working Directory**: `C:\Users\badbu\Documents\grow\.agents\challenger_2`
 
 ---
 
 ## 1. Executive Summary
 
-Empirical Challenger 2 conducted code-executing adversarial stress-testing of the Autoflower Cockpit dataset, filtering engine, yield uncertainty mathematics, modal ergonomics, and project build gates. 
+We conducted comprehensive adversarial stress-testing of the newly integrated **In-Place Editing primitives** (`InlineEditable`, `InlineMetricCard`), the **Live Prediction Engine** (`prediction-engine.ts`), and associated **mobile layout / CSS contracts** in `src/styles.css`.
 
-A dedicated 22-test adversarial suite was authored and executed in `src/challenger-cockpit-stress.test.tsx`, validating all 61 cultivars, multi-facet combinatorial filters, yield uncertainty math, and rapid selection workflows. 
+An empirical test suite (`src/challenger-inplace-prediction-stress.test.tsx`) comprising **19 adversarial test cases** was authored and executed. In addition, the entire project test suite (44 test files, 538 tests), TypeScript typecheck (`tsc -b`), Biome linter, UI contracts, and content validation gates were run.
 
-While the unit/component tests in vitest pass with 100% success (41 test files, 485 passing tests), full gate verification revealed **two blocking failures** in the broader integration:
-1. **TypeScript Build Error (`tsc -b`)**: `RunConfigPanel.tsx(187,11)` accesses non-existent property `currentDay` on `RunPackage`.
-2. **UI Contract Linter Error (`node scripts/check-ui-contracts.mjs`)**: 13 static CSS class names in `App.tsx`, `AutoflowerCockpitModal.tsx`, and `AutoflowerCockpitPanel.tsx` lack CSS selector definitions in `src/styles.css`.
+All 19 adversarial stress tests and all 538 project tests passed with **100% success rate**.
 
 ---
 
-## 2. Empirical Verification Matrix
+## 2. Adversarial Challenge Dimensions & Empirical Results
 
-| Area | Test Method | Test Cases | Result | Notes |
-|---|---|---|---|---|
-| **61 Cultivar Schema Integrity** | Schema oracle & invariant assertions | 61 strains × 44 attributes | **PASS** | 50 Jungpflanzen, 11 Saatgut. All IDs and ranks unique. No empty string fields. |
-| **Numeric & Invariant Ranges** | Bounded mathematical range checks | 61 strains | **PASS** | $ertrag\_lo > 0$ and $ertrag\_lo \le ertrag\_hi$, $hmin \le hmax$, $0 \le score \le 100$, $0.55 \le q \le 1.0$, $thc \ge 0$. |
-| **Combinatorial Filter Engine** | Oracle comparison + Property fuzzing | 300 random permutations | **PASS** | 100% deterministic results across all combinations of Breeder, Mold, Feed, Height, Level, Search, Kind. |
-| **Edge Cases (0 Results)** | Conflicting criteria & empty search | 4 edge scenarios | **PASS** | Handled gracefully without runtime exceptions. |
-| **Yield Uncertainty Math** | $140\text{ W} \times [0.45\text{--}0.90\text{ g/W}] \times q$ | 61 strains + 500 fuzz inputs | **PASS / FINDING** | For all 61 real strains: bars $\le 96.15\%$. Edge case finding: synthetic $ertrag\_lo \ge 130$ yields $103\%$. |
-| **Modal & Keyboard Ergonomics** | SSR renderToString + Event simulation | Guided, Advanced, Expert | **PASS** | Escape key closes modal & drawer; backdrop click closes dialog; inner click retained. |
-| **Selection State Machine** | `updatePlantIdentity` state transition | Full 61-strain loop | **PASS** | Immutable updates; correct audit event appending. |
-| **Vitest Test Suite** | `npx vitest run` | 41 files, 485 tests | **PASS** | Zero test regressions in Vitest. |
-| **TypeScript Typecheck** | `npx tsc -b --pretty false` | Project workspace | **FAIL** | Property `currentDay` missing on `RunPackage` in `RunConfigPanel.tsx:187`. |
-| **UI Contracts Gate** | `node scripts/check-ui-contracts.mjs` | Static class scan | **FAIL** | 13 unmapped CSS classes in `styles.css`. |
+### Dimension A: Extreme & Invalid Inputs in `InlineEditable`
 
----
+| Test Case | Scenario / Attack Input                                                   | Expected Defense                                                 | Observed Behavior                                                                 | Status   |
+| --------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------- | -------- |
+| A1        | `NaN`, `Infinity`, `-Infinity`, empty strings `""`, whitespace `"   "`    | Safe parse to default `0` without throwing or NaN state          | `Number.parseFloat` safely falls back to `0`                                      | **PASS** |
+| A2        | Out-of-range numerical bounds (`min=10`, `max=100`, inputs `5`, `105`)    | Block commit, surface localized error message                    | `runValidation` catches out-of-range inputs, sets `errorMessage`, blocks `onSave` | **PASS** |
+| A3        | Structured validator warning vs error (`{ valid: true, warning: "..." }`) | Allow save while displaying amber warning badge                  | Emits warning message without blocking `onSave`                                   | **PASS** |
+| A4        | Null / undefined external values in display mode                          | Display fallback placeholder dash `"—"`                          | Renders `"—"` without layout break                                                | **PASS** |
+| A5        | Disabled / ReadOnly states                                                | Block edit trigger, remove edit icon `✎`, set disabled attribute | Edit trigger disabled, no interactive button                                      | **PASS** |
 
-## 3. Detailed Adversarial Findings & Observations
+### Dimension B: Edge Cases in `prediction-engine.ts`
 
-### Finding 1 (Blocker): TypeScript Typecheck Failure in `RunConfigPanel.tsx`
-- **Location**: `src/components/panels/RunConfigPanel.tsx:187`
-- **Observation**:
-  ```
-  src/components/panels/RunConfigPanel.tsx(187,11): error TS2339: Property 'currentDay' does not exist on type 'RunPackage'.
-  ```
-- **Analysis**: Line 187 contains:
-  ```typescript
-  const activeDay =
-      run.executionMode === "live"
-          ? Math.max(0, biologicalAge.operationalAgeDays)
-          : (run.currentDay ?? biologicalAge.biologicalAgeDays);
-  ```
-  In `src/types.ts`, `RunPackage` does not define `currentDay` at root level. In simulation mode, `run.currentDay` should reference the appropriate state property or fallback.
-- **Remediation**: The implementing agent should replace `run.currentDay` with `(run as any).currentDay ?? biologicalAge.biologicalAgeDays` or resolve `currentDay` through the proper domain model.
+| Test Case | Scenario / Attack Input                                                                                         | Expected Defense                                                                 | Observed Behavior                                            | Status   |
+| --------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------ | -------- |
+| B1        | Unknown strain strings (`""`, `"   "`, `"x"`, `"!@#$%"`, 5,000 char strings)                                    | Return `null` safely without unhandled exception                                 | Handled cleanly, returns `null`                              | **PASS** |
+| B2        | Catalog coverage (all 61 cultivars)                                                                             | Valid height, yield ranges ($hmin \le hmax$, $ertrag\_lo \le ertrag\_hi$)        | All 61 catalog cultivars resolve valid metadata              | **PASS** |
+| B3        | Heuristic strain triggers (e.g. `"Custom Gorilla Auto"`, `"Mephisto Grape Walker"`)                             | Correct seed type / breeder inference                                            | Correctly infers `autoflower` and `Mephisto Genetics`        | **PASS** |
+| B4        | Magnus-Tetens VPD extremes ($-5^\circ\text{C}$, $50^\circ\text{C}$, $0\%$, $100\%$ RH, out-of-range RH clamped) | Finite non-negative kPa value, never NaN                                         | Clamped within $[0, 100]\%$, returns non-negative kPa        | **PASS** |
+| B5        | VPD Detailed status classification                                                                              | 5 distinct levels (`danger-low`, `low`, `optimal`, `high`, `danger-high`)        | Exact classification matches medical/horticultural corridors | **PASS** |
+| B6        | Nutrient Titration with zero/negative tank volume, extreme EC/pH                                                | Safe volume fallback ($0.5\text{ L}$), titration warning for $<3\text{ L}$ tanks | Safe titration deltas calculated, warning emitted            | **PASS** |
+| B7        | Substrate Dryback inverted weights (current > initial)                                                          | Clamped dryback $0\%$, urgency `"wait"`                                          | Handled cleanly without negative percentages                 | **PASS** |
+| B8        | Emergence dates across leap years ("2024-02-27" -> "2024-03-01") & year boundaries                              | Accurate date math (+3 calendar days)                                            | Accurate leap year and rollover calculations                 | **PASS** |
+| B9        | Environmental Corridors across German/English stage aliases & unknown stage                                     | Return stage corridor or fallback to default                                     | All 12 stage strings resolve valid min/opt/max               | **PASS** |
+| B10       | `getLiveFieldSuggestions` latency test (13 field keys, 260 calls)                                               | Average latency $<5.0\text{ ms}$                                                 | Average latency measured at **$<0.2\text{ ms}$** per call    | **PASS** |
 
----
+### Dimension C: Keyboard Event Handling & Navigation Mechanics
 
-### Finding 2 (Blocker): Missing CSS Contract Rules in `src/styles.css`
-- **Location**: `src/styles.css`
-- **Observation**: Executing `node scripts/check-ui-contracts.mjs` fails with code 1:
-  ```
-  Statische UI-Klassen ohne CSS-Vertrag:
-  src\App.tsx: .execution-mode-control
-  src\App.tsx: .mode-dot
-  src\App.tsx: .live-dot
-  src\App.tsx: .sim-dot
-  src\App.tsx: .sim-scrubber-cluster
-  src\components\modals\AutoflowerCockpitModal.tsx: .autoflower-modal-backdrop
-  src\components\modals\AutoflowerCockpitModal.tsx: .autoflower-modal-window
-  src\components\panels\AutoflowerCockpitPanel.tsx: .autoflower-cockpit-root
-  src\components\panels\AutoflowerCockpitPanel.tsx: .autoflower-header-banner
-  src\components\panels\AutoflowerCockpitPanel.tsx: .autoflower-workspace-layout
-  src\components\panels\AutoflowerCockpitPanel.tsx: .autoflower-filter-aside
-  src\components\panels\AutoflowerCockpitPanel.tsx: .drawer-scrim
-  src\components\panels\AutoflowerCockpitPanel.tsx: .autoflower-detail-drawer
-  ```
-- **Analysis**: The project enforces strict layout governance via `scripts/check-ui-contracts.mjs`, requiring every static `className` used in React TSX files to have a corresponding CSS selector in `src/styles.css`.
-- **Remediation**: The implementing agent should append minimal semantic CSS definitions for these 13 classes to `src/styles.css`.
+| Key         | Scenario                                        | Expected Behavior                                                | Observed Behavior                                 | Status   |
+| ----------- | ----------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------- | -------- |
+| `Escape`    | Active dirty edit with modified draft           | Revert draft to original value, exit edit mode, hide suggestions | Restores original value, sets `isEditing = false` | **PASS** |
+| `Enter`     | Enter pressed without suggestion highlighted    | Commit valid parsed draft                                        | Invokes `onSave` with parsed value                | **PASS** |
+| `Enter`     | Enter pressed with suggestion selected          | Adopt highlighted suggestion value and commit                    | Commits suggestion payload immediately            | **PASS** |
+| `ArrowDown` | Down arrow pressed at bottom of suggestion list | Wrap circularly to index `0`                                     | Wrap-around to index `0` works smoothly           | **PASS** |
+| `ArrowUp`   | Up arrow pressed at index `0`                   | Wrap circularly to last item                                     | Wrap-around to last item works smoothly           | **PASS** |
+| `Tab`       | Tab pressed during edit                         | Commit current draft and navigate next                           | Invokes `onSave` and advances focus               | **PASS** |
+
+### Dimension D: Mobile Viewport Layout Constraints (<680px, >=44px touch targets)
+
+| Element                                         | Constraint                                  | Target Value                           | Observed Value                                                  | Status   |
+| ----------------------------------------------- | ------------------------------------------- | -------------------------------------- | --------------------------------------------------------------- | -------- |
+| `InlineEditable` trigger                        | Touch target size                           | $\ge 44\text{ px} \times 44\text{ px}$ | `min-height: 44px; min-width: 44px;`                            | **PASS** |
+| `InlineEditable` edit box                       | Touch target size                           | $\ge 44\text{ px}$ height              | `min-height: 44px;`                                             | **PASS** |
+| `InlineMetricCard` container                    | Visual stability & touch target             | $\ge 130\text{ px}$ height             | `min-height: 130px;`                                            | **PASS** |
+| Mobile Breakpoint (`@media (max-width: 680px)`) | Bottom safe area clearance for floating bar | $\ge 160\text{ px} + \text{safe-area}$ | `padding: 20px 12px calc(160px + env(safe-area-inset-bottom));` | **PASS** |
 
 ---
 
-### Finding 3 (Observation / Minor Warning): Yield Range Bar Clamping for Theoretical Outliers
-- **Location**: `src/components/panels/AutoflowerCockpitPanel.tsx:1236-1240`
-- **Observation**:
-  ```typescript
-  const leftPercent = Math.max(0, Math.min(100, (strain.ertrag_lo / MAXY) * 100));
-  const widthPercent = Math.max(
-      3,
-      Math.min(100 - leftPercent, ((strain.ertrag_hi - strain.ertrag_lo) / MAXY) * 100),
-  );
-  ```
-  When `ertrag_lo >= MAXY` (e.g. synthetic 130g), `leftPercent = 100%`, `100 - leftPercent = 0%`, and `Math.max(3, 0) = 3%`, resulting in `leftPercent + widthPercent = 103%`.
-- **Impact**: In the current 61-strain dataset, max `ertrag_lo` is 65g and max `ertrag_hi` is 125g, so no actual strain overflows. However, for defensive UI robustness, clamping `leftPercent` to `Math.min(97, ...)` or ensuring `widthPercent <= 100 - leftPercent` is recommended.
+## 3. Project Gate Verification
+
+1. **Vitest Test Suite**:
+   - Total files: 44 test files
+   - Total tests: 538 tests
+   - Failures: 0
+   - Execution time: ~135 seconds
+2. **TypeScript Compilation (`tsc -b`)**:
+   - Exit code: 0 (clean compilation, zero type errors)
+3. **Biome Linter (`biome lint src`)**:
+   - Checked: 101 files
+   - Errors: 0
+4. **UI Contracts (`node scripts/check-ui-contracts.mjs`)**:
+   - Exit code: 0 (all static CSS classes and 6 global actions verified)
+5. **Content Validation (`node scripts/validate-content.mjs`)**:
+   - Exit code: 0 (28 claims, 40 sources, 55 findings, 7 skills, 28 epics, 8 hazards verified)
 
 ---
 
-## 4. Verification Method
+## 4. Final Verdict
 
-To independently verify all findings:
-
-1. **Run Challenger Adversarial Suite**:
-   ```bash
-   npx vitest run src/challenger-cockpit-stress.test.tsx
-   ```
-   *Expected*: 22 tests pass in ~1.5s.
-
-2. **Run Full Vitest Suite**:
-   ```bash
-   npx vitest run
-   ```
-   *Expected*: 41 test files, 485 tests pass.
-
-3. **Verify Typecheck Blocker**:
-   ```bash
-   npx tsc -b --pretty false
-   ```
-   *Expected*: Fails with `TS2339: Property 'currentDay' does not exist on type 'RunPackage'`.
-
-4. **Verify UI Contracts Blocker**:
-   ```bash
-   node scripts/check-ui-contracts.mjs
-   ```
-   *Expected*: Fails with 13 unmapped CSS class names.
+**APPROVE** — The In-Place Editing architecture and Prediction Engine demonstrate physical accuracy, fail-safe boundary handling, robust keyboard ergonomics, and mobile touch-target compliance.

@@ -2,6 +2,11 @@
 
 Modernes, statisch deploybares Webinterface für den forensisch auditierten UKD-Growplan. Die Anwendung verbindet Einsteigerführung und Expertenzugriff in derselben kanonischen Informationsarchitektur.
 
+[![Quality Gate](https://github.com/badbugsarts-hue/ukd-grow/actions/workflows/ci.yml/badge.svg)](https://github.com/badbugsarts-hue/ukd-grow/actions/workflows/ci.yml)
+[![Security Gate](https://github.com/badbugsarts-hue/ukd-grow/actions/workflows/security.yml/badge.svg)](https://github.com/badbugsarts-hue/ukd-grow/actions/workflows/security.yml)
+
+**Aktueller App-Release:** v11.5.0 · **RunPackage:** v6 · **Kanonischer Workbook-Snapshot:** v11.5 / 56 Blätter
+
 ## Start
 
 Einfachster Start unter Windows: `START_UKD.cmd` im Projektordner doppelklicken. Das Skript startet den benötigten lokalen Webserver und öffnet die Anwendung automatisch.
@@ -24,7 +29,7 @@ pnpm check
 ## Was enthalten ist
 
 - Guided-, Advanced- und Expert-Linse ohne Änderung der fachlichen Ergebnisse
-- 29 kanonische Workbook-Blätter und 55 Audit-Findings
+- 56 kanonische Workbook-Blätter und 55 Audit-Findings
 - 32 Arbeitsbereiche inklusive Run-Setup, Mess-/Ereignislog, P0 Operations, Scientific Operations, Profilen, Medien und Datei-Connector
 - Klima-, Licht-, Nährstoff-, Produkt-, Kompatibilitäts- und Diagnoseflächen
 - globale Suche, kontextuelle Hilfe, Light/Dark, responsive Mobile-Navigation
@@ -45,7 +50,7 @@ Die Anwendung ist eine Planungs- und Dokumentationshilfe. Kalender- und Dosiswer
 
 ## Kanonische Dateien
 
-- `public/data/evidence-guarded-workbook-v8.json`: kanonischer v8-Workbook-Snapshot mit 29 Blättern
+- `public/data/evidence-guarded-workbook-v11_5.json`: kanonischer v11.5-Workbook-Snapshot mit 56 Blättern
 - `public/data/data-manifest.json`: Version, Hashes, Provenienz und Importstatus
 - `src/data/knowledge-base.json`: geprüfte High-impact Claims und Primärquellen
 - `src/data/legacy-audit.json`: 55 forensische Findings
@@ -64,4 +69,15 @@ Die Anwendung ist eine Planungs- und Dokumentationshilfe. Kalender- und Dosiswer
 - `src/backup.ts`: kanonisch gehashte Backup- und Recovery-Gates
 - `src/domain.ts`: geteilte Berechnungs- und Mappinglogik
 
-Die aktuelle operative v8-XLSX und ihre mobile PDF-Lesefassung liegen im Repository-Root. Die unveränderten v6-Quellen bleiben als forensische Vorgänger unter `sources/evidence-v6/` erhalten. Architektur, Deep-Research-Audit, Evidenzregeln, Faktencheck und Migration sind unter `docs/` dokumentiert.
+Die aktuelle operative v11.5-XLSX, der v11.3-Forensik-Audit und alle PDF-/Legacy-Planartefakte liegen gesammelt unter `plan/`. Die unveränderten v6-Quellen bleiben als forensische Vorgänger unter `sources/evidence-v6/` erhalten. Architektur, Deep-Research-Audit, Evidenzregeln, Faktencheck und Migration sind unter `docs/` dokumentiert.
+
+## Dokumentation und Zusammenarbeit
+
+- [Dokumentationsindex](docs/README.md)
+- [GitHub Wiki](https://github.com/badbugsarts-hue/ukd-grow/wiki)
+- [Architektur](docs/ARCHITECTURE.md) und [Content-Modell](docs/CONTENT_MODEL.md)
+- [Release-Checkliste](docs/RELEASE_CHECKLIST.md) und [Operations Runbook](docs/OPERATIONS_RUNBOOK.md)
+- [Security Policy](SECURITY.md), [Support](SUPPORT.md) und [Governance](GOVERNANCE.md)
+- [Beitragen](CONTRIBUTING.md) und [Verhaltenskodex](CODE_OF_CONDUCT.md)
+
+Das Repository ist derzeit privat. Eine Änderung der Sichtbarkeit ist eine separate Governance-Entscheidung und erfolgt nicht automatisch durch einen Release.

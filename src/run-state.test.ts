@@ -286,7 +286,10 @@ describe("versioned run state", () => {
       expect(run.executionMode).toBe("live");
       expect(run.status).toBe("active");
       expect(run.liveAnchor).not.toBeNull();
-      expect(run.liveAnchor?.kind).toBe("seed-planted");
+      // Legacy "run-operational-start" is presented as the explicit
+      // emergence null point in the v8 setup, so a newly started run records
+      // the same anchor semantics used by the visible timeline control.
+      expect(run.liveAnchor?.kind).toBe("emergence");
       expect(run.clockHealth.status).toBe("healthy");
       expect(run.auditEvents[0]?.action).toBe("live-started");
       expect(run.domainEvents[0]?.type).toBe("live.started");
@@ -384,7 +387,9 @@ describe("versioned run state", () => {
       expect(run.liveAnchor?.startedAtUtc).toContain(emergenceDate);
       expect(run.anchorRevisions).toHaveLength(1);
       expect(run.anchorRevisions[0]?.nextStartedAtUtc).toContain(emergenceDate);
-      expect(run.anchorRevisions[0]?.reason).toContain("Korrektur nach Keimungsbestätigung");
+      expect(run.anchorRevisions[0]?.reason).toContain(
+        "Korrektur nach Keimungsbestätigung",
+      );
 
       // Verify evaluateLiveClock calculates day dynamically
       const clock = evaluateLiveClock(run, now);
@@ -415,7 +420,9 @@ describe("versioned run state", () => {
         expect(s.score).toBeLessThanOrEqual(100);
         expect(["original", "whitelabel", "unklar"]).toContain(s.prov);
         expect(["jungpflanze", "samen"]).toContain(s.kind);
-        expect(["Autoflower", "Photoperiodisch", "Fast Version"]).toContain(s.typ);
+        expect(["Autoflower", "Photoperiodisch", "Fast Version"]).toContain(
+          s.typ,
+        );
 
         // Photobiology model checks
         expect(s.q).toBeGreaterThanOrEqual(0.5);

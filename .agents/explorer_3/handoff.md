@@ -1,102 +1,64 @@
-# Handoff Report — CSS Tokens & Test Suite Explorer (Explorer 3)
-
-**Author**: Explorer 3  
-**Working Directory**: `c:\Users\badbu\Documents\grow\.agents\explorer_3`  
-**Date**: 2026-08-11
-
----
+# Handoff Report � explorer_3 (Build, Test, Legacy State & QA)
 
 ## 1. Observation
 
-Direct observations from inspecting the codebase:
-
-1. **Design Tokens & Styles (`src/styles.css`)**:
-   - Layers declaration: `line 1: @layer reset, tokens, base, components, responsive;`
-   - Dark theme variables (`lines 34-64`):
-     - Backgrounds: `--bg: #07110f;`, `--surface-0: #0b1715;`, `--surface-1: #101e1b;`, `--surface-2: #152521;`, `--surface-3: #1c2d29;`
-     - Borders: `--line: #29403a;`, `--line-strong: #3b5850;`
-     - Text: `--text: #eef6f2;`, `--text-2: #b6c7c1;`, `--muted: #82958e;`
-     - Palette: `--green: #67d6ae;`, `--green-dim: #174d3f;`, `--on-green: #062018;`, `--blue: #62a8ff;`, `--blue-dim: #163958;`, `--amber: #e5a44b;`, `--amber-dim: #4a3417;`, `--red: #ef705c;`, `--red-dim: #4f211b;`, `--purple: #b898ec;`, `--purple-dim: #34284b;`
-     - Geometry: `--sidebar: 260px;`, `--topbar: 64px;`, `--radius-sm: 6px;`, `--radius: 10px;`, `--radius-lg: 14px;`
-     - Special Domain Tokens (v7): `--irrigation-applied`, `--irrigation-drain`, `--dryback-trend`, `--equip-online`, `--equip-degraded`, `--equip-offline`, `--equip-unknown`, `--incident-low/medium/high/critical`, `--ipm-clear/trace/moderate/severe`, `--drying-target`, `--cure-target`, `--group-operator/werkzeuge/bibliothek/evidenz/system`.
-   - Theme overrides: Light mode (`:root[data-theme="light"]`, `lines 102-126`), High Contrast mode (`:root[data-contrast="high"]`, `lines 127-147`).
-   - Glassmorphism & Effects (`lines 463-464`):
-     ```css
-     background: color-mix(in srgb, var(--surface-0) 94%, transparent);
-     backdrop-filter: blur(14px);
-     ```
-   - Onboarding Welcome Card & Tooltip (`lines 2805-2911`): `linear-gradient(135deg, var(--surface-1), var(--surface-2))`, `.term-tooltip`, `.tooltip-text`.
-   - Accessibility Focus Ring (`lines 174-177`):
-     ```css
-     :focus-visible {
-       outline: 2px solid var(--green);
-       outline-offset: 3px;
-     }
-     ```
-   - Reduced Motion (`lines 3507-3515`): `@media (prefers-reduced-motion: reduce)` disables animations and transitions.
-
-2. **Accessibility & AGENTS.md Invariants**:
-   - `AGENTS.md` Invariant: "Vor neuen Einzelwerten bestehende Tokens verwenden."
-   - `AGENTS.md` Invariant: "Keine kritische Information nur per Hover oder Farbe vermitteln."
-   - `AGENTS.md` Invariant: "Semantische Elemente, sichtbarer Fokus, Tastaturbedienung und 44-px-Touchziele auf Mobile erhalten."
-   - `AGENTS.md` Invariant: "`prefers-reduced-motion`, Zoom und horizontale Datentabellen respektieren."
-
-3. **Test Suite & Vitest Setup (`vite.config.ts` & `src/**/*.test.ts`)**:
-   - `vite.config.ts` (`lines 10-13`): `test: { environment: "node", include: ["src/**/*.test.ts"] }`.
-   - Total Unit Tests: **29 tests** across 4 files:
-     - `src/domain.test.ts` (10 tests)
-     - `src/scientific-core.test.ts` (3 tests)
-     - `src/run-state.test.ts` (13 tests)
-     - `src/backup.test.ts` (3 tests)
-   - Configuration in `package.json`: `"test": "vitest run"`, `"check": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:content && pnpm security && pnpm build && pnpm test:budget && pnpm release:metadata && pnpm test:e2e"`.
-
----
+1. **Build Scripts & Tooling**:
+   - package.json contains full gate script check: "pnpm lint && pnpm typecheck && pnpm typecheck:workspaces && pnpm test && pnpm test:workspaces && pnpm test:content && pnpm test:ui-contracts && pnpm security && pnpm build && pnpm test:budget && pnpm release:metadata && pnpm test:e2e".
+   - Tool versions: React 19.2.8, Vite 8.2.1, Vitest 4.1.10, Biome 2.5.7, TypeScript 7.0.2, Playwright 1.62.1.
+2. **Current Gate Execution Results**:
+   - pnpm typecheck: Passed (0 errors).
+   - pnpm typecheck:workspaces: Passed (0 errors).
+   - pnpm test:workspaces: Passed (8/8 tests pass).
+   - pnpm test:content: Passed (28 claims, 40 sources, 55 findings, 7 skills, 28 integration epics, 8 hazards).
+   - pnpm build: Passed (built in 12.47s).
+   - pnpm test:budget: Passed (initial 426.2 kB / 450 kB budget, largest lazy chunk 907.8 kB / 950 kB).
+   - pnpm release:metadata: Passed (351 packages, 38 artifacts, 0 unresolved licenses).
+   - pnpm lint: FAILED with 8 errors in src/components/panels/MasterplanOverviewPanel.tsx (lines 275-280) violating lint/a11y/useValidAnchor.
+   - pnpm test:ui-contracts: FAILED with 2 missing static CSS classes (.batch-resolver-dashboard in BatchResolverDashboard.tsx, .run-list in RunWorkspace.tsx).
+   - pnpm security: FAILED (scan-secrets.mjs threw ENOENT on src/components/panels/GlobalPlanEditorPanel.tsx because file was deleted on disk but tracked in git).
+   - pnpm test: FAILED with 6 failed tests across 3 suites (38 passed, 3 failed out of 41 test files):
+     - src/AppIntegration.test.tsx:251 (mismatched initial run name/genetics expectation)
+     - src/AppM4Integration.test.tsx:171 (mismatched initial genetics expectation)
+     - src/AppM4Integration.test.tsx:226 (clock rollback triggered by test passing past date to evaluateLiveClock)
+     - src/plant-identity-adversarial-challenger.test.tsx:243 (seedLot missing in domain event payload)
+     - src/plant-identity-adversarial-challenger.test.tsx:291 (empty
+       un.plants not initializing fallback plant)
+     - src/plant-identity-adversarial-challenger.test.tsx:352 (legacy updatePlantIdentity not updating all plants in multi-plant run)
+3. **Prediction Engine**:
+   - src/prediction-engine.ts exports predictGeneticsMetadata and predictEmergenceDate, but currently has no dedicated unit test file.
 
 ## 2. Logic Chain
 
-1. **Token Invariant Enforcement**:
-   - Observation 1 details all existing CSS variable names and values in `src/styles.css`.
-   - Observation 2 states AGENTS.md rule: "Vor neuen Einzelwerten bestehende Tokens verwenden."
-   - _Deduction_: Any new component written under `src/components/` must directly utilize CSS custom properties (`var(--green)`, `var(--surface-1)`, `var(--surface-2)`, etc.) without introducing hardcoded hex colors or arbitrary values.
-
-2. **Accessibility & Usability Invariant Enforcement**:
-   - Observation 1 and 2 highlight 44px touch targets on mobile, 2px green focus rings, non-color status indicators, `@media (prefers-reduced-motion)`, and German inline tooltips (`.term-tooltip`).
-   - _Deduction_: Implementers must construct UI panels with touch target sizes ≥44px for buttons/inputs, provide inline help tooltips for technical German terms (VPD, DLI, EC, pH), and wrap state in accessible semantic HTML markup.
-
-3. **Testing Strategy**:
-   - Observation 3 shows that Vitest operates with `environment: "node"` targeting `src/**/*.test.ts`, with 29 passing domain/state unit tests.
-   - _Deduction_: Unit tests for new Master Class components should focus on testing domain calculation helpers, input parsing/validation, state transformations, and German terminology translation functions in `.test.ts` files. End-to-end rendering and WCAG compliance are handled by Playwright E2E and Axe.
-
----
+1. From Observation 2, pnpm check cannot succeed in its current state due to 4 distinct failure categories:
+   - Lint violations in MasterplanOverviewPanel.tsx
+   - Unstyled static classes in BatchResolverDashboard.tsx and RunWorkspace.tsx
+   - Git index mismatch in scan-secrets.mjs
+   - 6 failing unit/integration tests in AppIntegration.test.tsx, AppM4Integration.test.tsx, and plant-identity-adversarial-challenger.test.tsx
+2. Correcting these 4 areas will restore the test suite and quality gates to a 100% green state.
+3. Adding in-place editing and prediction suggestions to panels must follow existing architectural patterns (immutability, audit events, CSS contracts, a11y compliance, 44px mobile touch targets) and must be covered by dedicated unit tests (src/prediction-engine.test.ts) and component tests.
 
 ## 3. Caveats
 
-1. **Node Test Environment**: Vitest is currently configured with `environment: "node"`, which means `@testing-library/react` DOM rendering tests are not configured out-of-the-box unless `@testing-library/react` and `happy-dom`/`jsdom` are explicitly added or file-level jsdom environment pragmas are used. Testing domain calculation/state helpers in pure TypeScript `.test.ts` modules is recommended.
-2. **Read-Only Explorer Scope**: Explorer 3 did not edit application code (`src/App.tsx` or `src/styles.css`), adhering strictly to read-only investigation rules. All outputs are saved in `c:\Users\badbu\Documents\grow\.agents\explorer_3\`.
-
----
+- E2E Playwright tests (pnpm test:e2e) were not executed end-to-end against live browsers during this inspection turn to avoid launching heavy background browser instances, but the configuration in playwright.config.ts and test specs in ests/e2e/ were verified.
+- The investigation is strictly read-only; no application source code was modified.
 
 ## 4. Conclusion
 
-1. **Design System**: The CSS architecture in `src/styles.css` provides a complete, 2026 World Elite design token system with Dark/Light modes, High Contrast variations, glassmorphism, responsive navigation drawers, and specialized v7 domain tokens.
-2. **Accessibility**: All UI rules (44px touch targets, focus rings, screen reader compatibility, non-color-exclusive indicators, reduced motion) are well-defined and must be strictly followed when creating new components in `src/components/`.
-3. **Test Infrastructure**: The 29 existing unit tests pass completely. New component logic should be tested via co-located `.test.ts` files testing helper/state functions to maintain build gate integrity (`pnpm test` / `pnpm check`).
-
----
+The repository has an exceptionally thorough multi-layer QA architecture (typecheck, workspaces, vitest, content gate, UI contract gate, build budget, license manifest, secret scan, and e2e).
+All failures blocking pnpm check have been pinpointed down to exact file paths, line numbers, and root causes. Clear remediation steps and a robust testing strategy for In-Place Editing and prediction engine have been documented.
 
 ## 5. Verification Method
 
-To independently verify this analysis:
+To independently verify:
 
-1. **Verify CSS Tokens & Theme Rules**:
-   - Inspect `src/styles.css` lines 32-147 to confirm variable definitions (`--bg`, `--surface-1`, `--green`, `--blue`, `--amber`, `--red`, `--purple`).
-   - Inspect `src/styles.css` lines 174-177 for focus visible styles and lines 3507-3515 for `@media (prefers-reduced-motion: reduce)`.
-
-2. **Verify Test Suite & Execution**:
-   - Run `pnpm test` or `npx vitest run`.
-   - Inspect test files: `src/domain.test.ts` (10 tests), `src/scientific-core.test.ts` (3 tests), `src/run-state.test.ts` (13 tests), `src/backup.test.ts` (3 tests).
-   - Invalidation condition: Total test count differs from 29 or any test fails.
-
-3. **Verify Typecheck & Build Gates**:
-   - Run `pnpm typecheck` (`tsc -b --pretty false`).
-   - Run `pnpm check`.
+1. Run
+   px pnpm typecheck -> Exit code 0
+2. Run
+   px pnpm lint -> Observe 8 errors in MasterplanOverviewPanel.tsx
+3. Run
+   ode scripts/check-ui-contracts.mjs -> Observe 2 missing classes
+4. Run
+   ode scripts/scan-secrets.mjs -> Observe ENOENT on GlobalPlanEditorPanel.tsx
+5. Run .\node_modules\.bin\vitest run -> Observe 38 passed suites, 3 failed suites (6 failed tests)
+6. Once remediated, run
+   px pnpm check -> Full green pipeline

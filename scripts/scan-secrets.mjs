@@ -9,16 +9,24 @@ const patterns = [
   /\bgh[opusr]_[A-Za-z0-9_]{30,}\b/,
   /\bgithub_pat_[A-Za-z0-9_]{40,}\b/,
 ];
-const files = execFileSync("git", ["ls-files", "-z"], {
-  cwd: root,
-  encoding: "utf8",
-})
+const files = execFileSync(
+  "git",
+  ["ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+  {
+    cwd: root,
+    encoding: "utf8",
+  },
+)
   .split("\0")
   .filter(Boolean);
 const findings = [];
 for (const relativePath of files) {
   const absolutePath = path.join(root, relativePath);
-  const stat = await fs.stat(absolutePath);
+  const stat = await fs.stat(absolutePath).catch((error) => {
+    if (error?.code === "ENOENT") return null;
+    throw error;
+  });
+  if (!stat) continue;
   if (stat.size > 2_000_000) continue;
   const content = await fs.readFile(absolutePath, "utf8").catch(() => "");
   content.split(/\r?\n/).forEach((line, index) => {

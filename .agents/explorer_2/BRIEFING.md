@@ -1,48 +1,43 @@
-# BRIEFING — 2026-08-11T03:09:20Z
+# BRIEFING — 2026-08-22T03:32:00Z
 
 ## Mission
 
-Investigate App Shell & State Flow in `App.tsx`, `domain.ts`, `run-state.ts`, `run-storage.ts`, and `scientific-core.ts` to identify integration points for "Master Class" input panels without mutating existing contracts.
+Analyze In-Place Editing & Prediction Engine integration across the UKD dashboard, assessing fields/metrics for inline mutation, prediction engine enhancements (live suggestions/auto-completion/predicted ranges), UI component architecture (inputs with dropdown suggestions, shortcuts, validation, optimistic updates), and state invariant compliance.
 
 ## 🔒 My Identity
 
-- Archetype: Explorer
-- Roles: App Shell & State Flow Explorer
-- Working directory: c:\Users\badbu\Documents\grow\.agents\explorer_2
-- Original parent: 6783987b-1cde-4c0a-8087-df980caf57b6
-- Milestone: Master Class Input Panels Integration Exploration
+- Archetype: explorer
+- Roles: In-Place Editing & Prediction Engine Explorer
+- Working directory: C:\Users\badbu\Documents\grow\.agents\explorer_2
+- Original parent: be3893a9-44d5-47ef-b492-5725ea9951b0
+- Milestone: UX Audit & In-Place Editing
 
 ## 🔒 Key Constraints
 
-- Read-only investigation — do NOT implement or modify core source code directly
-- Respect AGENTS.md rules and invariants
-- Produce analysis.md and handoff.md in working directory
-- Communicate with parent via send_message
+- Read-only investigation — do NOT implement
+- Invariants: Messwert/Pflanzenreaktion overrides calendar; append-only events/overrides with reason/AuditEvent; no mutation of active run snapshots directly; Guided/Advanced/Expert lens compatibility; accessibility (44px touch targets, keyboard nav Enter/Esc, clear contrast).
 
 ## Current Parent
 
-- Conversation ID: 6783987b-1cde-4c0a-8087-df980caf57b6
-- Updated: 2026-08-11T03:09:20Z
+- Conversation ID: be3893a9-44d5-47ef-b492-5725ea9951b0
+- Updated: 2026-08-22T03:32:00Z
 
 ## Investigation State
 
-- **Explored paths**: `src/App.tsx`, `src/domain.ts`, `src/run-state.ts`, `src/run-storage.ts`, `src/scientific-core.ts`, `src/styles.css`, `ORIGINAL_REQUEST.md`.
-- **Key findings**:
-  - `Workspace` in `App.tsx` manages `run` (`RunPackage`), `route`, `lens`, `day`, and handles debounced IndexedDB autosave.
-  - State mutations must use pure helper functions in `src/run-state.ts` (`addObservation`, `addStructuredObservation`, `updateRunConfig`, etc.) to produce new `RunPackage` trees without direct mutation.
-  - Recommended component structure: `src/components/common/` (`TermTooltip`, `LensBadge`, `MetricGauge`) and `src/components/panels/` (`DailyObservationPanel`, `NutrientMixPanel`, `ClimateControlPanel`, `WaterBaselinePanel`).
-  - Standard panel prop contract: `{ run: RunPackage; plan: DayPlan; lens: ExperienceLens; onUpdateRun: (updatedRun: RunPackage) => void; navigate?: (route: RouteId) => void }`.
-- **Unexplored areas**: None (analysis complete).
+- **Explored paths**: `src/prediction-engine.ts`, `src/domain.ts`, `src/run-state.ts`, `src/App.tsx`, `src/components/panels/*`, `src/components/common/*`
+- **Key findings**: Complete architectural design for `InlineEditable` / `InlineMetricCard`, 4-module expansion of `prediction-engine.ts` (Genetics, Climate corridors, Physical calculations, Suggestion hook), state mutation flow honoring all `AGENTS.md` invariants.
+- **Unexplored areas**: None for this investigation scope.
 
 ## Key Decisions Made
 
-- Finalized component hierarchy, prop contracts, German terminology dictionary, and `App.tsx` integration points.
-- Generated `analysis.md` and `handoff.md` in `.agents/explorer_2/`.
+- Established in-memory calculation strategy for Prediction Engine (<5ms latency).
+- Defined `InlineMetricCard` for Cockpit metric grid and `InlineEditable` for generic form/strip fields.
+- Mapped all candidate fields across Cockpit, DailyOperator, Nutrients, Setup, and Calculator panels.
 
 ## Artifact Index
 
-- DISPATCH.md — Dispatch history
-- BRIEFING.md — Persistent briefing index
-- progress.md — Heartbeat and step progress
-- analysis.md — Detailed App Shell & State Flow Analysis
-- handoff.md — 5-Component Handoff Report for Parent / Implementation Team
+- `.agents/explorer_2/DISPATCH.md` — Task dispatch record
+- `.agents/explorer_2/BRIEFING.md` — Working memory & identity
+- `.agents/explorer_2/progress.md` — Liveness heartbeat & progress
+- `.agents/explorer_2/analysis.md` — Detailed technical analysis report
+- `.agents/explorer_2/handoff.md` — 5-component handoff report

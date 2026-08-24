@@ -33,4 +33,3 @@ Die App fragt `navigator.storage.persist()` an, zeigt Speicherwarnstufen bei 70/
 - Quota/Permission/Corruption/Recovery auf neuem Gerät
 - Keyboard, Touch, NVDA und VoiceOver
 - mehrtägiger echter Restore-Drill ohne Datenverlust
-

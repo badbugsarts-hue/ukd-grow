@@ -49,13 +49,6 @@
     "alkalinityMgL": 90
   },
   {
-    "id": "medium_water_alg",
-    "name": "Standard: Mittleres Wasser (8.4 - 14 °dH)",
-    "calciumMgL": 65,
-    "magnesiumMgL": 12,
-    "alkalinityMgL": 170
-  },
-  {
     "id": "hard_water_alg",
     "name": "Standard: Hartes Wasser (> 14 °dH)",
     "calciumMgL": 110,
@@ -68,5 +61,40 @@
     "calciumMgL": 0,
     "magnesiumMgL": 0,
     "alkalinityMgL": 0
+  },
+  {
+    "id": "medium_water_alg",
+    "name": "Generic: Mittleres Wasser (8.4 - 14 dH)",
+    "calciumMgL": 65,
+    "magnesiumMgL": 12,
+    "alkalinityMgL": 170
+  },
+  {
+    "id": "zwa_saalfeld_variable",
+    "name": "ZWA Saalfeld · variable Stadtversorgung",
+    "calciumMgL": 45,
+    "magnesiumMgL": 10,
+    "alkalinityMgL": 120
+  },
+  {
+    "id": "zwa_saalfeld_woehlsdorf",
+    "name": "ZWA Saalfeld · WW Wöhlsdorf",
+    "calciumMgL": 77.6,
+    "magnesiumMgL": 19.5,
+    "alkalinityMgL": 180
+  },
+  {
+    "id": "zwa_saalfeld_adrianstal",
+    "name": "ZWA Saalfeld · Quelle Adrianstal",
+    "calciumMgL": 20.9,
+    "magnesiumMgL": 8.62,
+    "alkalinityMgL": 60
+  },
+  {
+    "id": "zwa_saalfeld_zeigerheim",
+    "name": "ZWA Saalfeld · WW Zeigerheim / TFW",
+    "calciumMgL": 28.5,
+    "magnesiumMgL": 3.42,
+    "alkalinityMgL": 80
   }
 ]

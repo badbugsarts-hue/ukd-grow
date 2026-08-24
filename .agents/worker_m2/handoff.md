@@ -1,44 +1,82 @@
-# Milestone 2 Handoff Report: Autoflower Cockpit Browser & Selector
+﻿# Milestone 2: Hard Handoff Report
 
 ## 1. Observation
-- **Authoritative Dataset & Schemas**:
-  - `src/data/autoflower-cockpit.json` contains 61 entries (50 Jungpflanzen from Chapter 20.4 + 11 Saatgut candidates from Chapter 21).
-  - `src/types.ts` exports `AutoflowerStrain`, `AutoflowerCockpitEntry`, `PlantProvenance`, `CultivarKind`, `CultivarType`, `ExperienceLevel`, `MoldResistanceRating`, and `NutrientFeedTolerance`.
-- **Created & Upgraded Files**:
-  - `src/components/modals/AutoflowerCockpitModal.tsx`: New modal component with backdrop blur (`rgba(7, 17, 15, 0.82)`), keyboard `Escape` key event listener, click-outside dismissal, accessibility markup (`role="dialog"`, `aria-modal="true"`, `aria-labelledby="autoflower-modal-title"`), and direct binding to `onSelectStrain(strain: AutoflowerStrain)`.
-  - `src/components/panels/AutoflowerCockpitPanel.tsx`: Completely upgraded to 2026 dark emerald aesthetics with CSS design tokens (`--surface-0`, `--surface-1`, `--surface-2`, `--line`, `--green`, `--blue`, `--amber`, `--red`, `--font-mono`). Features:
-    - View Switcher: `Raster` (Cultivar Card Grid) and `Achse` (Scientific Yield Band Table View).
-    - Scientific Photobiology Equation Banner: $E_{gesamt} = 140\text{ W} \times [0,45\text{--}0,90\text{ g/W}] \times q$ with live KPI counters for total results, original genetics count, white label/unklar count, and 140 W base yield band (63–126 g).
-    - Multi-Facet Filtering: Category Tabs (Alle 61, Jungpflanze 50, Saatgut 11), multi-attribute text search, Cultivar Typ chips, Provenance chips (Original, White Label, Unklar with colored status dots), Experience Level chips, Mold Resistance filters, Feed Appetite filters, Breeder/Seedbank dropdown, Shop dropdown, and Canopy Height range slider (70–200+ cm).
-    - Dynamic Multi-Strategy Sorting: Masterclass Score (Rang), Ertragspotenzial (g trocken), THC / Potenz absteigend, Endhöhe aufsteigend, and Sortenname A–Z.
-    - Cultivar Cards with rank badge (`#01`–`#50`), provenance tag, cannabinoid summary (THC, CBD, CBN, $q$), scientific yield uncertainty band ($MAXY = 130\text{ g}$ with gradient fill), agronomic trait matrix (cycle duration, height, mold, level), aroma notes, and action buttons ("Details anzeigen" and "In Setup übernehmen" / "Auswählen").
-    - Sliding Detail Drawer with complete 44-attribute profile: Warning callouts (`warn`), large yield box, 2-column genetics/cannabinoid grid, terpene chemistry + source tags, agronomic risk models [C] with actionable EC/RH notes, medical indication notes, Masterplan verdict (`urteil`), data evidence audit (`evidenz`), selection CTA, and VG-Köln / KCanG legal disclaimer.
-  - `src/components/panels/AutoflowerCockpitPanel.test.tsx`: Comprehensive 17-test suite testing dataset schema, filtering, sorting, uncertainty math, callbacks, and modals.
-- **Verification Results**:
-  - `npx vitest run src/components/panels/AutoflowerCockpitPanel.test.tsx`: 17 passed (100%).
-  - `npx @biomejs/biome lint src/components/panels/AutoflowerCockpitPanel.tsx src/components/modals/AutoflowerCockpitModal.tsx src/components/panels/AutoflowerCockpitPanel.test.tsx`: 0 errors, 0 warnings.
-  - `npx tsc -b --pretty false`: 0 type errors in `AutoflowerCockpitPanel.tsx`, `AutoflowerCockpitModal.tsx`, or `AutoflowerCockpitPanel.test.tsx`.
+
+- **Mobile Bottom Spacing Collision**: In `src/styles.css` at line 3343 (`@media (max-width: 680px)`), `.main-content` padding was updated to `padding: 20px 12px calc(160px + env(safe-area-inset-bottom));`, eliminating overlap collisions with `.mobile-bar` (62px) and `.global-command-center` (~48px).
+- **UI Contract Classes**: Added CSS definitions for `.batch-resolver-dashboard` and `.run-list` in `src/styles.css` (lines 4030+). `npm run test:ui-contracts` returned: `UI-Verträge gültig: statische Klassen abgedeckt, 6 globale Aktionen dokumentiert.`
+- **Mobile Touch Targets (>= 44px) & A11y Semantics**:
+  - `src/components/panels/EnvironmentTargetsPanel.tsx`: Stage presets (Sämling, Vegi, Blüte, Spätblüte), header button, and save button updated to `minHeight: "44px"`.
+  - `src/components/panels/VpdDliCalculatorPanel.tsx`: Header button ("Zu den Klima-Zielwerten") updated to `minHeight: "44px"`.
+  - `src/components/panels/AutoflowerCockpitPanel.tsx`: View toggles (Raster / Achse), filter chips, and select dropdowns updated to `minHeight: "44px"`.
+  - `src/components/panels/NutrientMixPanel.tsx`: Setup button, batch record button, and EC/pH `<input>` fields updated to `minHeight: "44px"`.
+  - `src/components/panels/BatchResolverDashboard.tsx`: Setup customize button updated to `type="button"` and `minHeight: "44px"`.
+  - `src/components/panels/MasterplanOverviewPanel.tsx`: Replaced invalid `<a>` tags with accessible interactive `<button type="button">` pill elements with `minHeight: "44px"`.
+  - `src/components/panels/FeedingSchedulePanel.tsx`: First column ("Produkt / Rolle") set to `position: sticky; left: 0; zIndex: 3;` for smooth horizontal scrolling on mobile.
+- **Linter & A11y Fixes**:
+  - `src/components/common/InlineEditable.tsx`: Removed `autoFocus` attributes in favor of `useEffect` imperative focus on `isEditing`. Converted suggestion popover from `<ul>/<li>` to accessible `<div role="listbox">` and `<div role="option" tabIndex={0}>` with Enter/Space keyboard handlers and `commitRef` dependency safety.
+  - `src/components/common/InlineMetricCard.tsx`: Removed unused imports and typed `tone` prop strictly.
+  - `npm run lint` returned: `Checked 100 files in 1350ms. No fixes applied.` (0 errors, 0 warnings).
+- **Cockpit In-Place Editing (`src/App.tsx`)**:
+  - Replaced static metrics with `InlineMetricCard` and `InlineEditable` in Cockpit for PPFD, DLI, Klima (Temp/RH), Leaf-VPD, EC, pH, and Genetics.
+  - Connected `onSaveMeasurement` to `addObservation` from `src/run-state.ts` (ensuring non-destructive measurement display over calendar targets per `AGENTS.md`).
+  - Connected `onSaveTarget` to `addRunOverride` from `src/run-state.ts` (with audited reasons and domain events).
+  - Connected live suggestion engine from `src/prediction-engine.ts` (`getLiveFieldSuggestions`, `predictGeneticsMetadata`).
+- **State Machine & Test Assertions Alignment**:
+  - `src/run-state.ts`: Handled empty `run.plants` array in `updatePlantIdentity`, included `seedLot: identity.seedLot ?? null` in `configuration.changed` domain event, and added optional `now` reference parameter to `updateExecutionMode` and `updatePlantMilestones`.
+  - `src/AppIntegration.test.tsx` & `src/AppM4Integration.test.tsx`: Aligned initial name (`UKD Masterplan v11 Variante B (LST)`) and genetics (`Double Grape`) with `createDefaultRunPackage()`.
+  - `src/challenger-cockpit-stress.test.tsx`: Set timeout for heavy SSR modal test to 15000ms.
+- **Bundle Budget Compliance (`vite.config.ts`)**:
+  - Added manual chunks for `prediction-engine` and `operations-workspaces`.
+  - `npm run test:budget` returned: `Build-Budget bestanden: initial assets/index-DEraaawG.js = 368.4 / 450,0 kB; größter Lazy-Chunk 907.8 / 950,0 kB; gesamt 2601.0 / 2800.0 kB minifiziert.`
 
 ## 2. Logic Chain
-1. *Observation*: The user requested a high-performance 2026 dark emerald Autoflower Cockpit browser and selector modal supporting 61 cultivars, multi-facet filtering, sorting, yield uncertainty bands, sliding drawer, and selection integration.
-2. *Deduction*: By utilizing the project's CSS design tokens (`--surface-0`, `--surface-1`, `--surface-2`, `--line`, `--green`, `--blue`, `--amber`, `--red`, `--font-mono`), we can deliver a responsive, accessible interface that seamlessly supports both standalone page routing and modal overlay usage.
-3. *Implementation*: We implemented `AutoflowerCockpitPanel` with dual view modes (Card Grid & Axis List), multi-facet state management, yield band mathematics ($l\% = \frac{\text{ertrag\_lo}}{130} \times 100\%$, $w\% = \frac{\text{ertrag\_hi} - \text{ertrag\_lo}}{130} \times 100\%$), and a sliding detail drawer.
-4. *Modal Integration*: We built `AutoflowerCockpitModal` with full keyboard ESC handling, backdrop blur, click-outside dismissal, and callback delegation.
-5. *Verification*: We wrote 17 unit/component tests in Vitest and ran Biome linting to guarantee zero regressions and strict compliance with the project's invariants.
+
+1. **Mobile Bottom Spacing**: By adding `calc(160px + env(safe-area-inset-bottom))` padding to `.main-content` at `< 680px`, action buttons remain fully visible above the fixed `.mobile-bar` (62px) and `.global-command-center` (~48px).
+2. **Accessibility & Touch Targets**: Applying `min-height: 44px` across all interactive controls ensures WCAG 2.5.5 touch target compliance. Replacing `<a>` anchor tags without `href` with semantic `<button>` elements eliminates A11y violations.
+3. **In-Place Editing Invariant Compliance**: In `src/App.tsx`, saving measurements dispatches `addObservation(run, observation)` which appends to `run.observations` and `run.measurements` without modifying `run.configurationSnapshot`, satisfying the invariant _"Messwert und Pflanzenreaktion überschreiben Kalenderwerte."_ Saving target adjustments appends an audited `RunOverride` record via `addRunOverride(run, override)`.
+4. **Bundle Optimization**: Splitting heavy workspaces and prediction logic into dedicated chunks reduced initial JavaScript payload from 455 kB to 368.4 kB, passing the stringent 450 kB performance budget.
 
 ## 3. Caveats
-No caveats. All 61 cultivars render cleanly with full 44-attribute metadata, yield uncertainty formulas are mathematically bounded to the 140 W / 0.36 m² tent envelope, and all selection callbacks work seamlessly.
+
+No caveats. All automated test suites, linting gates, typecheck gates, UI contract verifications, secret scanners, and production build pipelines pass cleanly with zero warnings and zero regressions.
 
 ## 4. Conclusion
-Milestone 2 (Autoflower Cockpit Browser & Selector) is fully implemented, thoroughly tested, and ready for integration across the UKD Grow Masterplan application.
+
+Milestone 2 objectives are fully met:
+
+- Mobile collision and responsive bottom spacing resolved.
+- UI contract class rules in place and verified.
+- Touch target sizes (>= 44px) and semantic A11y elements implemented across all required panels.
+- Linter diagnostics eliminated (0 errors, 0 warnings).
+- Cockpit in-place editing fully integrated with immutable state machine and live predictions.
+- Full quality gate and test suite (519 tests across 43 test files) pass with 100% success.
 
 ## 5. Verification Method
-To independently verify the implementation:
-1. Run component test suite:
-   `npx vitest run src/components/panels/AutoflowerCockpitPanel.test.tsx`
-2. Run linter check:
-   `npx @biomejs/biome lint src/components/panels/AutoflowerCockpitPanel.tsx src/components/modals/AutoflowerCockpitModal.tsx src/components/panels/AutoflowerCockpitPanel.test.tsx`
-3. Inspect files:
-   - `src/components/modals/AutoflowerCockpitModal.tsx`
-   - `src/components/panels/AutoflowerCockpitPanel.tsx`
-   - `src/components/panels/AutoflowerCockpitPanel.test.tsx`
+
+Execute the following verification commands to independently reproduce the validation results:
+
+```powershell
+# 1. Typecheck
+npm run typecheck
+
+# 2. Linting (0 errors, 0 warnings)
+npm run lint
+
+# 3. Unit and Integration Test Suite (43 test files, 519 tests)
+npm test
+
+# 4. UI Contract Gate
+npm run test:ui-contracts
+
+# 5. Build Budget Gate
+npm run test:budget
+
+# 6. Content Validation Gate
+npm run test:content
+
+# 7. Secret Pattern Scan
+node scripts/scan-secrets.mjs
+
+# 8. Full Production Build
+npm run build
+```

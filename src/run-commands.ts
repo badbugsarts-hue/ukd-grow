@@ -73,6 +73,7 @@ export type RunCommand =
       kind: "live.clone-and-start";
       startedAtUtc: string;
       timeZoneAtConfirmation: string;
+      anchorKind?: "seed-planted" | "emergence";
     }
   | { kind: "live.correct-anchor"; nextStartedAtUtc: string; reason: string }
   | { kind: "live.complete"; reason: string }
@@ -326,15 +327,17 @@ function cloneAndStartLive(
   }));
   const runId = fresh.id;
   const anchorId = crypto.randomUUID();
+  const anchorKind = command.anchorKind ?? "seed-planted";
+  const anchorLabel = anchorKind === "emergence" ? "Durchstoß" : "Aussaat";
   const growthEvents = plants.map((plant) => ({
     id: crypto.randomUUID(),
     plantId: plant.id,
-    kind: "seed-planted" as const,
+    kind: anchorKind,
     occurredAt: command.startedAtUtc,
     day: 0,
     observedBy: "user" as const,
     confidence: "confirmed" as const,
-    notes: "Aussaat beim Live-Start bestätigt.",
+    notes: `${anchorLabel} beim Live-Start bestätigt.`,
     photoIds: [],
   }));
   const domain: DomainEvent = {
@@ -350,7 +353,7 @@ function cloneAndStartLive(
     payload: {
       sourceSimulationRunId: source.id,
       anchorId,
-      kind: "seed-planted",
+      kind: anchorKind,
     },
   };
   const audit: AuditEvent = {
@@ -367,8 +370,7 @@ function cloneAndStartLive(
     occurredAt: command.startedAtUtc,
     category: "live",
     title: "Live-Run gestartet",
-    detail:
-      "Aussaat bestätigt; der operative Tag folgt exakten 24-Stunden-Perioden.",
+    detail: `${anchorLabel} bestätigt; der operative Tag folgt exakten 24-Stunden-Perioden.`,
     relatedEntityId: anchorId,
   };
   const config = structuredClone(source.config);
@@ -398,7 +400,7 @@ function cloneAndStartLive(
     sourceSimulationRunId: source.id,
     liveAnchor: {
       id: anchorId,
-      kind: "seed-planted",
+      kind: anchorKind,
       startedAtUtc: command.startedAtUtc,
       confirmedAtUtc: occurredAt,
       timeZoneAtConfirmation: command.timeZoneAtConfirmation,

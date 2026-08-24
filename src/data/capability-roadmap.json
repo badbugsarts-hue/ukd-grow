@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "reviewedAt": "2026-08-20",
+  "reviewedAt": "2026-08-24",
   "currentArchitecture": {
     "frontend": "React 19 + strict TypeScript + Vite 8",
     "deployment": "static vendor-neutral build remains production baseline; Docker Compose EU-VPS stack is implemented as an unverified deployment preview",
@@ -36,12 +36,12 @@
       "device and calibration records",
       "overrides and audit events",
       "alert acknowledgements",
-	  "non-document inventory events",
-	  "irrigation events and mix batches",
-	  "plant identity and growth events",
-	  "light profiles, PPFD maps and calibration records",
-	  "IPM, incidents, equipment, maintenance, reservoirs, lung room, energy, post-harvest, product inventory and mix applications",
-	  "encrypted normalized media ciphertexts and local sync outbox"
+      "non-document inventory events",
+      "irrigation events and mix batches",
+      "plant identity and growth events",
+      "light profiles, PPFD maps and calibration records",
+      "IPM, incidents, equipment, maintenance, reservoirs, lung room, energy, post-harvest, product inventory and mix applications",
+      "encrypted normalized media ciphertexts and local sync outbox"
     ],
     "sessionOnly": ["imported legal profile without document payload"],
     "forbiddenInUrlOrLocalStorage": [
@@ -74,7 +74,7 @@
       "evidence": "RunPackage schema v6, v1-v6 migration, resilient multi-run IndexedDB, staging restore, SHA-256 JSON and workspace-backup-v2, CSV/XLSX/PDF exports and recovery tests are implemented."
     },
     {
-	  "id": "native-run-domain-v6",
+      "id": "native-run-domain-v6",
       "status": "implemented",
       "evidence": "Immutable configuration snapshots, applyRunCommand, zones, plants, ScientificValue lineage, DomainEvent envelopes, operations state machines, devices/calibrations, revisions, supersession and append-only audit events are implemented."
     },
@@ -104,6 +104,11 @@
       "evidence": "Manual measured values are recorded separately from targets; canonical persistent alerts, acknowledgements and event history are implemented."
     },
     {
+      "id": "mixed-run-event-batch-gate",
+      "status": "implemented",
+      "evidence": "The nutrient route and mix recorder resolve each plant from confirmed emergence, nutrient-uptake, root-zone and flowering events. Missing events fail closed; calendar age is display-only and a mixed bloom state blocks the unspecific global batch recorder. Plant-targeted dose curves beyond the v11.5 eligibility map remain a follow-up editor depth gate."
+    },
+    {
       "id": "offline-installable-shell",
       "status": "implemented",
       "evidence": "Web App Manifest and production service worker cache the application shell and canonical read-only datasets."
@@ -116,7 +121,7 @@
     {
       "id": "scientific-measurement-trust",
       "status": "implemented",
-	  "evidence": "The read-only provider contract and trust engine cover freshness, calibration, plausibility and conflicts. Live ingestion is not implemented; the current UI only captures manual pH/EC calibration and PPFD-map records."
+      "evidence": "The read-only provider contract and trust engine cover freshness, calibration, plausibility and conflicts. Live ingestion is not implemented; the current UI only captures manual pH/EC calibration and PPFD-map records."
     },
     {
       "id": "privacy-preserving-diagnostics",
@@ -127,6 +132,46 @@
       "id": "live-sensor-ingestion",
       "status": "conditional",
       "trigger": "A named device protocol, trust boundary, offline behavior and calibration model are approved."
+    },
+    {
+      "id": "scan-to-log-qr",
+      "status": "planned",
+      "trigger": "Plant identity deep links, camera permission UX, offline QR decoding, duplicate-ID prevention and manual fallback pass threat-model and accessibility review. QR is the cross-platform baseline."
+    },
+    {
+      "id": "scan-to-log-nfc",
+      "status": "conditional",
+      "trigger": "Runtime capability negotiation proves supported Web NFC or a separately reviewed native shell. NFC must never be the only route to a plant record."
+    },
+    {
+      "id": "on-device-image-assistance",
+      "status": "research-only",
+      "trigger": "A licensed, representative cannabis dataset, external validation, calibrated uncertainty, out-of-distribution rejection, device benchmarks and a human-confirmation workflow are approved. Model brand, size or headline accuracy alone is insufficient."
+    },
+    {
+      "id": "offline-voice-capture",
+      "status": "conditional",
+      "trigger": "On-device speech availability is detected at runtime and a touch/keyboard fallback remains complete. Parsed commands require visible confirmation before applyRunCommand."
+    },
+    {
+      "id": "ble-mqtt-readonly-connectors",
+      "status": "conditional",
+      "trigger": "A named protocol and device are approved with identity, units, calibration, freshness, plausibility, deduplication, offline replay and conflict tests. Browser/platform limitations require capability negotiation."
+    },
+    {
+      "id": "actuator-control",
+      "status": "rejected-for-current-scope",
+      "trigger": "No actuator command path is authorized. A future proposal requires a separate hazard analysis, manual override, fail-safe state, watchdog, interlock, commissioning and liability review."
+    },
+    {
+      "id": "low-light-field-display",
+      "status": "planned",
+      "trigger": "A low-luminance theme passes WCAG 2.2 AA, real grow-room usability and device checks. It may reduce glare but must not be labelled as preserving a plant dark cycle or as a safe green-light source."
+    },
+    {
+      "id": "selective-community-sharing",
+      "status": "conditional",
+      "trigger": "Explicit field-level redaction, consent, provenance, moderation, deletion, abuse prevention and legal/privacy review exist. Public social feeds are outside the local-first Stable baseline."
     },
     {
       "id": "p0-operations-slices",
@@ -175,9 +220,9 @@
     }
   ],
   "performance": {
-	"initialJavaScriptBudgetKbMinified": 450,
-	"largestAsyncChunkBudgetKbMinified": 950,
-	"totalJavaScriptBudgetKbMinified": 2400,
+    "initialJavaScriptBudgetKbMinified": 450,
+    "largestAsyncChunkBudgetKbMinified": 950,
+    "totalJavaScriptBudgetKbMinified": 2400,
     "coreWebVitals": {
       "evaluationPercentile": 75,
       "lcpMillisecondsMax": 2500,

@@ -1,8 +1,8 @@
-const CACHE = "ukd-workspace-v8-live-ai-2026-08-20";
+const CACHE = "ukd-workspace-v11-5-masterclass-2026-08-23";
 const CORE = [
   "./",
   "./data/data-manifest.json",
-  "./data/evidence-guarded-workbook-v8.json",
+  "./data/evidence-guarded-workbook-v11_5.json",
 ];
 
 self.addEventListener("install", (event) => {

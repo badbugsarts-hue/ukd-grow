@@ -222,6 +222,11 @@ export interface WaterProfile {
   analysisSource: string | null;
   analysisMethod: "lab-report" | "test-kit" | "meter" | "assumed" | "unknown";
   verified: boolean;
+  calibrationTest?: {
+    ph: number | null;
+    ec: number | null;
+    testedAt: string;
+  };
 }
 
 // ── v7: Pot Profile ──
@@ -267,6 +272,10 @@ export type GrowthEventKind =
   | "seed-planted"
   | "emergence"
   | "first-true-leaves"
+  | "nutrient-uptake-ready"
+  | "root-zone-plug"
+  | "root-zone-block"
+  | "root-zone-final-coco"
   | "run-operational-start"
   | "preflower-observed"
   | "flower-onset"
@@ -643,10 +652,7 @@ export interface CultivarProfile {
 export type PlantProvenance = "original" | "whitelabel" | "unklar";
 
 export type ExperienceLevel =
-  | "Anfänger"
-  | "Fortgeschritten"
-  | "Profi"
-  | "Expert";
+  "Anfänger" | "Fortgeschritten" | "Profi" | "Expert";
 
 export type MoldResistanceRating =
   | "gering"
@@ -1333,7 +1339,7 @@ export type RunExecutionMode = "simulation" | "live";
 
 export interface LiveAnchor {
   id: string;
-  kind: "seed-planted";
+  kind: DayZeroAnchor;
   startedAtUtc: string;
   confirmedAtUtc: string;
   timeZoneAtConfirmation: string;

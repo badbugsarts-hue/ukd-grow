@@ -18,24 +18,29 @@ test("run setup autosaves in IndexedDB and drives the cockpit", async ({
   page,
 }) => {
   await open(page, "setup");
-  await page.getByLabel("Genetik / Strain:").fill("Test Genetic 2026");
-  await page.getByLabel("Run Name:").fill("Test Run");
-  await page.getByLabel("Quell-pH:").fill("7.2");
-  await page.getByLabel("Quell-EC (mS/cm):").fill("0.3");
-  await page.getByLabel("Calcium (mg/L):").fill("60");
-  await page.getByLabel("Magnesium (mg/L):").fill("20");
-  await page.getByLabel("Medium:").selectOption("Erde");
-  await page.getByLabel("Topfvolumen (L):").fill("11");
-  await page.getByLabel("Max. Lampenleistung (W):").fill("140");
-  await page.getByLabel("Photoperiode (Stunden/Tag):").fill("18");
-  await page.getByLabel("Breite (cm):").fill("60");
-  await page.getByLabel("Tiefe (cm):").fill("60");
-  await page.getByLabel("Höhe (cm):").fill("180");
+  await page
+    .getByLabel(/Genetik \/ Strain Name/)
+    .first()
+    .fill("Test Genetic 2026");
+  await page.locator("#rcp-run-name").fill("Test Run");
+  await page.locator("#rcp-water-ph").fill("7.2");
+  await page.locator("#rcp-water-ec").fill("0.3");
+  await page.locator("#rcp-water-ca").fill("60");
+  await page.locator("#rcp-water-mg").fill("20");
+  await page.locator("#rcp-medium").selectOption("Erde");
+  await page.locator("#rcp-pot-volume").fill("11");
+  await page.locator("#rcp-led-max-w").fill("140");
+  await page.locator("#rcp-light-hours").fill("18");
+  await page.locator("#rcp-tent-width").fill("60");
+  await page.locator("#rcp-tent-depth").fill("60");
+  await page.locator("#rcp-tent-height").fill("180");
   await page.getByRole("button", { name: /Run Aktivieren/i }).click();
   await expect(page.getByText(/Run bereits aktiv/i)).toBeVisible();
   await page.waitForTimeout(500);
   await page.reload();
-  await expect(page.getByLabel("Genetik / Strain:")).toHaveValue("Test Genetic 2026");
+  await expect(page.getByLabel(/Genetik \/ Strain Name/).first()).toHaveValue(
+    "Test Genetic 2026",
+  );
   await open(page, "cockpit");
   await expect(page.getByText("Test Genetic 2026")).toBeVisible();
   await expect(page.getByText("Wasserchemie").locator("..")).toContainText(
@@ -98,15 +103,13 @@ test("run repository creates and switches immutable local runs", async ({
     page.getByRole("heading", { name: "Versionierte Runs" }),
   ).toBeVisible();
   await page.waitForTimeout(500);
-  const cards = page.locator(".run-history-grid article");
+  const cards = page.locator(".run-list article");
   await expect(cards).toHaveCount(1);
   await page.getByRole("button", { name: "Neuen Run-Entwurf anlegen" }).click();
   await expect(cards).toHaveCount(2);
-  await expect(page.locator(".run-history-grid article.active")).toContainText(
-    "DRAFT",
-  );
+  await expect(page.locator(".run-list article.active")).toContainText("DRAFT");
   await page.getByRole("button", { name: "Run öffnen" }).first().click();
-  await expect(page.locator(".run-history-grid article.active")).toContainText(
+  await expect(page.locator(".run-list article.active")).toContainText(
     /DRAFT|ACTIVE/,
   );
 });
@@ -115,16 +118,22 @@ test("today checklist persists across navigation and reload", async ({
   page,
 }) => {
   await open(page, "today");
-  await page.getByRole("button", { name: "Schritt 3: Maßnahmen & Bestätigung" }).click();
+  await page
+    .getByRole("button", { name: "Schritt 3: Maßnahmen & Bestätigung" })
+    .click();
   const task = page.getByLabel("Zelt-Klima & Sensoren pruefen");
   await task.check();
   await open(page, "cockpit");
   await open(page, "today");
-  await page.getByRole("button", { name: "Schritt 3: Maßnahmen & Bestätigung" }).click();
+  await page
+    .getByRole("button", { name: "Schritt 3: Maßnahmen & Bestätigung" })
+    .click();
   await expect(page.getByLabel("Zelt-Klima & Sensoren pruefen")).toBeChecked();
   await page.waitForTimeout(500);
   await page.reload();
-  await page.getByRole("button", { name: "Schritt 3: Maßnahmen & Bestätigung" }).click();
+  await page
+    .getByRole("button", { name: "Schritt 3: Maßnahmen & Bestätigung" })
+    .click();
   await expect(page.getByLabel("Zelt-Klima & Sensoren pruefen")).toBeChecked();
 });
 
@@ -156,12 +165,12 @@ test("all report formats download and invalid restore is rejected", async ({
       validBackupPath = savedPath;
       const envelope = JSON.parse(readFileSync(savedPath, "utf8"));
       expect(envelope.appVersion).toBe("8.0.0");
-			expect(envelope.runSchemaVersion).toBe("6.0.0");
+      expect(envelope.runSchemaVersion).toBe("6.0.0");
     }
     if (extension === ".xlsx" && savedPath) {
-	  const exceljs = await import("exceljs");
-	  const WorkbookConstructor = exceljs.Workbook ?? exceljs.default.Workbook;
-	  const workbook = new WorkbookConstructor();
+      const exceljs = await import("exceljs");
+      const WorkbookConstructor = exceljs.Workbook ?? exceljs.default.Workbook;
+      const workbook = new WorkbookConstructor();
       await workbook.xlsx.load(readFileSync(savedPath));
       expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual(
         expect.arrayContaining([
@@ -180,8 +189,7 @@ test("all report formats download and invalid restore is rejected", async ({
       );
       const observationHeaders = workbook
         .getWorksheet("Observations")
-        ?.getRow(1)
-        .values;
+        ?.getRow(1).values;
       expect(observationHeaders).toEqual(
         expect.arrayContaining([
           "waterLiters",
@@ -215,7 +223,9 @@ test("P0 operations use state machines and persist through the command gateway",
   await page.getByLabel("Ort").fill("Canopy links");
   await page.getByRole("button", { name: "Inspektion speichern" }).click();
   await expect(page.getByText("Blattunterseite auffällig")).toBeVisible();
-  await page.getByRole("button", { name: "Nächsten Status bestätigen" }).click();
+  await page
+    .getByRole("button", { name: "Nächsten Status bestätigen" })
+    .click();
   await expect(page.getByText(/MONITORING/)).toBeVisible();
 
   await open(page, "incidents");
@@ -270,7 +280,9 @@ test("system verifies the canonical hash and stores accessibility settings", asy
 }) => {
   await open(page, "system");
   await page.getByRole("button", { name: "Workbook verifizieren" }).click();
-  await expect(page.locator(".system-status-grid").first()).toContainText("VALID");
+  await expect(page.locator(".system-status-grid").first()).toContainText(
+    "VALID",
+  );
   await page.getByRole("button", { name: "Hoher Kontrast" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-contrast", "high");
   await page.getByRole("button", { name: "Text 115 %" }).click();
@@ -364,34 +376,52 @@ test("dialogs trap and restore focus and question marks remain editable", async 
   await expect(notes).toHaveValue("Warum?");
 });
 
-test("file connector validates, previews and commits measurements as unverified", async ({ page }) => {
+test("file connector validates, previews and commits measurements as unverified", async ({
+  page,
+}) => {
   await open(page, "connector");
   await page.locator('input[type="file"]').setInputFiles({
     name: "measurements.csv",
     mimeType: "text/csv",
-    buffer: Buffer.from([
-      "timestamp,metric,value,unit,deviceId,source",
-      "2026-08-18T10:00:00Z,water.ec,1.2,mS/cm,ec-meter-1,manual-export",
-    ].join("\n")),
+    buffer: Buffer.from(
+      [
+        "timestamp,metric,value,unit,deviceId,source",
+        "2026-08-18T10:00:00Z,water.ec,1.2,mS/cm,ec-meter-1,manual-export",
+      ].join("\n"),
+    ),
   });
   await page.getByRole("button", { name: "Validieren & Vorschau" }).click();
-  await expect(page.getByText("Schema- und Einheitenprüfung bestanden.")).toBeVisible();
-  await page.getByRole("button", { name: "Validierten Batch übernehmen" }).click();
-  await expect(page.getByText("1 Messwerte wurden als unverified übernommen.")).toBeVisible();
+  await expect(
+    page.getByText("Schema- und Einheitenprüfung bestanden."),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Validierten Batch übernehmen" })
+    .click();
+  await expect(
+    page.getByText("1 Messwerte wurden als unverified übernommen."),
+  ).toBeVisible();
   await open(page, "log");
   await expect(page.getByText(/Messdatei importiert/).first()).toBeVisible();
 });
 
-test("setup profiles create a new immutable run draft without replacing history", async ({ page }) => {
+test("setup profiles create a new immutable run draft without replacing history", async ({
+  page,
+}) => {
   await open(page, "profiles");
   await page.getByLabel("Profilname").fill("60x60 Reference");
   await page.getByRole("button", { name: "Setup-Profil speichern" }).click();
-  await expect(page.getByText("Setup-Profil versioniert gespeichert.")).toBeVisible();
+  await expect(
+    page.getByText("Setup-Profil versioniert gespeichert."),
+  ).toBeVisible();
   await page.getByLabel("Templatename").fill("Double Grape Template");
   await page.getByRole("button", { name: "Template speichern" }).click();
   await expect(page.getByText(/Run-Template gespeichert/)).toBeVisible();
-  await page.getByRole("button", { name: "Neuen Run-Entwurf erstellen" }).click();
+  await page
+    .getByRole("button", { name: "Neuen Run-Entwurf erstellen" })
+    .click();
   await expect(page.getByText(/Neuer Entwurf/)).toBeVisible();
   await open(page, "history");
-  await expect(page.getByRole("region", { name: "Gespeicherte Runs" }).locator("article")).toHaveCount(2);
+  await expect(
+    page.getByRole("region", { name: "Gespeicherte Runs" }).locator("article"),
+  ).toHaveCount(2);
 });

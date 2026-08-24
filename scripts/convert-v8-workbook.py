@@ -20,7 +20,7 @@ def get_file_sha256(filepath):
 
 def main():
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    input_file = os.path.join(root_dir, 'UKD_Grow_Masterplan_Elite_2026_v8_OWNED_STOCK_HESI_AN.xlsx')
+    input_file = os.path.join(root_dir, 'plan', 'UKD_Grow_Masterplan_Elite_2026_v8_OWNED_STOCK_HESI_AN.xlsx')
     output_file = os.path.join(root_dir, 'public', 'data', 'evidence-guarded-workbook-v8.json')
 
     print(f"Loading workbook: {input_file}")

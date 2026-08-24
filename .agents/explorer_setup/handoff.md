@@ -64,6 +64,7 @@
 The current Setup view provides a solid foundation with its fail-closed Readiness Gate and core inputs, but suffers from significant parameter visibility and persistence gaps, an orphaned genetics cockpit, and a lack of retroactive milestone and live mode controls.
 
 We have produced a comprehensive architectural blueprint in `c:\Users\badbu\Documents\grow\.agents\explorer_setup\report.md` detailing:
+
 1. Complete configured vs. visible vs. editable parameter matrix.
 2. Full specification of missing UKD setup elements (ventilation persistence, AKF matching, target VPD envelopes, dryback tare weights, substrate mix ratios, advanced water ions, KCanG compliance).
 3. 2026 Master Class UI layout design with 8 categorized cards, Progressive Disclosure per Experience Lens (Guided/Advanced/Expert), and German terminology.
@@ -74,6 +75,7 @@ We have produced a comprehensive architectural blueprint in `c:\Users\badbu\Docu
 ## 5. Verification Method
 
 To verify the investigation findings and test future implementations:
+
 1. **Source Code Inspection**:
    - Inspect `src/components/panels/RunConfigPanel.tsx` (lines 116, 343–849) to confirm missing fields and transient `exhaustM3h` state.
    - Inspect `src/App.tsx` (lines 1619–1626, 1696) to confirm routing of `RunConfigPanel` and orphaning of `AutoflowerCockpitPanel`.

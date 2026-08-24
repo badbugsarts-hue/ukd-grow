@@ -1,14 +1,18 @@
-# Progress Log - Challenger 1
+# Progress — challenger_1
 
-**Last visited**: 2026-08-21T03:09:50Z
-**Current status**: Mission Complete — Handoff delivered with REQUEST_CHANGES verdict
+Last visited: 2026-08-22T08:38:00Z
 
-## Completed Steps
 - [x] Initialized DISPATCH.md and BRIEFING.md
-- [x] Inspected source files (`RunConfigPanel.tsx`, `run-state.ts`, `domain.ts`, `types.ts`, `live-run.ts`)
-- [x] Designed and authored adversarial test suite in `src/challenger-setup-stress.test.tsx` (32 tests across 4 pillars)
-- [x] Ran vitest test suite: 32/32 passing in `src/challenger-setup-stress.test.tsx`, 485/485 passing in full repo
-- [x] Ran typecheck and build: caught TS2339 in `src/components/panels/RunConfigPanel.tsx:187`
-- [x] Generated detailed empirical report in `c:\Users\badbu\Documents\grow\.agents\challenger_1\report.md`
-- [x] Generated 5-component handoff report with verdict `REQUEST_CHANGES` in `c:\Users\badbu\Documents\grow\.agents\challenger_1\handoff.md`
-- [x] Updated BRIEFING.md
+- [x] Read ORIGINAL_REQUEST.md and PROJECT.md
+- [x] Run `pnpm lint` / `npm run lint` (Passed: exit 0, 100 files checked)
+- [x] Run `pnpm typecheck` / `npm run typecheck` (Passed: exit 0, 0 TS errors)
+- [x] Run `npm test` (vitest run) (Failed: exit 1, 535 passed / 3 failed in `src/challenger-inplace-prediction-stress.test.tsx`)
+- [x] Run `pnpm test:ui-contracts` (Passed: exit 0)
+- [x] Run `pnpm test:content` (Passed: exit 0, 28 claims, 40 sources, 55 findings)
+- [x] Run `pnpm test:budget` (Passed: exit 0, 368.5 kB bundle < 450 kB)
+- [x] Run `pnpm build` (Passed: exit 0, all production bundles generated)
+- [x] Run `node scripts/scan-secrets.mjs` (Passed: exit 0, 763 files checked)
+- [x] Run `pnpm release:metadata` (Passed: exit 0, 351 packages, 0 unresolved licenses)
+- [x] Run workspace tests & e2e (Discovered timeout in `@ukd/api` and heading collision in e2e)
+- [x] Generate handoff.md with complete empirical findings and REQUEST_CHANGES verdict
+- [ ] Send message back to parent

@@ -1,9 +1,11 @@
 ## 2026-08-21T02:36:19Z
+
 You are a Worker agent implementing Milestone 4: App Shell Global Integration, Dynamic Plan Recalculation & Testing Gate for the UKD Grow Masterplan project.
 Your Working Directory is: c:\Users\badbu\Documents\grow\.agents\worker_m4
 Project Root: c:\Users\badbu\Documents\grow
 
 Read:
+
 - c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md
 - c:\Users\badbu\Documents\grow\AGENTS.md
 - c:\Users\badbu\Documents\grow\PROJECT.md
@@ -19,10 +21,12 @@ DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results,
 
 File Write Boundaries:
 You EXCLUSIVELY own:
+
 - `src/App.tsx`
 - Any related App tests (e.g. `src/App.test.tsx`, `tests/e2e/`, etc.)
 
 Your Tasks:
+
 1. Integrate the Global Live vs. Simulation Mode Switch & Indicator in `src/App.tsx`:
    - Add a prominent, styled segmented switch or toggle button in the App Topbar / Header (visible across all views).
    - Shows current mode:

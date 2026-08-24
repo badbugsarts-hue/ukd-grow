@@ -1,10 +1,10 @@
 {
   "schemaVersion": "3.0.0",
   "project": "UKD Grow Masterplan 2026",
-  "release": "v8 Elite OWNED STOCK HESI AN",
+  "release": "v11.5 Mixed Auto 3×9L · App-aligned 2026-08-24",
   "locale": "de-DE",
   "canonicalData": {
-    "operational": "evidence-guarded-workbook-v8.json / 02_Daily_Master",
+    "operational": "evidence-guarded-workbook-v11_5.json / 02_Daily_Master",
     "legacy": "legacy-workbook.json / Alle anderen Sheets",
     "knowledge": "knowledge-base.json",
     "rules": "skills.json",
@@ -44,7 +44,15 @@
     "Backups mutieren keinen aktiven Run, bevor SHA-256-Integrität und Schema vollständig validiert sind.",
     "Feature Flags dürfen keine wissenschaftlichen Sollwerte, Evidenzstände, Formeln oder Safety-Gates verändern.",
     "Diagnose-Bundles enthalten standardmäßig keine Messwerte, Freitexte, Rechtsprofile oder Secrets.",
-    "AI erklärt deterministische Regeln und Quellen; sie ersetzt weder Domain Engine noch Safety Gate."
+    "AI erklärt deterministische Regeln und Quellen; sie ersetzt weder Domain Engine noch Safety Gate.",
+    "Ein positiver Tages- oder Wochenwert ist nur Eligibility; ohne realen Gießbedarf, bestätigte Nährstoffaufnahme und Root-Zone-Freigabe wird keine Anwendung erzeugt.",
+    "Mixed Runs werden pro Pflanze aufgelöst. Ohne bestätigte FlowerInitiation bleibt der Bloom-/PK-Wechsel gesperrt; ein Kalenderdatum ist nur Forecast.",
+    "EC- und pH-Korrekturmengen benötigen eine produkt- und wasserspezifische Testbatch-Titration; generische Säure- oder Düngerkoeffizienten sind verboten.",
+    "Ein Mulder-Diagramm oder fixes Ca:Mg-Verhältnis autorisiert weder Diagnose noch Dosiskorrektur; Wasser-, Rezept-, Verlauf- und Messkontext sind erforderlich.",
+    "VPD ist ein abgeleiteter Kontextwert. Phasenkorridore sind keine alleinige Diagnose, kein Aktor-Soll und kein Beweis für gestoppten Nährstofftransport.",
+    "Ein Low-Light- oder Grün-Theme darf nur Blendung reduzieren und niemals als biologisch sichere Dunkelphasenbeleuchtung dargestellt werden.",
+    "WCAG 2.2 AA ist das prüfbare Release-Ziel; WCAG 3 und APCA bleiben bis zur Standardisierung beobachtete Forschungsrichtungen.",
+    "NFC, BLE, Bild-KI und Sprache benötigen Capability-, Datenschutz-, Trust- und Fallback-Gates; ihre bloße API- oder Modellverfügbarkeit ist keine produktive Fähigkeit."
   ],
   "responsePolicy": {
     "beginner": "Begriffe erklären, sichere nächste Aktion nennen, Unsicherheit sichtbar halten.",
@@ -68,5 +76,5 @@
     "Getrennte Bestände aus Eigenanbau und Apothekenabgabe",
     "Genetik-/Photoperiodstatus"
   ],
-  "updatedAt": "2026-08-09"
+  "updatedAt": "2026-08-24"
 }

@@ -27,7 +27,7 @@ Diese Dateien sind Belege, aber noch keine kryptografisch signierte SLSA-Attesta
 
 ## Kompatibilität
 
-- RunPackage v1, v2 und v3 werden nach v4 migriert.
+- RunPackage v1 bis v5 werden nach v6 migriert.
 - Eine Migration ist append-only nachvollziehbar und mutiert den aktiven Run erst nach vollständiger Validierung.
 - Downgrades sind nicht implizit garantiert. Vor inkompatiblen Änderungen wird ein verifiziertes Backup verlangt.
 - Ein Schema wird mindestens einen stabilen Release-Zyklus nach der Ablösung lesbar gehalten.

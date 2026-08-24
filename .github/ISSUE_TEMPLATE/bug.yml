@@ -1,0 +1,46 @@
+name: Fehlerbericht
+description: Reproduzierbaren Funktions-, Daten- oder UI-Fehler melden
+title: "[Bug] "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: "Keine persönlichen, medizinischen, rechtlichen oder Recovery-Daten einfügen. Sicherheitslücken bitte vertraulich nach SECURITY.md melden."
+  - type: input
+    id: version
+    attributes:
+      label: Version / Commit
+      placeholder: v11.5.0 oder Commit-SHA
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduktion
+      description: Route, Linse, Modus, Eingaben und genaue Schritte
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Erwartetes Verhalten
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Beobachtetes Verhalten
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Auswirkung
+      options:
+        - Datenintegrität / Recovery
+        - Fachliche Berechnung / Safety
+        - Bedienung / Accessibility
+        - Darstellung / Performance
+        - Dokumentation
+    validations:
+      required: true

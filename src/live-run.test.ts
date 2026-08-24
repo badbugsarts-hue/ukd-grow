@@ -78,6 +78,24 @@ describe("Live-Run", () => {
     ).toBe(1);
   });
 
+  it("zählt den realen Live-Tag über das 81-Tage-Planfenster hinaus weiter", () => {
+    const run = createDefaultRunPackage(new Date("2026-01-01T00:00:00Z"));
+    const started = applyRunCommand(
+      run,
+      {
+        kind: "live.clone-and-start",
+        startedAtUtc: "2026-01-01T00:00:00Z",
+        anchorKind: "emergence",
+        timeZoneAtConfirmation: "Europe/Berlin",
+      },
+      new Date("2026-01-01T00:00:00Z"),
+    );
+    if (!started.ok) throw new Error("clone failed");
+    expect(
+      evaluateLiveClock(started.value, new Date("2026-04-02T00:00:00Z")).day,
+    ).toBe(91);
+  });
+
   it("blockiert bei Zeit vor Anker und migriert v5 als Simulation", () => {
     const run = createDefaultRunPackage(new Date("2026-08-20T10:00:00Z"));
     const started = applyRunCommand(

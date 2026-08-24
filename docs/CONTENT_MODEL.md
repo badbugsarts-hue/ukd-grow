@@ -15,11 +15,11 @@ type Workbook = Record<
 
 `02_Daily_Master` ist die operative Tagesquelle. Spalten werden ausschließlich über `DAILY_COLUMNS` in `src/domain.ts` adressiert.
 
-## RunPackage v4
+## RunPackage v6
 
-Persönliche Run-Daten liegen außerhalb des EvidenceStore. Ein Run enthält einen unveränderlichen `RunConfigurationSnapshot`, Zonen, Pflanzen, typisierte `ScientificValue`-Messungen, Lineage, Geräte, Kalibrierungen, strukturierte Beobachtungen, Tasks, Overrides, Domain Events und append-only AuditEvents. v4 ergänzt Pflanzen-/Wachstumsereignisse, Bewässerung, Mix-Chargen, Reservoir, Equipment/Wartung, Lung Room, IPM, Incidents, Post-Harvest, Energie, Cultivar-Profile, Produktinventar und Nährstoffsystemprofile. Nicht alle v4-Typen besitzen bereits eine operative UI; der Status steht im App-Audit.
+Persönliche Run-Daten liegen außerhalb des EvidenceStore. Ein Run enthält einen unveränderlichen `RunConfigurationSnapshot`, Zonen, Pflanzen, typisierte `ScientificValue`-Messungen, Lineage, Geräte, Kalibrierungen, strukturierte Beobachtungen, Tasks, Overrides, Domain Events und append-only AuditEvents. v4 ergänzte die operativen Scientific-Operations-Entitäten, v5 Revisions-/Supersession- und Medienverträge. v6 trennt Simulation und Live-Aggregat und ergänzt Live-Anker, Ankerrevision, Clock-Health und Backupstatus.
 
-`RunRepository` abstrahiert Speicherung, Auflistung und Auswahl mehrerer Runs. Die aktuelle Implementierung nutzt IndexedDB-Schema 4. Unterstützte Altschemata werden beim Lesen kontrolliert nach v4 migriert. Das materialisierte RunPackage dient dem schnellen Offlinebetrieb; das Domain-Event-Log macht Zustandsänderungen reproduzierbar.
+`RunRepository` abstrahiert Speicherung, Auflistung und Auswahl mehrerer Runs. Die aktuelle Implementierung nutzt IndexedDB-Schema 8. Unterstützte RunPackage-v1–v5-Schemata werden beim Lesen kontrolliert nach v6 migriert. Das materialisierte RunPackage dient dem schnellen Offlinebetrieb; das Domain-Event-Log macht Zustandsänderungen reproduzierbar.
 
 ## Knowledge claim
 

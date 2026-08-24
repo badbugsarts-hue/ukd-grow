@@ -11,7 +11,7 @@
 
 ## Automatisiert
 
-`pnpm check` führt Lint, TypeScript, Unit-Tests, Inhalts-/Quellenprüfung, Security, Produktionsbuild, Bundlebudgets, Release-Metadaten und Playwright-E2E aus. Die Tests verifizieren DLI, Leaf-VPD, Excel-Datum, Batchskalierung, RunPackage-v4-Persistenz und v8-Export. Axe prüft 25 Ansichten in Dark und Light sowie mehrstufige Editierdialoge auf Desktop und Mobile gegen WCAG-2-A/AA-, WCAG-2.1- und WCAG-2.2-AA-Regelsätze. Der aktuelle Audit steht in [COMPLETE_APP_AUDIT_2026-08-16.md](COMPLETE_APP_AUDIT_2026-08-16.md).
+`pnpm check` führt Lint, TypeScript, Unit-Tests, Inhalts-/Quellenprüfung, Security, Produktionsbuild, Bundlebudgets, Release-Metadaten und Playwright-E2E aus. Die Tests verifizieren unter anderem DLI, Leaf-VPD, Excel-Datum, Batchskalierung, RunPackage-v6-Persistenz/Migration, Live-Uhr, AI-Austausch und Workspace-Backup. Axe und Visual Regression prüfen die aktiven Routen in Dark/Light auf Desktop/Mobile; kritische Flows laufen zusätzlich in Firefox und WebKit. Der aktuelle Audit steht in [COMPLETE_APP_AUDIT_2026-08-16.md](COMPLETE_APP_AUDIT_2026-08-16.md).
 
 Automatisierte Axe-Prüfungen sind ein Gate, aber kein vollständiger WCAG-Konformitätsnachweis. Tastatur, Fokusführung, Zoom/Reflow, verständliche Beschriftung und Screenreader-Nutzung bleiben manuelle Release-Prüfungen.
 
@@ -31,6 +31,7 @@ Vor Release prüfen:
 4. 390×844, Tablet, 1440×900 und breiter Desktop.
 5. Cockpit, Mischlabor, Knowledge Claim, Raw Formula Toggle.
 6. Browserkonsole ohne Fehler.
+
 # UI-Readiness-Audit (20. August 2026)
 
 - Gemeinsame Modal-Infrastruktur erzwingt Fokusfalle, Escape-Schließen, Scroll-Lock und explizite Fokusrückgabe.
@@ -40,4 +41,4 @@ Vor Release prüfen:
 - Die horizontal scrollbare Fütterungsmatrix ist eine benannte, tastaturfokussierbare Region.
 - Chromium Desktop/Mobile sowie die kritischen Live-, AI-, Backup-, Dialog- und Nährstoff-A11Y-Flows wurden zusätzlich in Firefox und WebKit geprüft.
 
-Der monolithische Firefox-Gesamtlauf ist auf dem aktuellen Windows-Headless-Host noch kein Stable-Gate: Playwright protokollierte einen `RenderCompositorSWGL`-Framebuffer-Absturz. Der betroffene UKD-Test besteht isoliert; die CI sollte Firefox/WebKit deshalb in getrennten Jobs mit begrenzter Parallelität ausführen.
+GitHub Actions führt Core, Chromium Desktop/Mobile, Firefox, WebKit und Windows-Visual-Regression in getrennten Jobs aus. Das reduziert ressourcenbedingte Browser-Flakes, ohne einen Browser oder das visuelle Gate aus der Freigabe zu entfernen.

@@ -1,58 +1,69 @@
-# BRIEFING — 2026-08-21T02:15:00Z
+# BRIEFING — 2026-08-22T05:42:30+02:00
 
 ## Mission
-Implement Milestone 1: Data Models, Storage & State Engine for UKD Grow Masterplan (61-strain dataset, types, state machine updates, live clock integration, unit tests).
+
+Implement core live prediction engine and in-place editing UI primitives for Milestone 1.
 
 ## 🔒 My Identity
-- Archetype: implementer
+
+- Archetype: worker
 - Roles: implementer, qa, specialist
-- Working directory: c:\Users\badbu\Documents\grow\.agents\worker_m1
-- Original parent: f405ce39-450a-4cb1-bc3b-d8f617d532f0
-- Milestone: Milestone 1 - Data Models, Storage & State Engine
+- Working directory: C:\Users\badbu\Documents\grow\.agents\worker_m1
+- Original parent: be3893a9-44d5-47ef-b492-5725ea9951b0
+- Milestone: M1 (Core Prediction Engine & In-Place Editing Primitives)
 
 ## 🔒 Key Constraints
-- Messwert und Pflanzenreaktion überschreiben Kalenderwerte.
-- Aktive Run-Snapshots nicht mutieren; Korrekturen und Overrides ausschließlich append-only mit Grund und AuditEvent speichern.
-- Sollwert, Messwert, Simulation, fehlender Wert und veralteter Wert dürfen in Typen und UI nicht zusammenfallen.
-- Feature Flags dürfen keine fachliche Wahrheit, Evidenz, Formel oder Safety-Gates variieren.
-- Keine Fake-Implementierungen oder Hardcoding von Testergebnissen.
+
+- Pure in-memory calculations (<5ms latency) without blocking event loop.
+- No dummy/facade implementations or hardcoded test strings.
+- Full keyboard accessibility (Enter/Esc/Tab/Arrows) and >=44px mobile touch targets.
+- Immutability of canonical EvidenceStore and RunPackage active snapshots.
 
 ## Current Parent
-- Conversation ID: f405ce39-450a-4cb1-bc3b-d8f617d532f0
-- Updated: 2026-08-21T02:15:00Z
+
+- Conversation ID: be3893a9-44d5-47ef-b492-5725ea9951b0
+- Updated: 2026-08-22T05:42:30+02:00
 
 ## Task Summary
-- **What to build**:
-  1. Updated `src/data/autoflower-cockpit.json` with canonical 61-strain dataset from `extracted_plant_data.json` (50 Jungpflanzen, 11 Saatgut).
-  2. Updated `src/types.ts` with `AutoflowerStrain`, `PlantProvenance`, `ExperienceLevel`, `MoldResistanceRating`, `NutrientFeedTolerance`, `CultivarType`, `CultivarKind`, `PlantMilestones`, `exhaustM3h` in `RunConfig` and `EquipmentProfile`, and milestone dates in `PlantIdentity`.
-  3. Implemented `updateExecutionMode` and `updatePlantMilestones` in `src/run-state.ts` with complete audit and domain event tracking.
-  4. Verified `src/domain.ts` and `src/live-run.ts` compatibility, added `germinationDays` derivation in `calculateBiologicalPlantAge`.
-  5. Adapted `src/components/panels/AutoflowerCockpitPanel.tsx` for new schema.
-  6. Added comprehensive unit tests in `src/run-state.test.ts`.
-- **Success criteria**: 391/391 tests passing, 0 TypeScript errors, 0 Biome lint issues.
+
+- **What to build**: Expanded `prediction-engine.ts`, `InlineEditable.tsx`, `InlineMetricCard.tsx`, plus test suites.
+- **Success criteria**: All calculations pass unit tests, pure in-memory execution, typecheck and test suites clean.
+- **Interface contracts**: `.agents/PROJECT.md` § Interface Contracts
+- **Code layout**: `.agents/PROJECT.md` § Code Layout
 
 ## Key Decisions Made
-- All growth events for `seed-planted` and `emergence` are recorded in `run.growthEvents` with confirmed status.
-- `updatePlantMilestones` adjusts `plants[0].identity` milestone fields, sets canonical `config.startDate` and `config.dayZeroAnchor`, records `LiveAnchorRevision` in `run.anchorRevisions` if live mode is active, and refreshes `clockHealth`.
-- `updateExecutionMode` handles seamless transitioning between `"simulation"` and `"live"`, auto-provisioning `liveAnchor` if entering live mode for the first time.
+
+- Implemented pure Magnus-Tetens formula for leaf and air VPD calculations with customizable leaf offset (default -1.0°C).
+- Unified `getLiveFieldSuggestions` for genetics (fuzzy catalog lookup), PPFD, DLI, Temp, RH, Leaf-VPD, EC, pH, Pot Weight, and Run Name.
+- Built accessible `InlineEditable` with `minHeight: 44px`, ARIA listbox popover, keyboard support, and validation.
+- Built `InlineMetricCard` with Ist/Soll tab switching and TermTooltip integration.
+- Added full CSS contracts for `.inline-editable` and `.inline-metric-card` in `src/styles.css`.
 
 ## Artifact Index
-- `.agents/worker_m1/DISPATCH.md` — Assignment
-- `.agents/worker_m1/progress.md` — Progress tracker
-- `.agents/worker_m1/handoff.md` — Handoff report
+
+- `src/prediction-engine.ts` — Expanded live prediction & calculation engine
+- `src/prediction-engine.test.ts` — Comprehensive unit tests (26 test cases)
+- `src/components/common/InlineEditable.tsx` — Interactive in-place edit component
+- `src/components/common/InlineMetricCard.tsx` — Metric card with quick-edit & Ist/Soll support
+- `src/components/common/InlineEditable.test.tsx` — UI primitive unit tests (8 test cases)
+- `src/components/common/index.ts` — Common exports
+- `src/styles.css` — CSS classes for in-place edit primitives
 
 ## Change Tracker
+
 - **Files modified**:
-  - `src/data/autoflower-cockpit.json`: canonical 61 cultivars
-  - `src/types.ts`: `AutoflowerStrain`, `PlantMilestones`, `exhaustM3h`, `PlantIdentity` dates
-  - `src/run-state.ts`: `updateExecutionMode`, `updatePlantMilestones`
-  - `src/domain.ts`: `calculateBiologicalPlantAge` with `seed-planted` and `germinationDays`
-  - `src/components/panels/AutoflowerCockpitPanel.tsx`: typed against 61-strain dataset
-  - `src/run-state.test.ts`: 5 new comprehensive test cases (mode toggling, milestone dynamic age/clock recalculation, dataset schema validation)
-- **Build status**: PASS (all 36 test suites, 391 unit tests passing, tsc passing, biome lint passing)
-- **Pending issues**: None
+  - `src/prediction-engine.ts`: Added genetics fuzzy search, emergence predictor, environmental corridors, Magnus-Tetens VPD, nutrient titration, dryback duration, and live field suggestions hook.
+  - `src/components/common/InlineEditable.tsx`: Created in-place edit component with live popover suggestions, touch targets, and validation.
+  - `src/components/common/InlineMetricCard.tsx`: Created metric card supporting quick measurement logging and target edits.
+  - `src/components/common/index.ts`: Exported new components.
+  - `src/styles.css`: Added CSS rules for `.inline-editable` and `.inline-metric-card`.
+  - `src/prediction-engine.test.ts`: Added 26 unit tests covering all calculation paths.
+  - `src/components/common/InlineEditable.test.tsx`: Added 8 unit tests covering rendering, validation, and interaction.
+- **Build status**: Typecheck PASS; Unit tests (34/34 M1 tests pass).
+- **Pending issues**: None for M1.
 
 ## Quality Status
-- **Build/test result**: 391 tests passed across 36 test files
-- **Lint status**: 0 violations across 89 files
-- **Tests added/modified**: 5 new test cases in `src/run-state.test.ts`
+
+- **Build/test result**: PASS (34 tests passed in 0.16s).
+- **Lint status**: Ready for linting.
+- **Tests added/modified**: 34 new tests across 2 test files.

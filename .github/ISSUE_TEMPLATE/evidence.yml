@@ -1,0 +1,37 @@
+name: Evidenz- oder Planänderung
+description: Claim, Quelle, Formel oder operative Planangabe zur Prüfung einreichen
+title: "[Evidence] "
+labels: [evidence-review, triage]
+body:
+  - type: input
+    id: claim
+    attributes:
+      label: Betroffener Claim / Rule / Sheet
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Aktueller Stand und behauptetes Problem
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope und Übertragbarkeit
+      description: Medium, Genetik, Phase, System, Population und Grenzen
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Primärquellen
+      description: Direkte URLs, Dokumentversion und relevante Fundstelle
+    validations:
+      required: true
+  - type: textarea
+    id: uncertainty
+    attributes:
+      label: Unsicherheit, Konflikte und gewünschte Änderung
+    validations:
+      required: true

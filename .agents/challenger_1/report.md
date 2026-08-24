@@ -10,12 +10,14 @@
 ## 1. Executive Summary
 
 As Challenger 1, an empirical, code-executing adversarial stress test suite was created and executed in `src/challenger-setup-stress.test.tsx`. The suite covers 32 targeted adversarial scenarios across 4 core pillars:
+
 1. Extreme, zero, negative, and boundary inputs for tent geometry, ventilation, and lighting.
 2. Substrate dryback tare calculations ($M_{sat} \le M_{empty}$, missing, equal, inverted tare weights, overflow).
 3. Rapid mode oscillation (Simulation $\leftrightarrow$ Live) verifying audit trail integrity, event uniqueness, and configuration immutability.
 4. Retroactive plant milestone adjustments (past, future, swapped potting/emergence dates, anchor revisions).
 
 ### Empirical Execution Results
+
 - **Vitest Unit & Stress Suite**: **485/485 passing** across 41 test files (including 32/32 passing in `src/challenger-setup-stress.test.tsx`).
 - **TypeScript Typecheck (`tsc -b`)**: **FAILED (1 error)**.
   - Location: `src/components/panels/RunConfigPanel.tsx:187:11`
@@ -27,6 +29,7 @@ As Challenger 1, an empirical, code-executing adversarial stress test suite was 
 ## 2. Findings & Adversarial Analysis
 
 ### 🚨 Finding 1 [BLOCKING]: Typecheck Error TS2339 in `RunConfigPanel.tsx`
+
 - **Location**: `src/components/panels/RunConfigPanel.tsx`, line 187.
 - **Code snippet**:
   ```typescript
@@ -48,6 +51,7 @@ As Challenger 1, an empirical, code-executing adversarial stress test suite was 
 ---
 
 ### 🛡️ Finding 2 [ROBUST]: Tent Geometry, Lighting & Ventilation Boundary Handling
+
 - **Zero & Negative Dimensions**:
   - `tentWidthCm: 0, tentDepthCm: 0, tentHeightCm: 0` $\rightarrow$ correctly computes `tentAreaM2 = 0.00 m²`, `tentVolumeM3 = 0.00 m³`, plant density fallback `"—”`, turnover rate `0x/h` without throwing `NaN`, `Infinity`, or divide-by-zero errors.
   - Negative dimensions (`-60cm`) $\rightarrow$ correctly fail-closed in `calculateReadinessScore` (`isReady: false`, score $\le 80\%$, activation blocked).
@@ -68,6 +72,7 @@ As Challenger 1, an empirical, code-executing adversarial stress test suite was 
 ---
 
 ### 🛡️ Finding 3 [ROBUST]: Substrate Dryback Tare & Hydration Invariants
+
 - **Missing Tares**:
   - `emptyMassGrams === null` $\rightarrow$ `state: "INSUFFICIENT_DATA"`, `reason: "EMPTY_MASS_MISSING"`, `hydrationPercent: null`.
   - `saturatedMassGrams === null` $\rightarrow$ `state: "INSUFFICIENT_DATA"`, `reason: "SATURATION_REFERENCE_MISSING"`.
@@ -89,6 +94,7 @@ As Challenger 1, an empirical, code-executing adversarial stress test suite was 
 ---
 
 ### 🛡️ Finding 4 [ROBUST]: Rapid Live/Simulation Mode Toggling & Audit Trail
+
 - **Idempotency**:
   - `updateExecutionMode(run, "simulation")` on a simulation run returns the exact same object reference without redundant audit logs.
 - **Draft Activation**:
@@ -105,6 +111,7 @@ As Challenger 1, an empirical, code-executing adversarial stress test suite was 
 ---
 
 ### 🛡️ Finding 5 [ROBUST]: Retroactive Plant Milestones & Chronology Edge Cases
+
 - **Chronological Entry**:
   - Potting ($T_1$) and Emergence ($T_2 > T_1$) correctly record `seed-planted` and `emergence` growth events, deriving germination days ($T_2 - T_1$) and anchor date.
 - **Swapped Dates ($T_{emergence} < T_{potting}$)**:
@@ -125,6 +132,7 @@ The adversarial test suite is located at:
 `src/challenger-setup-stress.test.tsx`
 
 ### Test Breakdown (32/32 Passing)
+
 - **Group 1: Tent Dimensions, Lighting & Ventilation** (8 tests)
   - `Stress 1.1`: Zero tent dimensions handling $\rightarrow$ PASS
   - `Stress 1.2`: Negative tent dimensions fail-closed $\rightarrow$ PASS

@@ -16,7 +16,7 @@ const FIELD_GUIDANCE: Record<string, FieldGuidance> = {
       "Fehlt der Wert, zuerst messen; UKD erfindet keine Korrekturdosis.",
     uncertainty:
       "Messgerät, Temperatur und Kalibrierung bestimmen die Unsicherheit.",
-    sourceIds: ["hesi-coco-official"],
+    sourceIds: ["hesi-coco"],
   },
   "Ausgangs-EC": {
     concept: "EC",
@@ -24,7 +24,7 @@ const FIELD_GUIDANCE: Record<string, FieldGuidance> = {
     measurement: "Mit geprüftem EC-Meter und dokumentierter Temperatur messen.",
     recommendation: "Fehlt der Wert, zuerst messen.",
     uncertainty: "Geräteauflösung und Kalibrierstatus beachten.",
-    sourceIds: ["hesi-coco-official"],
+    sourceIds: ["hesi-coco"],
   },
   Calcium: {
     concept: "EC",
@@ -34,7 +34,7 @@ const FIELD_GUIDANCE: Record<string, FieldGuidance> = {
     recommendation:
       "Unbekannt lassen und Analyse beschaffen; keine CalMag-Dosis raten.",
     uncertainty: "Versorgerwerte können zeitlich schwanken.",
-    sourceIds: ["athena-balance-official"],
+    sourceIds: ["athena-balance-rate"],
   },
   Magnesium: {
     concept: "EC",
@@ -42,7 +42,7 @@ const FIELD_GUIDANCE: Record<string, FieldGuidance> = {
     measurement: "Versorgeranalyse oder Laboranalyse mit Datum erfassen.",
     recommendation: "Unbekannt lassen und Analyse beschaffen.",
     uncertainty: "Zeitpunkt und Probenquelle dokumentieren.",
-    sourceIds: ["athena-balance-official"],
+    sourceIds: ["athena-balance-rate"],
   },
   "HCO₃ / Alkalinität": {
     concept: "pH",
@@ -52,7 +52,7 @@ const FIELD_GUIDANCE: Record<string, FieldGuidance> = {
       "Vor chemieabhängigen Entscheidungen messen bzw. Analyse beschaffen.",
     uncertainty:
       "HCO₃ und Alkalinität nicht ohne Einheitenprüfung gleichsetzen.",
-    sourceIds: ["athena-balance-official"],
+    sourceIds: ["athena-balance-rate"],
   },
   Photoperiode: {
     concept: "DLI",
@@ -63,7 +63,7 @@ const FIELD_GUIDANCE: Record<string, FieldGuidance> = {
       "Den validierten Run-Preset verwenden und erst mit Messbasis ändern.",
     uncertainty:
       "Genetik, Phase und reale PPFD-Verteilung begrenzen die Übertragbarkeit.",
-    sourceIds: ["ukd-daily-master-v8"],
+    sourceIds: ["autoflower-prr-2024"],
   },
   "LED Maximum": {
     concept: "PPFD",
@@ -74,7 +74,78 @@ const FIELD_GUIDANCE: Record<string, FieldGuidance> = {
       "PPFD-Mapping hat Vorrang vor Watt- oder Abstandsschätzung.",
     uncertainty:
       "Fixture, Abstand, Reflexion und Messgerät beeinflussen das Ergebnis.",
-    sourceIds: ["ukd-climate-light-v8"],
+    sourceIds: ["rodriguez-morrison-2021"],
+  },
+  "Durchbruch / Emergence": {
+    concept: "BT",
+    explanation:
+      "Bestätigt den sichtbaren Durchbruch je einzelner Pflanze; Run Day und Plant Day bleiben getrennte Uhren.",
+    measurement:
+      "Datum/Uhrzeit je Plant ID beobachten und als bestätigtes Ereignis speichern.",
+    recommendation:
+      "Nicht aus einer Breeder-Zeitangabe oder dem Aussaatdatum schätzen.",
+    uncertainty:
+      "Ein später bestätigtes Ereignis kann append-only korrigiert werden.",
+    sourceIds: ["autoflower-prr-2024"],
+  },
+  "Nährstoffaufnahme bereit": {
+    concept: "EC",
+    explanation:
+      "Fachliches Gate für den Wechsel von Saatreserve/Propagation zu einem Basisfeed.",
+    measurement:
+      "Keimblattzustand, echte Blätter, Wurzelentwicklung und Medium gemeinsam prüfen.",
+    recommendation:
+      "Fehlt die Bestätigung, Basisdünger nicht nur wegen des Kalendertags freigeben.",
+    uncertainty:
+      "First true leaves sind nur ein beobachtbarer Proxy und nicht identisch mit erschöpften Keimblattreserven.",
+    sourceIds: ["hesi-tnt"],
+  },
+  "Root-Zone-Stufe": {
+    concept: "EC",
+    explanation:
+      "Unterscheidet Eazy Plug, Eazy Block und finales Coco je Pflanze.",
+    measurement: "Umtopfereignis und sichtbare Durchwurzelung dokumentieren.",
+    recommendation:
+      "Root-State vor pH-Arbeitswert, Bewässerung und Shared-Batch entscheiden lassen.",
+    uncertainty:
+      "Kalenderwochen sind nur Vorschau; die reale Durchwurzelung kann abweichen.",
+    sourceIds: ["eazy-workbook-2023"],
+  },
+  FlowerInitiation: {
+    concept: "BT",
+    explanation:
+      "Bestätigtes pflanzenbezogenes Ereignis, das den Bloom Day und den Coco-/Bloom-Pfad startet.",
+    measurement:
+      "Vorblüte und tatsächlichen Blütenbeginn nicht vermischen; pro Plant ID dokumentieren.",
+    recommendation:
+      "Ohne bestätigtes Ereignis keinen kalenderbasierten PK- oder Bloom-Wechsel ausführen.",
+    uncertainty:
+      "Cultivar und Phänotyp können innerhalb desselben Zelts deutlich auseinanderliegen.",
+    sourceIds: ["babaei-2026", "autoflower-prr-2024"],
+  },
+  "Realer Gießbedarf": {
+    concept: "Drain-EC",
+    explanation:
+      "Entscheidet, ob eine grundsätzlich eligible Mischung heute überhaupt angewendet wird.",
+    measurement:
+      "Topfmasse vor/nach Bewässerung, Zeit, Feuchteklasse, appliziertes Volumen und Diagnose-Drain gemeinsam loggen.",
+    recommendation:
+      "Ohne reales Gießereignis nichts allein wegen eines positiven Kalenderwerts mischen.",
+    uncertainty:
+      "Ein universeller Dryback-Prozentsatz ist ohne Topf-/Medium-Baseline nicht belastbar.",
+    sourceIds: [],
+  },
+  "Endmix-pH": {
+    concept: "pH",
+    explanation:
+      "pH des vollständig gemischten und homogenisierten Batches, nicht des Rohwassers.",
+    measurement:
+      "Mit kalibriertem Meter nach vollständigem Mix und dokumentierter Wartezeit messen.",
+    recommendation:
+      "Im Referenzband nichts ändern; außerhalb nur per produkt- und wasserspezifischem Testbatch titrieren.",
+    uncertainty:
+      "Alkalinität, Produktkonzentration, Temperatur und Stabilisierung bestimmen die Reaktion.",
+    sourceIds: ["hesi-coco", "athena-balance-rate"],
   },
 };
 
@@ -137,15 +208,23 @@ export function createGlobalActionRegistry(
   handlers: Record<GlobalActionId, () => void | Promise<void>>,
 ): Record<GlobalActionId, GlobalAction> {
   return Object.fromEntries(
-    (Object.entries(GLOBAL_ACTION_REGISTRY) as [
-      GlobalActionId,
-      (typeof GLOBAL_ACTION_REGISTRY)[GlobalActionId],
-    ][]).map(([id, definition]) => {
+    (
+      Object.entries(GLOBAL_ACTION_REGISTRY) as [
+        GlobalActionId,
+        (typeof GLOBAL_ACTION_REGISTRY)[GlobalActionId],
+      ][]
+    ).map(([id, definition]) => {
       const availability: ActionAvailability =
         id === "live.start" && context.executionMode !== "simulation"
-          ? { enabled: false, reason: "Nur Simulationen können als Live-Run gestartet werden." }
+          ? {
+              enabled: false,
+              reason: "Nur Simulationen können als Live-Run gestartet werden.",
+            }
           : id === "log.quick" && context.clockBlocked
-            ? { enabled: false, reason: "Die Live-Uhr muss zuerst geprüft werden." }
+            ? {
+                enabled: false,
+                reason: "Die Live-Uhr muss zuerst geprüft werden.",
+              }
             : { enabled: true };
       return [
         id,

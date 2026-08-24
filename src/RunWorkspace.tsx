@@ -879,6 +879,51 @@ export function RunHistoryWorkspace({ run, onChange }: RunProps) {
     await indexedDbRunRepository.setActiveRun(selected.id);
     onChange(selected);
   };
+
+  const deleteRunFromHistory = async (id: string, name: string) => {
+    if (
+      !window.confirm(
+        `Willst du den Run "${name}" wirklich unwiderruflich löschen?`,
+      )
+    )
+      return;
+    try {
+      await indexedDbRunRepository.deleteRun(id);
+      setRuns(runs.filter((r) => r.id !== id));
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Run konnte nicht gelöscht werden",
+      );
+    }
+  };
+
+  const renameRunInHistory = async (entry: RunPackage) => {
+    const currentName = effectiveRunConfig(entry).name;
+    const newName = window.prompt("Neuer Name für den Run:", currentName);
+    if (!newName || newName.trim() === "" || newName === currentName) return;
+
+    try {
+      const updated = {
+        ...entry,
+        config: { ...entry.config, name: newName.trim() },
+        updatedAt: new Date().toISOString(),
+      };
+      await indexedDbRunRepository.saveRun(updated);
+      setRuns(runs.map((r) => (r.id === entry.id ? updated : r)));
+      if (entry.id === run.id) {
+        onChange(updated);
+      }
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Run konnte nicht umbenannt werden",
+      );
+    }
+  };
+
   return (
     <div className="page-stack">
       <section className="workspace-banner">
@@ -904,7 +949,7 @@ export function RunHistoryWorkspace({ run, onChange }: RunProps) {
           {error}
         </p>
       )}
-      <section className="run-history-grid" aria-label="Gespeicherte Runs">
+      <section className="run-list" aria-label="Gespeicherte Runs">
         {runs.length === 0 ? (
           <EmptyState text="Der aktive Run wird beim nächsten Autosave in der Historie sichtbar." />
         ) : (
@@ -925,14 +970,56 @@ export function RunHistoryWorkspace({ run, onChange }: RunProps) {
                   {entry.structuredObservations.length} Beobachtungen
                 </p>
               </div>
-              <div className="button-row">
-                <span>{formatTimestamp(entry.updatedAt)}</span>
+              <div
+                className="button-row"
+                style={{ display: "flex", gap: "8px", alignItems: "center" }}
+              >
+                <span style={{ marginRight: "auto", color: "var(--muted)" }}>
+                  {formatTimestamp(entry.updatedAt)}
+                </span>
+                <button
+                  type="button"
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--line-strong)",
+                    padding: "6px 12px",
+                    borderRadius: "4px",
+                    color: "var(--text)",
+                  }}
+                  onClick={() => void renameRunInHistory(entry)}
+                >
+                  Umbenennen
+                </button>
                 {entry.id === run.id ? (
-                  <b>AKTIV</b>
+                  <b style={{ color: "var(--green)" }}>AKTIV</b>
                 ) : (
-                  <button type="button" onClick={() => void selectRun(entry)}>
-                    Run öffnen
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      style={{
+                        background: "transparent",
+                        border: "1px solid var(--red)",
+                        padding: "6px 12px",
+                        borderRadius: "4px",
+                        color: "var(--red)",
+                      }}
+                      onClick={() =>
+                        void deleteRunFromHistory(
+                          entry.id,
+                          effectiveRunConfig(entry).name,
+                        )
+                      }
+                    >
+                      Löschen
+                    </button>
+                    <button
+                      className="primary-button"
+                      type="button"
+                      onClick={() => void selectRun(entry)}
+                    >
+                      Run öffnen
+                    </button>
+                  </>
                 )}
               </div>
             </article>

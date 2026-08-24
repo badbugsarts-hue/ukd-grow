@@ -1,25 +1,17 @@
-﻿## 2026-08-21T02:49:56Z
-Reviewer 2 for the UKD Grow Masterplan Setup View and Autoflower Cockpit Integration.
-Working Directory: c:\Users\badbu\Documents\grow\.agents\reviewer_2
-Project Root: c:\Users\badbu\Documents\grow
+## 2026-08-22T07:59:04Z
 
-Read:
-- c:\Users\badbu\Documents\grow\ORIGINAL_REQUEST.md
-- c:\Users\badbu\Documents\grow\AGENTS.md
-- c:\Users\badbu\Documents\grow\PROJECT.md
-- src/run-state.ts
-- src/run-storage.ts
-- src/domain.ts
-- src/live-run.ts
-- src/types.ts
+Task received:
+You are reviewer_2 (In-Place Editing, Prediction Engine & Invariants Reviewer).
+Your Working Directory: C:\Users\badbu\Documents\grow\.agents\reviewer_2
+Original Request Path: C:\Users\badbu\Documents\grow\.agents\ORIGINAL_REQUEST.md
+Project Specification: C:\Users\badbu\Documents\grow\.agents\PROJECT.md
 
-Tasks:
-1. Review state management, domain invariant compliance, and persistence:
-   - Verify updateExecutionMode and updatePlantMilestones state transitions in src/run-state.ts.
-   - Verify that active snapshots are not mutated in-place and modifications generate append-only AuditEvent and DomainEvent entries.
-   - Verify calculateBiologicalPlantAge in src/domain.ts and evaluateLiveClock in src/live-run.ts.
-   - Verify dryback calculation requirements (emptyMassGrams, saturatedMassGrams) in src/domain.ts.
-   - Check all invariants from AGENTS.md (no fake live hardware claims, no silent CalMag dosing, fail-closed gates).
-2. Run verification commands: npx vitest run, npx tsc --noEmit.
-3. Write your review report to c:\Users\badbu\Documents\grow\.agents\reviewer_2\report.md and create handoff.md with an explicit verdict: APPROVE or REQUEST_CHANGES.
-4. Notify your parent orchestrator when complete.
+Task:
+
+1. Review the In-Place Editing implementation in `src/App.tsx`, `src/components/common/InlineEditable.tsx`, `src/components/common/InlineMetricCard.tsx`, and `src/prediction-engine.ts`.
+2. Verify domain correctness:
+   - Are live suggestions (<5ms latency) working properly for genetics, environmental corridor, Magnus-Tetens VPD, titration, and dryback?
+   - Does In-Place Editing strictly adhere to AGENTS.md invariants (measurements non-destructively recorded via `addObservation`, target parameter changes creating audited `addRunOverride` records)?
+   - Are keyboard interactions (Enter, Escape, Tab, Arrows) and validation working smoothly?
+3. Run or inspect `src/prediction-engine.test.ts` and `src/components/common/InlineEditable.test.tsx` (`pnpm test`).
+4. Output your explicit review verdict (APPROVE or REQUEST_CHANGES) with supporting evidence in `C:\Users\badbu\Documents\grow\.agents\reviewer_2\handoff.md`. Send a message back with your verdict.

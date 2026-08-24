@@ -10,6 +10,7 @@
 ## 1. Observation
 
 Direct observations from independent verification execution:
+
 1. **Typecheck**: `npx tsc -b --pretty false` exited with code 0 (0 compilation errors).
 2. **Linting**: `npx @biomejs/biome lint src tests` checked 95 files with 0 errors / 0 warnings (Exit code 0).
 3. **UI Contracts & Security**:
@@ -59,6 +60,7 @@ The UKD Grow Masterplan Setup View and Autoflower Cockpit Integration is verifie
 ## 5. Verification Method
 
 To independently reproduce the audit results from terminal:
+
 ```bash
 # 1. Typecheck
 npx tsc -b --pretty false

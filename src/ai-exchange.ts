@@ -340,8 +340,8 @@ export function sanitizeRun(run: RunPackage): Record<string, unknown> {
 function proposalBaseProjection(
   safeRun: Record<string, unknown>,
 ): Record<string, unknown> {
-	const projection = structuredClone(safeRun);
-	delete projection.updatedAt;
+  const projection = structuredClone(safeRun);
+  delete projection.updatedAt;
   delete projection.backupState;
   delete projection.backupCheckpoints;
   if (Array.isArray(projection.domainEvents))

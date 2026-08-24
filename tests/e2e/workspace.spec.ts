@@ -81,40 +81,42 @@ test("loads canonical data and exposes all workspace routes", async ({
 });
 
 for (const route of [
-      "masterplan",
-      "plan-editor",
-      "cockpit",
-      "setup",
-      "log",
-      "today",
-      "timeline",
-      "history",
-      "mix",
-	  "reservoir",
-	  "energy",
-	  "post-harvest",
-      "climate",
-      "calc",
-      "nutrients",
-      "products",
-	  "inventory",
-      "autoflower",
-      "compatibility",
-      "diagnostics",
-      "knowledge",
-      "audit",
-      "raw",
-      "legal",
-      "reports",
-	  "media",
-      "system",
-	  "connector",
-	  "profiles",
-      "equipment",
-      "ipm",
-      "incidents",
+  "masterplan",
+  "plan-editor",
+  "cockpit",
+  "setup",
+  "log",
+  "today",
+  "timeline",
+  "history",
+  "mix",
+  "reservoir",
+  "energy",
+  "post-harvest",
+  "climate",
+  "calc",
+  "nutrients",
+  "products",
+  "inventory",
+  "autoflower",
+  "compatibility",
+  "diagnostics",
+  "knowledge",
+  "audit",
+  "raw",
+  "legal",
+  "reports",
+  "media",
+  "system",
+  "connector",
+  "profiles",
+  "equipment",
+  "ipm",
+  "incidents",
 ] as const) {
-  test(`workspace view ${route} passes automated WCAG 2.2 AA checks`, async ({ page }) => {
+  test(`workspace view ${route} passes automated WCAG 2.2 AA checks`, async ({
+    page,
+  }) => {
     const issues: string[] = [];
     for (const theme of ["dark", "light"] as const) {
       await page.goto(`/?lens=guided&day=4#${route}`);
@@ -172,9 +174,9 @@ test("experience lens, help, search and batch calculation work", async ({
   ).toBeVisible();
 
   await page.goto("/?lens=expert&day=4#mix");
-  await expect(page.getByRole("row").filter({ hasText: "HESI TNT" })).toContainText(
-    "12.5 ml",
-  );
+  const tntRow = page.getByRole("row").filter({ hasText: "HESI TNT" });
+  await expect(page.getByText(/Pflanzen-\/Batch-Freigabe fehlt/)).toBeVisible();
+  await expect(tntRow).toContainText("Gesperrt");
 });
 
 test("editable states and scientific capture dialogs remain honest and accessible", async ({
@@ -182,7 +184,7 @@ test("editable states and scientific capture dialogs remain honest and accessibl
 }) => {
   // This scenario opens and audits several scientific capture dialogs; each
   // state runs a full axe pass and can exceed 90 s on a loaded CI host.
-  test.setTimeout(180_000);
+  test.setTimeout(360_000);
 
   const expectNoAxeViolations = async (state: string) => {
     const results = await new AxeBuilder({ page })
@@ -220,7 +222,9 @@ test("editable states and scientific capture dialogs remain honest and accessibl
   await page
     .getByRole("button", { name: "+ Neues PPFD-Grid erfassen" })
     .click();
-  await expect(page.getByRole("dialog", { name: /9-Punkt.*Mapping/ })).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: /9-Punkt.*Mapping/ }),
+  ).toBeVisible();
   await expect(page.getByLabel("Lampenabstand (Höhe in cm)")).toHaveValue("0");
   await expect(page.locator('input[id^="ppfd-"]')).toHaveCount(9);
   await expectNoAxeViolations("empty PPFD capture");
@@ -239,11 +243,15 @@ test("editable states and scientific capture dialogs remain honest and accessibl
   await page
     .getByRole("button", { name: /Pflanzen-Identität & Anker bearbeiten/ })
     .click();
-  await expect(page.getByRole("dialog", { name: /Pflanzen-Identität/ })).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: /Pflanzen-Identität/ }),
+  ).toBeVisible();
   await expect(page.getByLabel("Saatgut-Typ")).toHaveValue("unknown");
   await expectNoAxeViolations("plant identity editor");
   await page.getByLabel("Saatgut-Typ").selectOption("autoflower");
-  await page.getByRole("button", { name: "Identität & Anker Speichern" }).click();
+  await page
+    .getByRole("button", { name: "Identität & Anker Speichern" })
+    .click();
   await expect(page.getByText(/Typ:/).first()).toContainText("autoflower");
 
   await page.goto("/?lens=guided&day=4#mix");

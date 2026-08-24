@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Vertrauliche Sicherheitsmeldung
+    url: https://github.com/badbugsarts-hue/ukd-grow/security/advisories/new
+    about: Schwachstellen und ausnutzbare Details nicht öffentlich melden.

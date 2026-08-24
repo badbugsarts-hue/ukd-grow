@@ -18,3 +18,8 @@ legal-profile.local.json
 
 # Design Prototypes and Mockups
 .antigravitz/
+
+# Local full-workspace archives and one-off debug probes are not release artifacts.
+# The source files and reproducible release bundles are versioned separately.
+grow.zip
+debug-milestones.ts

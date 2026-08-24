@@ -1,14 +1,14 @@
 {
   "schemaVersion": "2.0.0",
-  "release": "v8 Elite OWNED STOCK HESI AN",
-  "applicationRelease": "v8.0 Operator Workspace",
-	"generatedAt": "2026-08-16",
+  "release": "v11.5 Clocks · pH Balance · Mixed Auto 3×9L",
+  "applicationRelease": "v11.5 Operator Workspace · app-aligned 2026-08-23",
+  "generatedAt": "2026-08-23",
   "canonicalWorkbook": {
-    "path": "data/evidence-guarded-workbook-v8.json",
-    "sha256": "4F9071844702547E2CE3014480ED316740560893FAAB36AE9C083A243658EBD1",
-    "sheets": 29,
-    "formulas": 4205,
-    "sourceSha256": "D61AF676375733BD0FA9A82F5E7C2355333C73A44D632424215E345CE2D20702"
+    "path": "data/evidence-guarded-workbook-v11_5.json",
+    "sha256": "70A3752F5CB7FA271868A798DDB84B33022750093321F3B9A19599A98684E35A",
+    "sheets": 56,
+    "formulas": 5831,
+    "sourceSha256": "F4E06E46AB90DBC844CC89FF443915041AC39F8FD1C9A0A727AB3174019C192F"
   },
   "audit": {
     "path": "src/data/legacy-audit.json",
@@ -18,14 +18,19 @@
   },
   "sourceArtifacts": [
     {
-      "path": "UKD_Grow_Masterplan_Elite_2026_v8_OWNED_STOCK_HESI_AN.xlsx",
+      "path": "plan/UKD_Grow_Masterplan_2026_v11_5_CLOCKS_PH_BALANCE_MIXED_AUTO_3x9L.xlsx",
       "role": "operational-source",
-      "sha256": "D61AF676375733BD0FA9A82F5E7C2355333C73A44D632424215E345CE2D20702"
+      "sha256": "F4E06E46AB90DBC844CC89FF443915041AC39F8FD1C9A0A727AB3174019C192F"
     },
     {
-      "path": "UKD_Grow_Masterplan_2026_v8_OWNED_STOCK_HESI_AN_Mobile.pdf",
-      "role": "reading-companion",
-      "sha256": "F73740687D76BCC61CBB508B7277759989CEE75267564015B77CC37D1F4A7AE5"
+      "path": "plan/UKD_Grow_Masterplan_2026_v11_3_FORENSIC_LINE_BY_LINE_AUDIT.xlsx",
+      "role": "forensic-line-audit",
+      "sha256": "A7E149687E3D936F046B4613416144D914BB5D05F1F45D037EE5E01E1F17792E"
+    },
+    {
+      "path": "plan/UKD_Naehrstoffsystem_MASTER_A4_Quer_v1.pdf",
+      "role": "nutrient-reading-companion",
+      "sha256": "21B7465B63C5FE75F291AC1099BAAC4BE711CE6E28026984D7A41895C97B9A9F"
     },
     {
       "path": "sources/evidence-v6/deep-research-input.md",
@@ -37,22 +42,22 @@
     {
       "path": "src/data/knowledge-base.json",
       "role": "verified-claims",
-      "sha256": "BEA14CD7F69EAD75BB10B949B13A2A5C4535A5D42CE419DF2FE3AFFA7E749A29"
+      "sha256": "B18A09CF0DF7A4AD756A530E33BBF071AD0CF0CF041381E4B5315AC011972D7E"
     },
     {
       "path": "src/data/ai-context.json",
       "role": "guarded-ai-context",
-      "sha256": "440B35DD99B9E70401C7FC16C4648A9E4AACCC4E91C961AEBE8FDCF7021F0AB9"
+      "sha256": "581C164A2A76A704FD4F1F888BA2AA0341CCBE9B382B314CB5D012784AE026F8"
     },
     {
       "path": "src/data/skills.json",
       "role": "domain-skill-contracts",
-      "sha256": "D8E61323B35A7ABF611E1CC635B1596637D95D3A797EB9FEAC32CEBD12727DA6"
+      "sha256": "DB82BD3DA18583AECFB554CE5775980504560648CD6460CDC6D004DC83E2F8E4"
     },
     {
       "path": "src/data/capability-roadmap.json",
       "role": "capability-truth",
-      "sha256": "B8CD3D97107F29A250CD6AAAF7F9C0E891A86564631B1E86979C97429F33FA01"
+      "sha256": "40955614902C380F60CFB54C66B843B46B3F2395140787C66A0AA7B149D92D1C"
     },
     {
       "path": "src/data/integration-epics.json",

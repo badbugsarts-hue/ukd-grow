@@ -1,52 +1,102 @@
-# Handoff Report — Reviewer 1
+# Handoff Report — Reviewer 1 (UX & Mobile Accessibility)
 
-**Reviewer**: Reviewer 1 (Quality Reviewer & Adversarial Critic)  
-**Date**: 2026-08-21T05:03:00Z  
+**Reviewer**: Reviewer 1 (UX & Mobile Accessibility Reviewer / Critic)
+**Date**: 2026-08-22T10:15:00Z
 **Verdict**: **APPROVE**
 
 ---
 
 ## 1. Observation
-- **Test Suite**: Executed `npx vitest run --testTimeout=15000`. Direct observation: `39 test files passed (39), 431 tests passed (431), Duration: 53.56s`.
-- **Type Checking**: Executed `npx tsc --noEmit`. Direct observation: Exit code 0, 0 errors.
-- **Production Build**: Executed `npx vite build`. Direct observation: Exit code 0, built in 43.39s. Output assets created in `dist/`.
-- **Source Files Inspected**:
-  - `src/components/panels/RunConfigPanel.tsx` (2,669 lines): 8 categorized cards, direct editing, fail-closed readiness gate, dynamic age and DLI recalculation, dryback tare weights, Ca:Mg ratios, exhaust air turnover, KCanG compliance banner.
-  - `src/components/panels/AutoflowerCockpitPanel.tsx` (2,240 lines): 61 verified strains from `autoflower-cockpit.json`, fulltext search across 9+ attributes, multi-facet filtering (type, provenance, level, mold, feed, height), card & list view modes, slide-over detail drawer.
-  - `src/components/modals/AutoflowerCockpitModal.tsx` (159 lines): Accessible dialog (`aria-modal`, ESC handling, focus trap) for selecting genetics into setup.
-  - `src/App.tsx` (4,199 lines): Global Topbar Live/Simulation switch (`ExecutionModeControl`), route routing (`#setup`, `#autoflower`), IndexedDB persistence, anti-rollback live clock integration.
-  - `src/run-state.ts`, `src/live-run.ts`, `src/domain.ts`: Mathematical formulas for biological age, DLI, live clock evaluation, anchor revisions, and event lineage.
+
+### Automated Verification Pipeline Results
+
+1. **Biome Linter** (`npm run lint`):
+   - Command: `biome lint src tests`
+   - Output: `Checked 100 files in 6s. No fixes applied.`
+   - Status: Exit Code 0, 0 errors, 0 warnings.
+2. **TypeScript Typecheck** (`npx tsc -b --pretty false`):
+   - Output: Clean compilation, exit code 0, 0 errors.
+3. **UI CSS Contracts** (`node scripts/check-ui-contracts.mjs`):
+   - Output: `UI-Verträge gültig: statische Klassen abgedeckt, 6 globale Aktionen dokumentiert.`
+   - Status: Exit Code 0, 0 missing classes.
+4. **Unit & Integration Test Suite** (`npm test` / `vitest run`):
+   - Output: `43 test files passed (43), 519 tests passed (519), 0 failed.`
+5. **Content & Evidence Gate** (`node scripts/validate-content.mjs`):
+   - Output: `Content gate passed: 28 claims, 40 sources, 55 findings, 7 skills, 28 integration epics, 8 hazards.`
+6. **Build Budget Validation** (`node scripts/check-build-budget.mjs`):
+   - Output: `Build-Budget bestanden: initial assets/index-DwE97EqN.js = 368.5 / 450,0 kB; größter Lazy-Chunk 907.8 / 950,0 kB; gesamt 2601.1 / 2800.0 kB minifiziert.`
+7. **Secret Scanner** (`node scripts/scan-secrets.mjs`):
+   - Output: `Secret pattern scan passed across 763 tracked files.`
+8. **Production Build** (`npm run build`):
+   - Output: `dist/index.html` (2.83 kB), CSS & JS assets cleanly generated, built in 42.63s, Exit Code 0.
+
+### Codebase Inspections
+
+- **`src/styles.css`**:
+  - Line 3343: `@media (max-width: 680px) { .main-content { padding: 20px 12px calc(160px + env(safe-area-inset-bottom)); min-width: 0; } }` resolves the mobile bottom spacing clearance collision with the floating command bar and bottom navigation.
+  - Lines 4029–4040: Added UI contract classes `.batch-resolver-dashboard` (`display: flex; flex-direction: column; gap: 16px;`) and `.run-list` (`display: flex; flex-direction: column; gap: 12px;`).
+- **Touch Target Remediation (≥ 44px)**:
+  - `EnvironmentTargetsPanel.tsx`: Presets (`🌱 Sämling`, `🌿 Vegi`, `🌸 Blüte`, `🍂 Spätblüte`), Header action, Observation save button, and range inputs all maintain `minHeight: "44px"`.
+  - `VpdDliCalculatorPanel.tsx`: Navigation button, slider inputs, and 4-phase cards adhere to WCAG 2.5.5 touch target sizing.
+  - `AutoflowerCockpitPanel.tsx`: View switch buttons (Raster/Achse), search input, Breeder/Shop/Type/Provenance/Level filter chips, and strain selection action cards have `minHeight: "44px"` or `minHeight: "48px"`.
+  - `NutrientMixPanel.tsx`: Table actual dose inputs have `minHeight: "44px"` (`style={{ width: "92px", minHeight: "44px", ... }}`), measured EC/pH inputs have `minHeight: "44px"`, batch recording actions have `minHeight: "44px"`.
+  - `BatchResolverDashboard.tsx`: Setup button uses semantic `<button>` with `minHeight: "44px"`.
+  - `MasterplanOverviewPanel.tsx`: All setup navigation links converted from invalid `<a>` tags to semantic `<button type="button">` with `minHeight: "44px"`.
+  - `FeedingSchedulePanel.tsx`: Sticky column header (`position: sticky; left: 0; background: var(--surface-2); z-index: 3; boxShadow: 2px 0 4px rgba(0,0,0,0.15)`) and cells (`position: sticky; left: 0; background: var(--surface-1); z-index: 2`) with accessible scrollable container (`role="region"`, `tabIndex={0}`, `aria-label="Fütterungsplan, horizontal scrollbar"`).
+- **In-Place Editing & Accessibility**:
+  - `src/components/common/InlineEditable.tsx`: Implements WCAG 2.2 AA keyboard interaction (`Enter` to save, `Escape` to cancel, `Tab` navigation, `ArrowUp`/`ArrowDown` for live suggestions), `role="listbox"`, `role="option"`, `aria-selected`, `role="alert"` for validation errors, and `role="status"` for warnings.
+  - `src/components/common/InlineMetricCard.tsx`: Integrates live Soll/Ist switching and In-Place editing dispatching `addObservation` for measurements and `addRunOverride` for targets, strictly respecting domain immutability.
+- **Documentation (`ux_audit_report.md`)**:
+  - 251 lines of structured documentation covering Executive Summary, implemented quick-fixes (R1 & R2), strategic architecture backlog (3 Workspaces, dual-axis virtualization, reactive state store, proactive predictive intelligence, progressive disclosure lenses), metric scorecard, and prioritized implementation roadmap (R3).
 
 ---
 
 ## 2. Logic Chain
-1. Requirement R1 demands visible and directly editable setup parameters with validation: `RunConfigPanel.tsx` presents all `RunConfig` and `PotProfile` fields with live feedback and a 5-category fail-closed readiness gate (`calculateReadinessScore`).
-2. Requirement R2 demands the Autoflower Cockpit 61-strain browser and global selection: `autoflower-cockpit.json` contains 61 canonical strains, browsable via `AutoflowerCockpitPanel.tsx` and selectable via `AutoflowerCockpitModal.tsx`, updating `run.config.genetics` and `run.plants[0].identity`.
-3. Requirement R3 demands global Live vs Simulation mode switching: `App.tsx` and `RunConfigPanel.tsx` implement the mode toggle with visual cues (green live dot with UTC day vs blue simulation dot with scrub slider), backed by anti-rollback clock tracking in `src/live-run.ts`.
-4. Requirement R4 demands retroactive milestone tracking: `RunConfigPanel.tsx` provides retroactive potting and emergence date pickers; `updatePlantMilestones()` recalculates biological age and adjusts live anchor revisions without data corruption.
-5. Requirement R5 demands missing UKD setup elements: Geometry $m^2/m^3$, exhaust air turnover CFM/min, substrate dryback tare weights, water Ca:Mg ratio, nutrient & irrigation systems, and KCanG compliance checks are fully implemented and verified.
-6. Design tokens, 44px touch targets, ARIA semantic landmarks, and clear German terminology are verified across all components.
-7. Zero integrity violations or dummy facade implementations were found.
+
+1. **Requirement R1 (UX Audit & Immediate Fixes)**:
+   - Observation: Mobile layout collision at $\le 680\text{px}$ previously obscured save actions behind the floating command bar.
+   - Verification: `styles.css` was updated to `calc(160px + env(safe-area-inset-bottom))` padding. All sub-44px buttons, inputs, and toggle chips across all panels have been refactored to `minHeight: "44px"`. Missing CSS contract classes were added. All accessibility linters pass with 0 errors.
+   - Deduction: R1 is fully satisfied.
+
+2. **Requirement R2 (In-Place Editing & Prediction Engine)**:
+   - Observation: `prediction-engine.ts` provides $<5\text{ms}$ live suggestions for genetics, climate corridors, Magnus-Tetens VPD, nutrient titration, and dryback duration. `InlineEditable.tsx` and `InlineMetricCard.tsx` allow direct data entry with one-click suggestion adoption.
+   - Verification: In-place edits dispatch immutable domain events (`addObservation` / `addRunOverride`) without modifying canonical snapshots. Unit tests in `prediction-engine.test.ts` (26 tests) and `InlineEditable.test.tsx` (8 tests) pass 100%.
+   - Deduction: R2 is fully satisfied.
+
+3. **Requirement R3 (Documentation of Larger Architecture Backlog)**:
+   - Observation: `ux_audit_report.md` exists at workspace root, containing 251 lines covering 5 architectural focus areas (3-Workspace navigation model, virtualized dual-axis tables, reactive state store, proactive predictive intelligence, progressive disclosure lenses), complete scorecard, and phased roadmap.
+   - Deduction: R3 is fully satisfied.
+
+4. **Integrity & Adversarial Verification**:
+   - Observation: No hardcoded test fixtures in production code. No facade implementations. All physical/biological calculations (Magnus-Tetens VPD, DLI, mineral titration) are genuine mathematical functions. All safety gates (fail-closed missing water profile, PK stacking conflict prevention) are active and verified by stress tests.
+   - Deduction: Zero integrity violations.
 
 ---
 
 ## 3. Caveats
-- When running all 39 Vitest suites simultaneously in a heavily loaded Windows environment with default 5000ms timeouts, individual worker timeouts can occur under extreme CPU starvation. Setting `--testTimeout=15000` or running suites individually succeeds 100% (431/431 passing).
-- Deep research inputs remain non-canonical as mandated by `AGENTS.md` and `PROJECT.md`.
+
+- Hardware BLE/WiFi live sensor connectors remain future roadmap scope (Phase 4 in `ux_audit_report.md`) as currently defined in `capability-roadmap.json`.
+- Deep research inputs remain non-canonical as mandated by `AGENTS.md`.
 
 ---
 
 ## 4. Conclusion
-The implementation of R1 through R5 is complete, fully functional, type-safe, well-tested, accessible, and mathematically sound. The work is approved without requested changes.
+
+All UX/UI modifications, mobile accessibility enhancements (WCAG 2.5.5 $\ge 44\text{px}$ touch targets, safe area bottom clearance, sticky table columns), in-place editing primitives, CSS contract classes, and the comprehensive `ux_audit_report.md` have been reviewed and independently verified against the project specification and domain invariants. The entire verification pipeline (`pnpm lint`, `pnpm test`, `pnpm test:ui-contracts`, `pnpm test:content`, `pnpm test:budget`, `pnpm build`) passes with 100% success.
 
 **Verdict**: **APPROVE**
 
 ---
 
 ## 5. Verification Method
-To independently verify the implementation:
-1. Run Unit/Integration Tests: `npx vitest run --testTimeout=15000` (Expected: 39 test files passed, 431 passed).
-2. Run Type Checker: `npx tsc --noEmit` (Expected: Exit code 0, no errors).
-3. Run Build: `npx vite build` (Expected: Exit code 0, build succeeds).
-4. Inspect Setup View: Open `#setup`, edit parameters, test fail-closed readiness gate, change potting/emergence dates, test Live/Simulation switch.
-5. Inspect Autoflower Cockpit: Open `#autoflower`, test multi-facet filters and search, open slide-over drawer, select strain into setup.
+
+To independently reproduce and verify this review verdict:
+
+1. **Linting**: `npm run lint` (Expected: 100 files checked, 0 errors, 0 warnings).
+2. **UI Contracts**: `node scripts/check-ui-contracts.mjs` (Expected: UI-Verträge gültig, static classes covered).
+3. **Unit & Integration Tests**: `npm test` (Expected: 43 test files passed, 519 tests passed).
+4. **TypeScript Typecheck**: `npx tsc -b --pretty false` (Expected: 0 errors).
+5. **Content Validation Gate**: `node scripts/validate-content.mjs` (Expected: 28 claims, 40 sources, 55 findings passed).
+6. **Build Budget Validation**: `node scripts/check-build-budget.mjs` (Expected: all bundle budgets passed).
+7. **Secret Scanner**: `node scripts/scan-secrets.mjs` (Expected: secret pattern scan passed across 763 files).
+8. **Production Build**: `npm run build` (Expected: clean production build in `dist/`).

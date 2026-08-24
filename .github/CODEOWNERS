@@ -1,0 +1,8 @@
+# Default ownership. Evidence and release-critical paths remain explicitly owned.
+* @badbugsarts-hue
+/src/data/ @badbugsarts-hue
+/public/data/ @badbugsarts-hue
+/src/domain.ts @badbugsarts-hue
+/src/run-state.ts @badbugsarts-hue
+/.github/workflows/ @badbugsarts-hue
+/release/ @badbugsarts-hue

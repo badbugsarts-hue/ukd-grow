@@ -1,46 +1,49 @@
-# BRIEFING — 2026-08-11T01:08:21Z
+# BRIEFING � 2026-08-22T03:35:00Z
 
 ## Mission
 
-Explore CSS Tokens & Test Suite: Catalog CSS tokens, UI design & accessibility invariants, test setup, and testing patterns to inform UI component implementation and testing.
+Investigate build/test suite status, lint/typecheck/test health, legacy state/run-state tests, failure points, and QA verification methods for in-place editing, UX fixes, and prediction suggestions.
 
-## 🔒 My Identity
+## ?? My Identity
 
-- Archetype: Explorer 3 (CSS Tokens & Test Suite Explorer)
-- Roles: Read-only investigation, CSS token cataloging, Accessibility analysis, Test suite exploration
+- Archetype: explorer
+- Roles: Build, Test, Legacy State & Quality Assurance Explorer
 - Working directory: C:\Users\badbu\Documents\grow\.agents\explorer_3
-- Original parent: 6783987b-1cde-4c0a-8087-df980caf57b6
-- Milestone: 2026 World Elite UI & Test Readiness Investigation
+- Original parent: be3893a9-44d5-47ef-b492-5725ea9951b0
+- Milestone: Investigation & QA Analysis Complete
 
-## 🔒 Key Constraints
+## ?? Key Constraints
 
-- Read-only investigation — do NOT modify application source code (only write inside C:\Users\badbu\Documents\grow\.agents\explorer_3)
+- Read-only investigation � do NOT implement
 - Adhere strictly to AGENTS.md rules and invariants
-- Produce structured analysis.md and handoff.md
+- Work only in own agent directory (.agents/explorer_3/)
 
 ## Current Parent
 
-- Conversation ID: 6783987b-1cde-4c0a-8087-df980caf57b6
-- Updated: 2026-08-11T01:10:48Z
+- Conversation ID: be3893a9-44d5-47ef-b492-5725ea9951b0
+- Updated: 2026-08-22T03:35:00Z
 
 ## Investigation State
 
-- **Explored paths**: `src/styles.css`, `package.json`, `tsconfig.json`, `tsconfig.app.json`, `vite.config.ts`, `src/domain.test.ts`, `src/scientific-core.test.ts`, `src/run-state.test.ts`, `src/backup.test.ts`, `docs/DESIGN_SYSTEM.md`, `docs/ACCESSIBILITY_AND_TESTING.md`, `.antigravitz/`
+- **Explored paths**: package.json, ite.config.ts, itest.config.ts, playwright.config.ts, iome.json, scripts/_, src/\**/_.test.ts, src/**/*.test.tsx, src/run-state.ts, src/prediction-engine.ts, pps/api
 - **Key findings**:
-  - Complete catalog of CSS custom properties (Dark mode default, Light mode `data-theme="light"`, High contrast `data-contrast="high"`, v7 domain tokens)
-  - 2026 World Elite styling patterns (glassmorphism with `backdrop-filter: blur(14px)` and `color-mix`, polygon brand mark clip-path, glowing status pulse, onboarding gradients, tooltips)
-  - Accessibility invariants (44px touch targets on mobile, 2px green focus ring, non-color-exclusive status indicators, reduced motion overrides, skip link, sr-only)
-  - Vitest test setup (29/29 unit tests passing across 4 files, node test environment, `src/**/*.test.ts` pattern)
-- **Unexplored areas**: None (investigation complete)
+  - pnpm typecheck, pnpm typecheck:workspaces, pnpm test:workspaces, pnpm test:content, pnpm build, pnpm test:budget, pnpm release:metadata all PASS.
+  - pnpm lint fails with 8 a11y anchor errors in MasterplanOverviewPanel.tsx.
+  - pnpm test:ui-contracts fails with 2 unstyled CSS classes (.batch-resolver-dashboard, .run-list).
+  - pnpm security fails due to git tracking deleted GlobalPlanEditorPanel.tsx.
+  - pnpm test has 6 failing tests across AppIntegration.test.tsx, AppM4Integration.test.tsx, and plant-identity-adversarial-challenger.test.tsx.
+  - Missing unit tests for src/prediction-engine.ts.
+- **Unexplored areas**: None within QA / Build / Test scope.
 
 ## Key Decisions Made
 
-- Written `analysis.md` and `handoff.md` summarizing design tokens, accessibility rules, and test suite setup.
+- Fully documented all 6 failing test cases and root causes in nalysis.md and handoff.md.
+- Formulated complete QA verification strategy for In-Place Editing, mobile UX, and prediction suggestions.
 
 ## Artifact Index
 
-- DISPATCH.md — Initial dispatch log
-- BRIEFING.md — Working memory index
-- progress.md — Liveness heartbeat log
-- analysis.md — Comprehensive CSS Tokens, Accessibility & Test Suite report
-- handoff.md — 5-component handoff report
+- C:\Users\badbu\Documents\grow\.agents\explorer_3\DISPATCH.md � incoming dispatch instructions
+- C:\Users\badbu\Documents\grow\.agents\explorer_3\BRIEFING.md � persistent state and identity
+- C:\Users\badbu\Documents\grow\.agents\explorer_3\progress.md � liveness and progress heartbeat
+- C:\Users\badbu\Documents\grow\.agents\explorer_3\analysis.md � detailed QA and test analysis
+- C:\Users\badbu\Documents\grow\.agents\explorer_3\handoff.md � 5-component handoff report
