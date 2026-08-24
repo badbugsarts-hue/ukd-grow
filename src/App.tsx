@@ -1540,7 +1540,7 @@ function ExecutionModeControl({
     >
       <button
         type="button"
-        className={`mode-btn mode-live ${isLive ? "active" : ""}`}
+        className={`mode-btn execution-mode-live ${isLive ? "active" : ""}`}
         onClick={() => {
           if (!isLive) {
             onToggleMode("live");
@@ -1598,7 +1598,7 @@ function ExecutionModeControl({
 
       <button
         type="button"
-        className={`mode-btn mode-sim ${!isLive ? "active" : ""}`}
+        className={`mode-btn execution-mode-simulation ${!isLive ? "active" : ""}`}
         onClick={() => {
           if (isLive) {
             onToggleMode("simulation");

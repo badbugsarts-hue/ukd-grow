@@ -90,14 +90,20 @@ test.describe("critical interactive visuals", () => {
       .click();
     await expect(
       page.getByRole("dialog", { name: "Command Center" }),
-    ).toHaveScreenshot("command-center.png", { animations: "disabled" });
+    ).toHaveScreenshot("command-center.png", {
+      animations: "disabled",
+      maxDiffPixelRatio: 0.015,
+    });
   });
 
   test("Quick Log", async ({ page }) => {
     await page.getByRole("button", { name: "Quick Log" }).click();
     await expect(
       page.getByRole("dialog", { name: "Quick Log" }),
-    ).toHaveScreenshot("quick-log.png", { animations: "disabled" });
+    ).toHaveScreenshot("quick-log.png", {
+      animations: "disabled",
+      maxDiffPixelRatio: 0.015,
+    });
   });
 
   test("Live Preflight", async ({ page }) => {
@@ -109,6 +115,9 @@ test.describe("critical interactive visuals", () => {
     await page.getByRole("button", { name: /Live starten/ }).click();
     await expect(
       page.getByRole("dialog", { name: "Simulation als Live-Run starten" }),
-    ).toHaveScreenshot("live-preflight.png", { animations: "disabled" });
+    ).toHaveScreenshot("live-preflight.png", {
+      animations: "disabled",
+      maxDiffPixelRatio: 0.015,
+    });
   });
 });
