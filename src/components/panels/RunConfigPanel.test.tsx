@@ -442,7 +442,8 @@ describe("Milestone 3 — RunConfigPanel 8-Card Master Class Setup View Suite", 
       );
 
       expect(html).toContain("⚠️ &gt;3 Pflanzen");
-      expect(html).toContain("Besitzgrenze von 50 g");
+      expect(html).toContain("max. 3 gleichzeitig pro volljähriger Person");
+      expect(html).toContain("Prognose ist keine Besitzfreigabe");
     });
   });
 });
