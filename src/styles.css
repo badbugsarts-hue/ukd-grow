@@ -4620,7 +4620,7 @@
 }
 
 .resolver-summary span {
-  color: var(--muted);
+  color: var(--text-2);
   line-height: 1.5;
 }
 
