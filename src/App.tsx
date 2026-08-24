@@ -1576,7 +1576,6 @@ function ExecutionModeControl({
           fontSize: "11px",
           fontWeight: isLive ? 800 : 600,
           cursor: "pointer",
-          transition: "all 0.15s ease",
         }}
       >
         <span
@@ -1625,7 +1624,6 @@ function ExecutionModeControl({
           fontSize: "11px",
           fontWeight: !isLive ? 800 : 600,
           cursor: "pointer",
-          transition: "all 0.15s ease",
         }}
       >
         <span
