@@ -18,7 +18,7 @@ if (!jsonMatch) throw new Error("Embedded workbook data not found");
 const workbook = JSON.parse(jsonMatch[1]);
 
 const scripts = [
-  ...html.matchAll(/<script\b(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi),
+  ...html.matchAll(/<script\b(?:\s[^>]*)?>([\s\S]*?)<\/script\s*>/gi),
 ].map((match) => match[1]);
 const appScript = scripts.at(-1) ?? "";
 const functions = [

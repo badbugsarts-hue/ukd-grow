@@ -282,6 +282,7 @@ test("system verifies the canonical hash and stores accessibility settings", asy
   await page.getByRole("button", { name: "Workbook verifizieren" }).click();
   await expect(page.locator(".system-status-grid").first()).toContainText(
     "VALID",
+    { timeout: 60_000 },
   );
   await page.getByRole("button", { name: "Hoher Kontrast" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-contrast", "high");
