@@ -1199,6 +1199,15 @@ function Workspace() {
             lens={lens}
             day={day}
             setDay={setViewDay}
+            onCycleLens={() =>
+              setLens(
+                lens === "guided"
+                  ? "advanced"
+                  : lens === "advanced"
+                    ? "expert"
+                    : "guided",
+              )
+            }
             onHelp={openHelp}
           />
           {storageError && (
@@ -1565,7 +1574,7 @@ function ExecutionModeControl({
           // The inactive label remains operationally important. Using the
           // normal text token keeps it readable on every command-bar surface;
           // state is still communicated by the dot, fill and aria-pressed.
-          color: isLive ? "var(--green)" : "var(--text)",
+          color: "var(--text)",
           fontSize: "11px",
           fontWeight: isLive ? 800 : 600,
           cursor: "pointer",
@@ -1614,7 +1623,7 @@ function ExecutionModeControl({
           background: !isLive
             ? "color-mix(in srgb, var(--blue) 16%, var(--surface-2))"
             : "transparent",
-          color: !isLive ? "var(--blue)" : "var(--muted)",
+          color: "var(--text)",
           fontSize: "11px",
           fontWeight: !isLive ? 800 : 600,
           cursor: "pointer",
@@ -1700,12 +1709,14 @@ function PageHeader({
   lens,
   day,
   setDay,
+  onCycleLens,
   onHelp,
 }: {
   item: NavItem;
   lens: ExperienceLens;
   day: number;
   setDay: (day: number) => void;
+  onCycleLens: () => void;
   onHelp: () => void;
 }) {
   return (
@@ -1713,7 +1724,12 @@ function PageHeader({
       <div>
         <div className="eyebrow">
           {item.group} <span>›</span> {item.label} <span>·</span>{" "}
-          <LensBadge lens={lens} size="sm" />
+          <LensBadge
+            lens={lens}
+            size="sm"
+            onClick={onCycleLens}
+            className="page-lens-control"
+          />
         </div>
         <div className="breadcrumb">
           {item.group} <span>› {item.label}</span>

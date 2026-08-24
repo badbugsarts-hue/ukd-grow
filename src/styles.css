@@ -623,6 +623,12 @@
   .eyebrow > span {
     color: var(--line-strong);
   }
+  .page-lens-control {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    vertical-align: middle;
+  }
   .page-header h1 {
     margin: 0;
     font-size: clamp(28px, 3vw, 42px);
