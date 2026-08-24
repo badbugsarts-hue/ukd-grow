@@ -4,7 +4,8 @@ Alle relevanten Änderungen an UKD werden hier dokumentiert. Versionierung folgt
 
 ## [Unreleased]
 
-- Noch keine Änderungen.
+- Fehlendes Alkalinitätsfeld im Run-/Global-Plan-Editor wiederhergestellt; unbekannte Wasserchemie bleibt leer und Guided fordert zuerst eine Analyse statt eines Schätzwerts.
+- Scientific-Capture-E2E-Prüfung in getrennte, parallel ausführbare Verträge für Kalibrierung/PPFD, Pflanzenidentität, fail-closed Ist-Mix und Global Plan zerlegt.
 
 ## [11.5.0] — 2026-08-24
 

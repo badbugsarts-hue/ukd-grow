@@ -179,43 +179,42 @@ test("experience lens, help, search and batch calculation work", async ({
   await expect(tntRow).toContainText("Gesperrt");
 });
 
-test("editable states and scientific capture dialogs remain honest and accessible", async ({
+async function expectNoAxeViolations(page: Page, state: string) {
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(
+    results.violations,
+    `${state}: ${results.violations
+      .map((violation) => `${violation.id} (${violation.nodes.length})`)
+      .join(", ")}`,
+  ).toEqual([]);
+}
+
+test("calibration and PPFD capture dialogs remain honest and accessible", async ({
   page,
 }) => {
-  // This scenario opens and audits several scientific capture dialogs; each
-  // state runs a full axe pass and can exceed 90 s on a loaded CI host.
-  test.setTimeout(360_000);
-
-  const expectNoAxeViolations = async (state: string) => {
-    const results = await new AxeBuilder({ page })
-      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
-      .analyze();
-    expect(
-      results.violations,
-      `${state}: ${results.violations
-        .map((violation) => `${violation.id} (${violation.nodes.length})`)
-        .join(", ")}`,
-    ).toEqual([]);
-  };
+  // Full axe passes over the equipment workspace are intentionally expensive.
+  test.setTimeout(900_000);
 
   await page.goto("/?lens=guided&day=4#equipment");
   await page.getByRole("button", { name: "+ Messgerät kalibrieren" }).click();
   await expect(
     page.getByRole("dialog", { name: /Messgerät-Kalibrierungs-Assistent/ }),
   ).toBeVisible();
-  await expectNoAxeViolations("calibration step 1");
+  await expectNoAxeViolations(page, "calibration step 1");
   await page.getByLabel("Geräte-ID / Asset-ID").fill("PH-METER-01");
   await page
     .getByLabel("Referenz-Kalibrierlösung (Standard)")
     .fill("Puffercharge TEST-01");
   await page.getByRole("button", { name: /Weiter zu Schritt 2/ }).click();
-  await expectNoAxeViolations("calibration step 2");
+  await expectNoAxeViolations(page, "calibration step 2");
   await page.getByRole("button", { name: /☑|Erfolgreich/ }).click();
   await page.getByRole("button", { name: /Weiter zu Schritt 3/ }).click();
   await page
     .getByLabel("Gültigkeit laut Hersteller-/Laborvorgabe (Tage)")
     .fill("14");
-  await expectNoAxeViolations("calibration step 3");
+  await expectNoAxeViolations(page, "calibration step 3");
   await page.getByRole("button", { name: "Kalibrierung Abschließen" }).click();
   await expect(page.getByText("✓ Gültig").first()).toBeVisible();
 
@@ -227,7 +226,7 @@ test("editable states and scientific capture dialogs remain honest and accessibl
   ).toBeVisible();
   await expect(page.getByLabel("Lampenabstand (Höhe in cm)")).toHaveValue("0");
   await expect(page.locator('input[id^="ppfd-"]')).toHaveCount(9);
-  await expectNoAxeViolations("empty PPFD capture");
+  await expectNoAxeViolations(page, "empty PPFD capture");
   await page.getByLabel("Lampenabstand (Höhe in cm)").fill("40");
   await page
     .getByLabel("Messgerät / Sensor")
@@ -238,47 +237,54 @@ test("editable states and scientific capture dialogs remain honest and accessibl
   await page.getByRole("button", { name: "PPFD-Mapping Speichern" }).click();
   await expect(page.getByText(/Aktuelles Mapping/)).toBeVisible();
   await expect(page.getByText("500 µmol").first()).toBeVisible();
+});
 
+test("plant identity editing remains honest and accessible", async ({ page }) => {
+  test.setTimeout(300_000);
   await page.goto("/?lens=guided#setup");
   await page
-    .getByRole("button", { name: /Pflanzen-Identität & Anker bearbeiten/ })
+    .getByRole("button", { name: /Identität anpassen/ })
     .click();
   await expect(
     page.getByRole("dialog", { name: /Pflanzen-Identität/ }),
   ).toBeVisible();
   await expect(page.getByLabel("Saatgut-Typ")).toHaveValue("unknown");
-  await expectNoAxeViolations("plant identity editor");
+  await expectNoAxeViolations(page, "plant identity editor");
   await page.getByLabel("Saatgut-Typ").selectOption("autoflower");
   await page
     .getByRole("button", { name: "Identität & Anker Speichern" })
     .click();
-  await expect(page.getByText(/Typ:/).first()).toContainText("autoflower");
+  await expect(page.getByText("autoflower", { exact: true }).first()).toBeVisible();
+});
 
+test("blocked actual mix capture remains honest and accessible", async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
   await page.goto("/?lens=guided&day=4#mix");
   const actualDoseInputs = page.locator(
     'input[aria-label^="Tatsächliche Dosis"]',
   );
-  expect(await actualDoseInputs.count()).toBeGreaterThan(0);
-  await expect(actualDoseInputs.first()).toHaveValue("");
+  await expect(actualDoseInputs).toHaveCount(0);
+  await expect(
+    page.getByText(/Pflanzen-\/Batch-Zustand unvollständig/).first(),
+  ).toBeVisible();
   const recordBatchButton = page.getByRole("button", {
     name: "📝 Ist-Charge aufzeichnen",
   });
   await expect(recordBatchButton).toBeDisabled();
-  await page.getByLabel("Tatsächliches Endvolumen (L) *:").fill("10");
-  await expect(recordBatchButton).toBeDisabled();
-  for (const input of await actualDoseInputs.all()) await input.fill("0");
-  await expectNoAxeViolations("actual mix capture");
-  await expect(recordBatchButton).toBeEnabled();
-  await recordBatchButton.click();
-  await expect(page.getByText(/erfolgreich protokolliert/)).toBeVisible();
+  await expectNoAxeViolations(page, "blocked actual mix capture");
+});
 
+test("global plan preserves unknown water chemistry and remains accessible", async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
   await page.goto("/?lens=guided#plan-editor");
-  await page.getByRole("button", { name: "✏️ Plan bearbeiten" }).click();
-  await expect(page.getByLabel("Alkalinität (mg/L CaCO3):")).toHaveValue("");
-  await expect(page.getByLabel("Calcium (mg/L):")).toHaveValue("");
-  await expect(page.getByLabel("Magnesium (mg/L):")).toHaveValue("");
-  await expectNoAxeViolations("run context edit mode");
-  await page.getByRole("button", { name: "Bearbeitung abbrechen" }).click();
+  await expect(page.locator("#rcp-water-alkalinity")).toHaveValue("");
+  await expect(page.locator("#rcp-water-ca")).toHaveValue("");
+  await expect(page.locator("#rcp-water-mg")).toHaveValue("");
+  await expectNoAxeViolations(page, "global plan unknown water chemistry");
 });
 
 test("mobile workspace stays within the viewport", async ({

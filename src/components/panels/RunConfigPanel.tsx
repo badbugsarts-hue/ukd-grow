@@ -2667,6 +2667,53 @@ export const RunConfigPanel: React.FC<RunConfigPanelProps> = ({
             </div>
           </div>
 
+          <div>
+            <label
+              htmlFor="rcp-water-alkalinity"
+              style={{
+                display: "block",
+                fontSize: "11px",
+                color: "var(--muted)",
+                marginBottom: "4px",
+              }}
+            >
+              Alkalinität (mg/L CaCO₃) *
+            </label>
+            <input
+              id="rcp-water-alkalinity"
+              type="number"
+              min="0"
+              step="1"
+              value={config.water.alkalinityMgL ?? ""}
+              onChange={(e) =>
+                handleWaterChange(
+                  "alkalinityMgL",
+                  e.target.value ? parseFloat(e.target.value) : null,
+                )
+              }
+              placeholder="Erst nach Wasseranalyse eintragen"
+              aria-describedby="rcp-water-alkalinity-help"
+              style={{
+                width: "100%",
+                minHeight: "44px",
+                padding: "8px",
+                background: "var(--surface-1)",
+                border: "1px solid var(--line)",
+                borderRadius: "4px",
+                color: "var(--text)",
+                fontSize: "12px",
+              }}
+            />
+            <p
+              id="rcp-water-alkalinity-help"
+              className="microcopy"
+              style={{ marginTop: "6px" }}
+            >
+              Guided-Empfehlung: Analysewert übernehmen; bei unbekanntem Wert
+              zuerst messen und keine Dosis ableiten.
+            </p>
+          </div>
+
           {/* Ca:Mg Ratio Guidance */}
           <div
             style={{
