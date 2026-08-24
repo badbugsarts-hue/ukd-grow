@@ -1574,7 +1574,7 @@ function ExecutionModeControl({
           // The inactive label remains operationally important. Using the
           // normal text token keeps it readable on every command-bar surface;
           // state is still communicated by the dot, fill and aria-pressed.
-          color: "var(--text)",
+          color: "var(--mode-control-text)",
           fontSize: "11px",
           fontWeight: isLive ? 800 : 600,
           cursor: "pointer",
@@ -1623,7 +1623,7 @@ function ExecutionModeControl({
           background: !isLive
             ? "color-mix(in srgb, var(--blue) 16%, var(--surface-2))"
             : "transparent",
-          color: "var(--text)",
+          color: "var(--mode-control-text)",
           fontSize: "11px",
           fontWeight: !isLive ? 800 : 600,
           cursor: "pointer",
