@@ -1930,10 +1930,29 @@ export function ReportsWorkspace({ run, onChange }: RunProps) {
   );
 }
 
+async function verifyCanonicalWorkbook(manifest: Manifest): Promise<boolean> {
+  const response = await fetch(
+    `${import.meta.env.BASE_URL}${manifest.canonicalWorkbook.path}`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    throw new Error("Kanonischer Workbook-Snapshot konnte nicht geladen werden.");
+  }
+  const hash = await crypto.subtle.digest(
+    "SHA-256",
+    await response.arrayBuffer(),
+  );
+  const hex = [...new Uint8Array(hash)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("")
+    .toUpperCase();
+  return hex === manifest.canonicalWorkbook.sha256;
+}
+
 export function SystemWorkspace({ run }: { run: RunPackage }) {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [integrity, setIntegrity] = useState<
-    "idle" | "checking" | "valid" | "invalid"
+    "idle" | "checking" | "valid" | "invalid" | "unavailable"
   >("idle");
   const [online, setOnline] = useState(navigator.onLine);
   const [highContrast, setHighContrast] = useState(
@@ -1953,13 +1972,29 @@ export function SystemWorkspace({ run }: { run: RunPackage }) {
     localStorage.setItem("ukd:text-scale", textScale);
   }, [textScale]);
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}data/data-manifest.json`)
-      .then((response) => response.json())
-      .then((value: Manifest) => setManifest(value));
+    let active = true;
+    const loadAndVerifyManifest = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.BASE_URL}data/data-manifest.json`,
+        );
+        if (!response.ok) throw new Error("Manifest konnte nicht geladen werden.");
+        const value = (await response.json()) as Manifest;
+        if (!active) return;
+        setManifest(value);
+        setIntegrity("checking");
+        const valid = await verifyCanonicalWorkbook(value);
+        if (active) setIntegrity(valid ? "valid" : "invalid");
+      } catch {
+        if (active) setIntegrity("unavailable");
+      }
+    };
+    void loadAndVerifyManifest();
     const update = () => setOnline(navigator.onLine);
     window.addEventListener("online", update);
     window.addEventListener("offline", update);
     return () => {
+      active = false;
       window.removeEventListener("online", update);
       window.removeEventListener("offline", update);
     };
@@ -1967,21 +2002,12 @@ export function SystemWorkspace({ run }: { run: RunPackage }) {
   const verify = async () => {
     if (!manifest) return;
     setIntegrity("checking");
-    const response = await fetch(
-      `${import.meta.env.BASE_URL}${manifest.canonicalWorkbook.path}`,
-      { cache: "no-store" },
-    );
-    const hash = await crypto.subtle.digest(
-      "SHA-256",
-      await response.arrayBuffer(),
-    );
-    const hex = [...new Uint8Array(hash)]
-      .map((byte) => byte.toString(16).padStart(2, "0"))
-      .join("")
-      .toUpperCase();
-    setIntegrity(
-      hex === manifest.canonicalWorkbook.sha256 ? "valid" : "invalid",
-    );
+    try {
+      const valid = await verifyCanonicalWorkbook(manifest);
+      setIntegrity(valid ? "valid" : "invalid");
+    } catch {
+      setIntegrity("unavailable");
+    }
   };
   const exportDiagnostics = async () => {
     const snapshot = await createDiagnosticSnapshot(run, APPLICATION_VERSION);
@@ -2017,7 +2043,9 @@ export function SystemWorkspace({ run }: { run: RunPackage }) {
               ? "measured"
               : integrity === "invalid"
                 ? "missing"
-                : "target"
+                : integrity === "unavailable"
+                  ? "stale"
+                  : "target"
           }
         />
         <SystemCard
@@ -2081,6 +2109,12 @@ export function SystemWorkspace({ run }: { run: RunPackage }) {
         {integrity === "invalid" && (
           <p className="inline-error" role="alert">
             Hashabweichung: Daten nicht als kanonisch verwenden.
+          </p>
+        )}
+        {integrity === "unavailable" && (
+          <p className="inline-error" role="alert">
+            Integritätsprüfung nicht verfügbar. Netzwerk und lokale Dateien
+            prüfen, dann erneut verifizieren.
           </p>
         )}
       </section>
