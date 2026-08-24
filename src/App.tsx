@@ -1568,11 +1568,11 @@ function ExecutionModeControl({
             ? "1px solid color-mix(in srgb, var(--green) 40%, transparent)"
             : "1px solid transparent",
           borderRadius: "4px",
-          background: isLive ? "var(--green)" : "transparent",
-          // Use an opaque semantic pair for the selected mode. Besides making
-          // the state unmistakable, this avoids engine-specific contrast
-          // interpretation of color-mix() in automated accessibility checks.
-          color: isLive ? "var(--on-green)" : "var(--text)",
+          background: isLive ? "var(--mode-live-active-bg)" : "transparent",
+          // Keep the established quiet appearance with an opaque semantic
+          // surface. This avoids engine-specific contrast interpretation of
+          // color-mix() while preserving the approved visual hierarchy.
+          color: "var(--mode-control-text)",
           fontSize: "11px",
           fontWeight: isLive ? 800 : 600,
           cursor: "pointer",
@@ -1618,8 +1618,10 @@ function ExecutionModeControl({
             ? "1px solid color-mix(in srgb, var(--blue) 40%, transparent)"
             : "1px solid transparent",
           borderRadius: "4px",
-          background: !isLive ? "var(--blue)" : "transparent",
-          color: !isLive ? "var(--on-blue)" : "var(--text)",
+          background: !isLive
+            ? "var(--mode-simulation-active-bg)"
+            : "transparent",
+          color: "var(--mode-control-text)",
           fontSize: "11px",
           fontWeight: !isLive ? 800 : 600,
           cursor: "pointer",
