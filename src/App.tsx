@@ -1568,13 +1568,11 @@ function ExecutionModeControl({
             ? "1px solid color-mix(in srgb, var(--green) 40%, transparent)"
             : "1px solid transparent",
           borderRadius: "4px",
-          background: isLive
-            ? "color-mix(in srgb, var(--green) 16%, var(--surface-2))"
-            : "transparent",
-          // The inactive label remains operationally important. Using the
-          // normal text token keeps it readable on every command-bar surface;
-          // state is still communicated by the dot, fill and aria-pressed.
-          color: "var(--mode-control-text)",
+          background: isLive ? "var(--green)" : "transparent",
+          // Use an opaque semantic pair for the selected mode. Besides making
+          // the state unmistakable, this avoids engine-specific contrast
+          // interpretation of color-mix() in automated accessibility checks.
+          color: isLive ? "var(--on-green)" : "var(--text)",
           fontSize: "11px",
           fontWeight: isLive ? 800 : 600,
           cursor: "pointer",
@@ -1620,10 +1618,8 @@ function ExecutionModeControl({
             ? "1px solid color-mix(in srgb, var(--blue) 40%, transparent)"
             : "1px solid transparent",
           borderRadius: "4px",
-          background: !isLive
-            ? "color-mix(in srgb, var(--blue) 16%, var(--surface-2))"
-            : "transparent",
-          color: "var(--mode-control-text)",
+          background: !isLive ? "var(--blue)" : "transparent",
+          color: !isLive ? "var(--on-blue)" : "var(--text)",
           fontSize: "11px",
           fontWeight: !isLive ? 800 : 600,
           cursor: "pointer",

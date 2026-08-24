@@ -53,7 +53,6 @@
     --red-dim: #4f211b;
     --purple: #b898ec;
     --purple-dim: #34284b;
-    --mode-control-text: #ffffff;
     --sidebar: 260px;
     --topbar: 64px;
     --radius-sm: 6px;
@@ -125,7 +124,6 @@
     --red-dim: #f9dfdc;
     --purple: #6f4caf;
     --purple-dim: #ece4f7;
-    --mode-control-text: #07120e;
     --shadow: 0 18px 40px rgb(33 56 49 / 12%);
   }
   :root[data-contrast="high"] {
@@ -4408,7 +4406,7 @@
 }
 .execution-mode-live > span:last-child,
 .execution-mode-simulation > span:last-child {
-  color: var(--mode-control-text) !important;
+  color: inherit;
 }
 .mode-dot {
   width: 8px;
