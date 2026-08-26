@@ -621,7 +621,7 @@ export function GlobalCommandCenter(props: Props) {
             {run.executionMode === "simulation" && (
               <button
                 type="button"
-                className="primary"
+                className="primary-button"
                 onClick={() => void actions["live.start"].execute()}
                 aria-description={actions["live.start"].help}
               >
@@ -874,7 +874,7 @@ export function GlobalCommandCenter(props: Props) {
           <button type="button" onClick={() => setQuickLogOpen(false)}>
             Abbrechen
           </button>
-          <button type="button" className="primary" onClick={saveQuickLog}>
+          <button type="button" className="primary-button" onClick={saveQuickLog}>
             Eintrag speichern
           </button>
         </div>
@@ -917,7 +917,7 @@ export function GlobalCommandCenter(props: Props) {
             </button>
             <button
               type="button"
-              className="primary"
+              className="primary-button"
               disabled={busy || !anchorUtc}
               onClick={() => void startLive()}
             >
@@ -972,7 +972,7 @@ export function GlobalCommandCenter(props: Props) {
                 </button>
                 <button
                   type="button"
-                  className="primary"
+                  className="primary-button"
                   onClick={() => decide(proposal, "accept")}
                 >
                   Annehmen

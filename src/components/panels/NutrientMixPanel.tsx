@@ -692,7 +692,13 @@ export const NutrientMixPanel: React.FC<NutrientMixPanelProps> = ({
         </div>
 
         {/* Calculated Recipe Table */}
-        <div style={{ overflowX: "auto" }}>
+        <div
+          style={{ overflowX: "auto" }}
+          role="region"
+          aria-label="Mischkomponenten und Ist-Dosen"
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: axe requires a keyboard-focusable horizontal scroll region.
+          tabIndex={0}
+        >
           <table
             style={{
               width: "100%",
