@@ -133,7 +133,9 @@ export function ReservoirWorkspace({ run, lens, onChange }: Props) {
             onChange={setRhMax}
           />
         </div>
-        <button type="submit">Raumprofil aktualisieren</button>
+        <button className="primary-button" type="submit">
+          Raumprofil aktualisieren
+        </button>
       </form>
       {message && (
         <p className={message.startsWith("✓") ? "save-state" : "inline-error"}>
@@ -429,7 +431,9 @@ export function MixApplicationWorkspace({ run, lens, onChange }: Props) {
               onChange={setVolume}
             />
           </div>
-          <button type="submit">Applikation dokumentieren</button>
+          <button className="primary-button" type="submit">
+            Applikation dokumentieren
+          </button>
         </form>
       )}
       {message && (

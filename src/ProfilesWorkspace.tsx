@@ -127,7 +127,7 @@ export function ProfilesWorkspace({
         </label>
         <button
           type="button"
-          className="primary"
+          className="primary-button"
           onClick={() => void addProfile()}
         >
           Setup-Profil speichern
@@ -160,7 +160,7 @@ export function ProfilesWorkspace({
         </div>
         <button
           type="button"
-          className="primary"
+          className="primary-button"
           onClick={() => void addTemplate()}
         >
           Template speichern

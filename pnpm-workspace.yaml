@@ -5,13 +5,11 @@ packages:
 
 allowBuilds:
   esbuild: true
+  core-js: false
   protobufjs: false
 
 catalog:
   typescript: ^7.0.2
-
-onlyBuiltDependencies:
-  - esbuild
 
 overrides:
   uuid: ^11.1.1

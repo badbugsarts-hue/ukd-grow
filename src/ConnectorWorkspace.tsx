@@ -145,7 +145,7 @@ export function ConnectorWorkspace({
                 </label>
               ))}
             </div>
-            <button type="button" className="primary" onClick={validate}>
+            <button type="button" className="primary-button" onClick={validate}>
               Validieren & Vorschau
             </button>
           </>
@@ -201,7 +201,7 @@ export function ConnectorWorkspace({
           </div>
           <button
             type="button"
-            className="primary"
+            className="primary-button"
             disabled={batch.status !== "validated"}
             onClick={commit}
           >

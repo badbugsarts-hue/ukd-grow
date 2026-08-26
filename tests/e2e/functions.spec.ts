@@ -53,6 +53,34 @@ async function gotoRoute(
   await expect(page.locator("#main-content")).toBeVisible();
 }
 
+async function selectLens(
+  page: Page,
+  target: "guided" | "advanced" | "expert",
+) {
+  const desktopLabels = {
+    guided: "Guided",
+    advanced: "Advanced",
+    expert: "Expert",
+  } as const;
+  const badgeLabels = {
+    guided: "GEFÜHRT",
+    advanced: "STANDARD",
+    expert: "EXPERTE",
+  } as const;
+  const desktopControl = page.getByTitle(desktopLabels[target]);
+  if (await desktopControl.isVisible()) {
+    await desktopControl.click();
+  } else {
+    const badge = page.getByRole("button", { name: /Erfahrungsstufe:/ });
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      if ((await badge.getAttribute("aria-label"))?.includes(badgeLabels[target]))
+        break;
+      await badge.click();
+    }
+  }
+  await expect(page.locator("main")).toHaveClass(new RegExp(`lens-${target}`));
+}
+
 test("all routes render in all experience lenses without console errors", async ({
   page,
   isMobile,
@@ -92,21 +120,23 @@ test("URL state, saved day, lens and theme persist and clamp safely", async ({
   await page.goto("/#today");
 
   await expect(page.locator(".day-stepper input")).toHaveValue("37");
-  await expect(page.getByTitle("Advanced")).toHaveClass(/active/);
+  await expect(page.locator("main")).toHaveClass(/lens-advanced/);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   expect(new URL(page.url()).searchParams.get("day")).toBe("37");
 
-  await page.getByTitle("Expert").click();
+  await selectLens(page, "expert");
   await page.getByRole("button", { name: "Farbschema wechseln" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.reload();
-  await expect(page.getByTitle("Expert")).toHaveClass(/active/);
+  await expect(page.locator("main")).toHaveClass(/lens-expert/);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator(".day-stepper input")).toHaveValue("37");
 
   await page.goto("/?lens=guided&day=999#today");
   await expect(page.locator(".day-stepper input")).toHaveValue("80");
-  expect(new URL(page.url()).searchParams.get("day")).toBe("80");
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("day"))
+    .toBe("80");
 });
 
 test("sidebar, contextual help and command palette navigation work", async ({
@@ -223,10 +253,9 @@ test("mix calculator, climate formulas and nutrient detail modes work", async ({
   await volume.fill("-5");
   await expect(volume).toHaveValue("1");
 
-  await page.getByTitle("Advanced").click();
+  await selectLens(page, "advanced");
   await expect(page.getByRole("heading", { name: /Schritt 7/ })).toBeVisible();
-  await page.getByTitle("Expert").click();
-  await expect(page.getByTitle("Expert")).toHaveClass(/active/);
+  await selectLens(page, "expert");
 
   await gotoRoute(page, "climate", "expert", 4);
   await expect(
@@ -238,9 +267,9 @@ test("mix calculator, climate formulas and nutrient detail modes work", async ({
 
   await gotoRoute(page, "nutrients", "guided", 4);
   await expect(page.locator(".slice-grid")).toHaveCount(0);
-  await page.getByTitle("Advanced").click();
+  await selectLens(page, "advanced");
   await expect(page.locator(".slice-grid")).toBeVisible();
-  await page.getByTitle("Expert").click();
+  await selectLens(page, "expert");
   await expect(page.locator(".slice-grid code").first()).toBeVisible();
   await page.getByRole("button", { name: "Batch berechnen" }).click();
   await expect(page.locator("#main-content h1")).toHaveText("Mischlabor");
