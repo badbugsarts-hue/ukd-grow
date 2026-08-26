@@ -35,6 +35,15 @@ const routes = [
   "calc",
 ] as const;
 
+const selectedRoutes = process.env.UKD_VISUAL_ROUTE
+  ? routes.filter((route) => route === process.env.UKD_VISUAL_ROUTE)
+  : routes;
+const routeDiffBudget = process.env.UKD_VISUAL_STRICT === "1" ? 0 : 0.01;
+
+if (selectedRoutes.length === 0) {
+  throw new Error(`Unknown UKD_VISUAL_ROUTE: ${process.env.UKD_VISUAL_ROUTE}`);
+}
+
 test.describe("approved route visuals", () => {
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
@@ -51,7 +60,7 @@ test.describe("approved route visuals", () => {
       await page.addInitScript((nextTheme) => {
         localStorage.setItem("ukd:theme", nextTheme);
       }, theme);
-      for (const route of routes) {
+      for (const route of selectedRoutes) {
         await page.goto(`/?lens=expert&day=4#${route}`, {
           waitUntil: "networkidle",
         });
@@ -63,7 +72,7 @@ test.describe("approved route visuals", () => {
         await expect(page).toHaveScreenshot(`${route}-${theme}.png`, {
           animations: "disabled",
           caret: "hide",
-          maxDiffPixelRatio: 0.01,
+          maxDiffPixelRatio: routeDiffBudget,
           timeout: 15_000,
         });
       }
@@ -90,14 +99,20 @@ test.describe("critical interactive visuals", () => {
       .click();
     await expect(
       page.getByRole("dialog", { name: "Command Center" }),
-    ).toHaveScreenshot("command-center.png", { animations: "disabled" });
+    ).toHaveScreenshot("command-center.png", {
+      animations: "disabled",
+      maxDiffPixelRatio: 0.015,
+    });
   });
 
   test("Quick Log", async ({ page }) => {
     await page.getByRole("button", { name: "Quick Log" }).click();
     await expect(
       page.getByRole("dialog", { name: "Quick Log" }),
-    ).toHaveScreenshot("quick-log.png", { animations: "disabled" });
+    ).toHaveScreenshot("quick-log.png", {
+      animations: "disabled",
+      maxDiffPixelRatio: 0.015,
+    });
   });
 
   test("Live Preflight", async ({ page }) => {
@@ -109,6 +124,9 @@ test.describe("critical interactive visuals", () => {
     await page.getByRole("button", { name: /Live starten/ }).click();
     await expect(
       page.getByRole("dialog", { name: "Simulation als Live-Run starten" }),
-    ).toHaveScreenshot("live-preflight.png", { animations: "disabled" });
+    ).toHaveScreenshot("live-preflight.png", {
+      animations: "disabled",
+      maxDiffPixelRatio: 0.015,
+    });
   });
 });

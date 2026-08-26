@@ -11,16 +11,21 @@ const markdownPath = new URL(
 const html = fs.readFileSync(htmlPath, "utf8");
 const markdown = fs.readFileSync(markdownPath, "utf8");
 
-const jsonMatch = html.match(
-  /<script type="application\/json" id="workbook-data">([\s\S]*?)<\/script>/,
+const workbookMarker = '<script type="application/json" id="workbook-data">';
+const workbookStart = html.indexOf(workbookMarker);
+const workbookEnd = html.indexOf("</script", workbookStart + workbookMarker.length);
+if (workbookStart < 0 || workbookEnd < 0)
+  throw new Error("Embedded workbook data not found");
+const workbook = JSON.parse(
+  html.slice(workbookStart + workbookMarker.length, workbookEnd),
 );
-if (!jsonMatch) throw new Error("Embedded workbook data not found");
-const workbook = JSON.parse(jsonMatch[1]);
 
-const scripts = [
-  ...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g),
-].map((match) => match[1]);
-const appScript = scripts.at(-1) ?? "";
+const appScriptTag = html.lastIndexOf("<script");
+const appScriptStart = html.indexOf(">", appScriptTag) + 1;
+const appScriptEnd = html.indexOf("</script", appScriptStart);
+if (appScriptTag < 0 || appScriptStart <= 0 || appScriptEnd < 0)
+  throw new Error("Legacy application script not found");
+const appScript = html.slice(appScriptStart, appScriptEnd);
 const functions = [
   ...appScript.matchAll(
     /(?:function\s+([A-Za-z_$][\w$]*)|const\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>)/g,

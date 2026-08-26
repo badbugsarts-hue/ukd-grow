@@ -14,6 +14,42 @@ async function open(page: Page, route: string, day = 4) {
   await expect(page.locator("#main-content h1")).toBeVisible();
 }
 
+async function readPersistedActiveRunGenetics(page: Page) {
+  return page.evaluate(
+    () =>
+      new Promise<string | null>((resolve, reject) => {
+        const request = indexedDB.open("ukd-operator-workspace", 8);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const database = request.result;
+          const transaction = database.transaction(
+            ["workspace-meta", "run-packages-v3"],
+            "readonly",
+          );
+          transaction.oncomplete = () => database.close();
+          transaction.onerror = () => reject(transaction.error);
+          const activeRequest = transaction
+            .objectStore("workspace-meta")
+            .get("active-run-id");
+          activeRequest.onerror = () => reject(activeRequest.error);
+          activeRequest.onsuccess = () => {
+            const activeRunId = activeRequest.result;
+            if (typeof activeRunId !== "string") {
+              resolve(null);
+              return;
+            }
+            const runRequest = transaction
+              .objectStore("run-packages-v3")
+              .get(activeRunId);
+            runRequest.onerror = () => reject(runRequest.error);
+            runRequest.onsuccess = () =>
+              resolve(runRequest.result?.config?.genetics ?? null);
+          };
+        };
+      }),
+  );
+}
+
 test("run setup autosaves in IndexedDB and drives the cockpit", async ({
   page,
 }) => {
@@ -36,7 +72,9 @@ test("run setup autosaves in IndexedDB and drives the cockpit", async ({
   await page.locator("#rcp-tent-height").fill("180");
   await page.getByRole("button", { name: /Run Aktivieren/i }).click();
   await expect(page.getByText(/Run bereits aktiv/i)).toBeVisible();
-  await page.waitForTimeout(500);
+  await expect
+    .poll(() => readPersistedActiveRunGenetics(page), { timeout: 60_000 })
+    .toBe("Test Genetic 2026");
   await page.reload();
   await expect(page.getByLabel(/Genetik \/ Strain Name/).first()).toHaveValue(
     "Test Genetic 2026",
@@ -282,6 +320,7 @@ test("system verifies the canonical hash and stores accessibility settings", asy
   await page.getByRole("button", { name: "Workbook verifizieren" }).click();
   await expect(page.locator(".system-status-grid").first()).toContainText(
     "VALID",
+    { timeout: 60_000 },
   );
   await page.getByRole("button", { name: "Hoher Kontrast" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-contrast", "high");

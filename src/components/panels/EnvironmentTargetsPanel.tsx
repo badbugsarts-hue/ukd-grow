@@ -4,6 +4,7 @@ import { calculateDli, calculateLeafVpd } from "../../domain";
 import { addObservation, createObservation } from "../../run-state";
 import type { DayPlan, ExperienceLens, RouteId, RunPackage } from "../../types";
 import LensBadge from "../common/LensBadge";
+import { Icon } from "../common/Icon";
 import MetricGauge from "../common/MetricGauge";
 import TermTooltip from "../common/TermTooltip";
 
@@ -183,7 +184,8 @@ export const EnvironmentTargetsPanel: React.FC<
               gap: "10px",
             }}
           >
-            🌡️ Klima & Umwelt Zielwerte
+            <Icon name="activity" size={22} />
+            Klima & Umwelt Zielwerte
           </h2>
           <p
             style={{
@@ -209,6 +211,7 @@ export const EnvironmentTargetsPanel: React.FC<
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
+                gap: "6px",
                 background: "var(--surface-2)",
                 border: "1px solid var(--line)",
                 borderRadius: "var(--radius-sm)",
@@ -217,7 +220,8 @@ export const EnvironmentTargetsPanel: React.FC<
                 cursor: "pointer",
               }}
             >
-              📊 Klima-Details
+              <Icon name="activity" size={16} />
+              Klima-Details
             </button>
           )}
         </div>
@@ -249,9 +253,13 @@ export const EnvironmentTargetsPanel: React.FC<
               fontSize: "15px",
               fontWeight: 600,
               color: "var(--text)",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            ⚙️ Messwerte & Parameter
+            <Icon name="settings" size={17} />
+            Messwerte & Parameter
           </h3>
 
           {/* Quick Presets */}
@@ -284,6 +292,7 @@ export const EnvironmentTargetsPanel: React.FC<
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: "6px",
                   fontSize: "12px",
                   fontWeight: 500,
                   background: "var(--surface-1)",
@@ -293,7 +302,8 @@ export const EnvironmentTargetsPanel: React.FC<
                   cursor: "pointer",
                 }}
               >
-                🌱 Sämling (24°/70%)
+                <Icon name="plant" size={16} />
+                Sämling (24°/70%)
               </button>
               <button
                 type="button"
@@ -304,6 +314,7 @@ export const EnvironmentTargetsPanel: React.FC<
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: "6px",
                   fontSize: "12px",
                   fontWeight: 500,
                   background: "var(--surface-1)",
@@ -313,7 +324,8 @@ export const EnvironmentTargetsPanel: React.FC<
                   cursor: "pointer",
                 }}
               >
-                🌿 Vegi (25°/60%)
+                <Icon name="plant" size={16} />
+                Vegi (25°/60%)
               </button>
               <button
                 type="button"
@@ -324,6 +336,7 @@ export const EnvironmentTargetsPanel: React.FC<
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: "6px",
                   fontSize: "12px",
                   fontWeight: 500,
                   background: "var(--surface-1)",
@@ -333,7 +346,8 @@ export const EnvironmentTargetsPanel: React.FC<
                   cursor: "pointer",
                 }}
               >
-                🌸 Blüte (23°/45%)
+                <Icon name="plant" size={16} />
+                Blüte (23°/45%)
               </button>
               <button
                 type="button"
@@ -344,6 +358,7 @@ export const EnvironmentTargetsPanel: React.FC<
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: "6px",
                   fontSize: "12px",
                   fontWeight: 500,
                   background: "var(--surface-1)",
@@ -353,7 +368,8 @@ export const EnvironmentTargetsPanel: React.FC<
                   cursor: "pointer",
                 }}
               >
-                🍂 Spätblüte (21°/40%)
+                <Icon name="plant" size={16} />
+                Spätblüte (21°/40%)
               </button>
             </div>
           </div>
@@ -527,6 +543,7 @@ export const EnvironmentTargetsPanel: React.FC<
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
+              gap: "6px",
               background: "var(--green)",
               border: "none",
               borderRadius: "var(--radius-sm)",
@@ -536,7 +553,8 @@ export const EnvironmentTargetsPanel: React.FC<
               cursor: "pointer",
             }}
           >
-            💾 Messung als Tagesbeobachtung speichern
+            <Icon name="check" size={16} />
+            Messung als Tagesbeobachtung speichern
           </button>
 
           {saveStatus && (
@@ -569,9 +587,13 @@ export const EnvironmentTargetsPanel: React.FC<
               fontSize: "15px",
               fontWeight: 600,
               color: "var(--text)",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
             }}
           >
-            📊 Live-Berechnungen & Zielkorridor
+            <Icon name="activity" size={17} />
+            Live-Berechnungen & Zielkorridor
           </h3>
 
           {/* Leaf VPD Gauge */}
@@ -656,11 +678,14 @@ export const EnvironmentTargetsPanel: React.FC<
             <strong
               style={{
                 color: "var(--green)",
-                display: "block",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
                 marginBottom: "4px",
               }}
             >
-              💡 Phasen-Leitfaden: {phaseTarget.name}
+              <Icon name="light" size={16} />
+              Phasen-Leitfaden: {phaseTarget.name}
             </strong>
             <div>
               • Ziel-VPD: {phaseTarget.vpdMin}–{phaseTarget.vpdMax} kPa <br />•

@@ -1540,7 +1540,7 @@ function ExecutionModeControl({
     >
       <button
         type="button"
-        className={`mode-btn mode-live ${isLive ? "active" : ""}`}
+        className={`mode-btn execution-mode-live ${isLive ? "active" : ""}`}
         onClick={() => {
           if (!isLive) {
             onToggleMode("live");
@@ -1568,17 +1568,14 @@ function ExecutionModeControl({
             ? "1px solid color-mix(in srgb, var(--green) 40%, transparent)"
             : "1px solid transparent",
           borderRadius: "4px",
-          background: isLive
-            ? "color-mix(in srgb, var(--green) 16%, var(--surface-2))"
-            : "transparent",
-          // The inactive label remains operationally important. Using the
-          // normal text token keeps it readable on every command-bar surface;
-          // state is still communicated by the dot, fill and aria-pressed.
-          color: "var(--text)",
+          background: isLive ? "var(--mode-live-active-bg)" : "transparent",
+          // Keep the established quiet appearance with an opaque semantic
+          // surface. This avoids engine-specific contrast interpretation of
+          // color-mix() while preserving the approved visual hierarchy.
+          color: "var(--mode-control-text)",
           fontSize: "11px",
           fontWeight: isLive ? 800 : 600,
           cursor: "pointer",
-          transition: "all 0.15s ease",
         }}
       >
         <span
@@ -1598,7 +1595,7 @@ function ExecutionModeControl({
 
       <button
         type="button"
-        className={`mode-btn mode-sim ${!isLive ? "active" : ""}`}
+        className={`mode-btn execution-mode-simulation ${!isLive ? "active" : ""}`}
         onClick={() => {
           if (isLive) {
             onToggleMode("simulation");
@@ -1621,13 +1618,12 @@ function ExecutionModeControl({
             : "1px solid transparent",
           borderRadius: "4px",
           background: !isLive
-            ? "color-mix(in srgb, var(--blue) 16%, var(--surface-2))"
+            ? "var(--mode-simulation-active-bg)"
             : "transparent",
-          color: "var(--text)",
+          color: "var(--mode-control-text)",
           fontSize: "11px",
           fontWeight: !isLive ? 800 : 600,
           cursor: "pointer",
-          transition: "all 0.15s ease",
         }}
       >
         <span
